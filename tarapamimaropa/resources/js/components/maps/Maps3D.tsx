@@ -66,14 +66,15 @@ const setPaint = (layer: StyleLayer, key: string, value: unknown) => {
 
 /**
  * Recolor liberty for dark LandingPage look. Keep `building-3d` extrusion.
+ * Do not set paint/layout to `undefined` — MapLibre rejects those keys when nullish.
  */
 const darkenLibertyStyle = (style: StyleSpec): StyleSpec => {
     const layers = (style.layers ?? []).map((layer) => {
-        const next: StyleLayer = {
-            ...layer,
-            paint: layer.paint ? { ...layer.paint } : undefined,
-            layout: layer.layout ? { ...layer.layout } : undefined,
-        };
+        const next: StyleLayer = { ...layer };
+        if (layer.paint) next.paint = { ...layer.paint };
+        else delete next.paint;
+        if (layer.layout) next.layout = { ...layer.layout };
+        else delete next.layout;
         const id = next.id;
 
         if (id === 'background') {

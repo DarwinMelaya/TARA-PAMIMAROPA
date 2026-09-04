@@ -495,15 +495,50 @@ export const projectType = (project: TaraProject): string => project.sector;
 export const projectYear = (project: TaraProject): string =>
     project.start_date.slice(0, 4);
 
+export const PROGRAMS: TaraProgram[] = [
+    'SETUP',
+    'CEST',
+    'GIA',
+    'STARBOOKS',
+    'Community',
+    'Water',
+    'Energy',
+];
+
+export const AI_INSIGHTS = [
+    'Marinduque currently leads project completion rate among MIMAROPA provinces.',
+    'Palawan received the highest technology intervention investments this year.',
+    'Occidental Mindoro shows rising demand for renewable energy and water projects.',
+    '3 projects flagged delayed — Sablayan Water System needs priority review.',
+];
+
 export const summarizeProjects = (projects: TaraProject[]) => {
-    const municipalities = new Set(
-        projects.map((p) => `${p.province}|${p.municipality}`),
+    const total = projects.length;
+    const active = projects.filter((p) => p.status === 'ongoing').length;
+    const completed = projects.filter((p) => p.status === 'completed').length;
+    const onHold = projects.filter((p) => p.status === 'on_hold').length;
+    const delayed = projects.filter((p) => p.status === 'delayed').length;
+    const beneficiaries = projects.reduce((s, p) => s + p.beneficiaries, 0);
+    const funding = projects.reduce((s, p) => s + p.budget, 0);
+    const utilized = projects.reduce(
+        (s, p) => s + Math.round((p.budget * p.progress) / 100),
+        0,
     );
+    const municipalities = new Set(projects.map((p) => p.municipality)).size;
+    const barangays = new Set(projects.map((p) => p.barangay)).size;
+    const partners = new Set(projects.map((p) => p.partner_agency)).size;
 
     return {
-        total: projects.length,
-        beneficiaries: projects.reduce((sum, p) => sum + p.beneficiaries, 0),
-        municipalities: municipalities.size,
-        funding: projects.reduce((sum, p) => sum + p.budget, 0),
+        total,
+        active,
+        completed,
+        onHold,
+        delayed,
+        beneficiaries,
+        funding,
+        utilized,
+        municipalities,
+        barangays,
+        partners,
     };
 };

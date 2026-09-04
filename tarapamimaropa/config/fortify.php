@@ -116,6 +116,7 @@ return [
 
     'limiters' => [
         'login' => 'login',
+        'register' => 'register',
     ],
 
     /*
@@ -143,6 +144,7 @@ return [
     */
 
     'features' => [
+        Features::registration(),
         Features::resetPasswords(),
     ],
 

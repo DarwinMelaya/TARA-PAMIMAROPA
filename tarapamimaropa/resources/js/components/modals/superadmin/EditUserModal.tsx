@@ -1,6 +1,7 @@
 import { Form } from '@inertiajs/react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { XIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import UserController from '@/actions/App/Http/Controllers/SuperAdmin/UserController';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -18,7 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 
-type RoleOption = {
+type Option = {
     value: string;
     label: string;
 };
@@ -28,19 +29,38 @@ type ManagedUser = {
     name: string;
     email: string;
     role: string;
+    province: string | null;
 };
 
 type Props = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    roles: RoleOption[];
+    roles: Option[];
+    provinces: Option[];
     user: ManagedUser | null;
 };
 
-const EditUserModal = ({ open, onOpenChange, roles, user }: Props) => {
+const selectClassName =
+    'border-input bg-background focus-visible:ring-ring/50 flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:ring-[3px]';
+
+const EditUserModal = ({
+    open,
+    onOpenChange,
+    roles,
+    provinces,
+    user,
+}: Props) => {
+    const [role, setRole] = useState(user?.role ?? '');
+
+    useEffect(() => {
+        setRole(user?.role ?? '');
+    }, [user]);
+
     if (!user) {
         return null;
     }
+
+    const isPsto = role === 'psto';
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -55,12 +75,12 @@ const EditUserModal = ({ open, onOpenChange, roles, user }: Props) => {
                         <DialogTitle>Edit user</DialogTitle>
                         <DialogDescription>
                             Update account details. Leave password blank to keep
-                            the current password.
+                            the current password. PSTO accounts need a province.
                         </DialogDescription>
                     </DialogHeader>
 
                     <Form
-                        key={user.id}
+                        key={`${user.id}-${user.role}-${user.province ?? ''}`}
                         {...UserController.update.form(user)}
                         options={{ preserveScroll: true }}
                         className="grid gap-4 sm:grid-cols-2"
@@ -104,20 +124,51 @@ const EditUserModal = ({ open, onOpenChange, roles, user }: Props) => {
                                         id="edit-user-role"
                                         name="role"
                                         required
-                                        defaultValue={user.role}
-                                        className="border-input bg-background focus-visible:ring-ring/50 flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:ring-[3px]"
+                                        value={role}
+                                        onChange={(e) =>
+                                            setRole(e.target.value)
+                                        }
+                                        className={selectClassName}
                                     >
-                                        {roles.map((role) => (
+                                        {roles.map((item) => (
                                             <option
-                                                key={role.value}
-                                                value={role.value}
+                                                key={item.value}
+                                                value={item.value}
                                             >
-                                                {role.label}
+                                                {item.label}
                                             </option>
                                         ))}
                                     </select>
                                     <InputError message={errors.role} />
                                 </div>
+
+                                {isPsto ? (
+                                    <div className="grid gap-2 sm:col-span-2">
+                                        <Label htmlFor="edit-user-province">
+                                            Province (PSTO)
+                                        </Label>
+                                        <select
+                                            id="edit-user-province"
+                                            name="province"
+                                            required
+                                            defaultValue={user.province ?? ''}
+                                            className={selectClassName}
+                                        >
+                                            <option value="" disabled>
+                                                Select province
+                                            </option>
+                                            {provinces.map((item) => (
+                                                <option
+                                                    key={item.value}
+                                                    value={item.value}
+                                                >
+                                                    {item.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <InputError message={errors.province} />
+                                    </div>
+                                ) : null}
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="edit-user-password">

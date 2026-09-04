@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import { useState } from 'react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -9,16 +10,23 @@ import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 
-type RoleOption = {
+type Option = {
     value: string;
     label: string;
 };
 
 type Props = {
-    roles: RoleOption[];
+    roles: Option[];
+    provinces: Option[];
 };
 
-export default function SignUp({ roles }: Props) {
+const selectClassName =
+    'border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50';
+
+export default function SignUp({ roles, provinces }: Props) {
+    const [role, setRole] = useState('');
+    const isPsto = role === 'psto';
+
     return (
         <>
             <Head title="Sign up" />
@@ -67,23 +75,51 @@ export default function SignUp({ roles }: Props) {
                                     name="role"
                                     required
                                     tabIndex={3}
-                                    defaultValue=""
-                                    className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                                    value={role}
+                                    onChange={(e) => setRole(e.target.value)}
+                                    className={selectClassName}
                                 >
                                     <option value="" disabled>
                                         Select role
                                     </option>
-                                    {roles.map((role) => (
+                                    {roles.map((item) => (
                                         <option
-                                            key={role.value}
-                                            value={role.value}
+                                            key={item.value}
+                                            value={item.value}
                                         >
-                                            {role.label}
+                                            {item.label}
                                         </option>
                                     ))}
                                 </select>
                                 <InputError message={errors.role} />
                             </div>
+
+                            {isPsto ? (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="province">Province</Label>
+                                    <select
+                                        id="province"
+                                        name="province"
+                                        required
+                                        tabIndex={4}
+                                        defaultValue=""
+                                        className={selectClassName}
+                                    >
+                                        <option value="" disabled>
+                                            Select province
+                                        </option>
+                                        {provinces.map((item) => (
+                                            <option
+                                                key={item.value}
+                                                value={item.value}
+                                            >
+                                                {item.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <InputError message={errors.province} />
+                                </div>
+                            ) : null}
 
                             <div className="grid gap-2">
                                 <Label htmlFor="password">Password</Label>
@@ -91,7 +127,7 @@ export default function SignUp({ roles }: Props) {
                                     id="password"
                                     name="password"
                                     required
-                                    tabIndex={4}
+                                    tabIndex={5}
                                     autoComplete="new-password"
                                     placeholder="Password"
                                 />
@@ -106,7 +142,7 @@ export default function SignUp({ roles }: Props) {
                                     id="password_confirmation"
                                     name="password_confirmation"
                                     required
-                                    tabIndex={5}
+                                    tabIndex={6}
                                     autoComplete="new-password"
                                     placeholder="Confirm password"
                                 />
@@ -118,7 +154,7 @@ export default function SignUp({ roles }: Props) {
                             <Button
                                 type="submit"
                                 className="mt-2 w-full"
-                                tabIndex={6}
+                                tabIndex={7}
                                 disabled={processing}
                                 data-test="register-button"
                             >
@@ -129,7 +165,7 @@ export default function SignUp({ roles }: Props) {
 
                         <div className="text-muted-foreground text-center text-sm">
                             Already have an account?{' '}
-                            <TextLink href={login()} tabIndex={7}>
+                            <TextLink href={login()} tabIndex={8}>
                                 Log in
                             </TextLink>
                         </div>

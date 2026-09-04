@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Province;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -31,6 +32,7 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'role' => UserRole::Psto,
+            'province' => fake()->randomElement(Province::cases()),
             'remember_token' => Str::random(10),
         ];
     }

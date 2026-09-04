@@ -6,7 +6,7 @@ import EditUserModal from '@/components/modals/superadmin/EditUserModal';
 import { Button } from '@/components/ui/button';
 import { useFlashToast } from '@/hooks/use-flash-toast';
 
-type RoleOption = {
+type Option = {
     value: string;
     label: string;
 };
@@ -17,12 +17,14 @@ type ManagedUser = {
     email: string;
     role: string;
     role_label: string;
+    province: string | null;
     created_at: string | null;
 };
 
 type Props = {
     users: ManagedUser[];
-    roles: RoleOption[];
+    roles: Option[];
+    provinces: Option[];
 };
 
 const formatDate = (value: string | null) => {
@@ -34,7 +36,7 @@ const formatDate = (value: string | null) => {
     });
 };
 
-const SuperAdminUsers = ({ users, roles }: Props) => {
+const SuperAdminUsers = ({ users, roles, provinces }: Props) => {
     const [createOpen, setCreateOpen] = useState(false);
     const [editing, setEditing] = useState<ManagedUser | null>(null);
     useFlashToast();
@@ -50,7 +52,8 @@ const SuperAdminUsers = ({ users, roles }: Props) => {
                         </h1>
                         <p className="text-muted-foreground mt-1 text-sm">
                             View every account and create PSTO, Regional
-                            Office, or Super Admin users.
+                            Office, or Super Admin users. PSTO accounts are
+                            tied to a province.
                         </p>
                     </div>
                     <Button type="button" onClick={() => setCreateOpen(true)}>
@@ -75,7 +78,7 @@ const SuperAdminUsers = ({ users, roles }: Props) => {
                     ) : (
                         <>
                             <div className="hidden overflow-x-auto md:block">
-                                <table className="w-full min-w-[640px] text-left text-sm">
+                                <table className="w-full min-w-[720px] text-left text-sm">
                                     <thead>
                                         <tr className="border-border text-muted-foreground border-b text-[11px] uppercase tracking-wide">
                                             <th className="px-4 py-2.5 font-semibold">
@@ -86,6 +89,9 @@ const SuperAdminUsers = ({ users, roles }: Props) => {
                                             </th>
                                             <th className="px-4 py-2.5 font-semibold">
                                                 Role
+                                            </th>
+                                            <th className="px-4 py-2.5 font-semibold">
+                                                Province
                                             </th>
                                             <th className="px-4 py-2.5 font-semibold">
                                                 Created
@@ -111,6 +117,9 @@ const SuperAdminUsers = ({ users, roles }: Props) => {
                                                     <span className="bg-muted inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold">
                                                         {user.role_label}
                                                     </span>
+                                                </td>
+                                                <td className="text-muted-foreground px-4 py-3">
+                                                    {user.province ?? '—'}
                                                 </td>
                                                 <td className="text-muted-foreground px-4 py-3 tabular-nums">
                                                     {formatDate(
@@ -153,6 +162,11 @@ const SuperAdminUsers = ({ users, roles }: Props) => {
                                         <p className="text-muted-foreground text-xs">
                                             {user.email}
                                         </p>
+                                        {user.province ? (
+                                            <p className="text-muted-foreground text-xs">
+                                                {user.province}
+                                            </p>
+                                        ) : null}
                                         <div className="flex items-center justify-between gap-2">
                                             <p className="text-muted-foreground text-[11px]">
                                                 {formatDate(user.created_at)}
@@ -181,6 +195,7 @@ const SuperAdminUsers = ({ users, roles }: Props) => {
                 open={createOpen}
                 onOpenChange={setCreateOpen}
                 roles={roles}
+                provinces={provinces}
             />
 
             <EditUserModal
@@ -189,6 +204,7 @@ const SuperAdminUsers = ({ users, roles }: Props) => {
                     if (!open) setEditing(null);
                 }}
                 roles={roles}
+                provinces={provinces}
                 user={editing}
             />
         </>

@@ -1,6 +1,7 @@
 import { Form } from '@inertiajs/react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { XIcon } from 'lucide-react';
+import { useState } from 'react';
 import UserController from '@/actions/App/Http/Controllers/SuperAdmin/UserController';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -18,7 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 
-type RoleOption = {
+type Option = {
     value: string;
     label: string;
 };
@@ -26,12 +27,25 @@ type RoleOption = {
 type Props = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    roles: RoleOption[];
+    roles: Option[];
+    provinces: Option[];
 };
 
-const AddUsersModal = ({ open, onOpenChange, roles }: Props) => {
+const selectClassName =
+    'border-input bg-background focus-visible:ring-ring/50 flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:ring-[3px]';
+
+const AddUsersModal = ({ open, onOpenChange, roles, provinces }: Props) => {
+    const [role, setRole] = useState('');
+    const isPsto = role === 'psto';
+
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog
+            open={open}
+            onOpenChange={(next) => {
+                if (!next) setRole('');
+                onOpenChange(next);
+            }}
+        >
             <DialogPortal>
                 <DialogOverlay className="bg-slate-950/45 backdrop-blur-md" />
                 <DialogPrimitive.Content
@@ -43,7 +57,7 @@ const AddUsersModal = ({ open, onOpenChange, roles }: Props) => {
                         <DialogTitle>Create user</DialogTitle>
                         <DialogDescription>
                             Account can sign in immediately with the password
-                            you set.
+                            you set. PSTO accounts must pick a province.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -55,10 +69,14 @@ const AddUsersModal = ({ open, onOpenChange, roles }: Props) => {
                             'password',
                             'password_confirmation',
                             'role',
+                            'province',
                         ]}
                         options={{ preserveScroll: true }}
                         className="grid gap-4 sm:grid-cols-2"
-                        onSuccess={() => onOpenChange(false)}
+                        onSuccess={() => {
+                            setRole('');
+                            onOpenChange(false);
+                        }}
                     >
                         {({ processing, errors }) => (
                             <>
@@ -96,23 +114,54 @@ const AddUsersModal = ({ open, onOpenChange, roles }: Props) => {
                                         id="add-user-role"
                                         name="role"
                                         required
-                                        defaultValue=""
-                                        className="border-input bg-background focus-visible:ring-ring/50 flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:ring-[3px]"
+                                        value={role}
+                                        onChange={(e) =>
+                                            setRole(e.target.value)
+                                        }
+                                        className={selectClassName}
                                     >
                                         <option value="" disabled>
                                             Select role
                                         </option>
-                                        {roles.map((role) => (
+                                        {roles.map((item) => (
                                             <option
-                                                key={role.value}
-                                                value={role.value}
+                                                key={item.value}
+                                                value={item.value}
                                             >
-                                                {role.label}
+                                                {item.label}
                                             </option>
                                         ))}
                                     </select>
                                     <InputError message={errors.role} />
                                 </div>
+
+                                {isPsto ? (
+                                    <div className="grid gap-2 sm:col-span-2">
+                                        <Label htmlFor="add-user-province">
+                                            Province (PSTO)
+                                        </Label>
+                                        <select
+                                            id="add-user-province"
+                                            name="province"
+                                            required
+                                            defaultValue=""
+                                            className={selectClassName}
+                                        >
+                                            <option value="" disabled>
+                                                Select province
+                                            </option>
+                                            {provinces.map((item) => (
+                                                <option
+                                                    key={item.value}
+                                                    value={item.value}
+                                                >
+                                                    {item.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <InputError message={errors.province} />
+                                    </div>
+                                ) : null}
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="add-user-password">

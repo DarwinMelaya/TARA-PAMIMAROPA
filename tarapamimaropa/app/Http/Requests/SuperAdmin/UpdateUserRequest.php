@@ -3,6 +3,7 @@
 namespace App\Http\Requests\SuperAdmin;
 
 use App\Concerns\ProfileValidationRules;
+use App\Concerns\ProvinceValidationRules;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -13,6 +14,7 @@ use Illuminate\Validation\Rules\Password;
 class UpdateUserRequest extends FormRequest
 {
     use ProfileValidationRules;
+    use ProvinceValidationRules;
 
     public function authorize(): bool
     {
@@ -24,6 +26,8 @@ class UpdateUserRequest extends FormRequest
         if ($this->input('password') === '') {
             $this->merge(['password' => null]);
         }
+
+        $this->normalizeProvinceForRole();
     }
 
     /**
@@ -38,6 +42,7 @@ class UpdateUserRequest extends FormRequest
             ...$this->profileRules($user->id),
             'password' => ['nullable', 'string', Password::default(), 'confirmed'],
             'role' => ['required', 'string', Rule::enum(UserRole::class)],
+            ...$this->provinceRules(),
         ];
     }
 }

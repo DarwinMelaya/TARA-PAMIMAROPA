@@ -46,4 +46,15 @@ class User extends Authenticatable
             'role' => UserRole::class,
         ];
     }
+
+    /**
+     * Named route to send this user after login / register.
+     */
+    public function homeRouteName(): string
+    {
+        return match ($this->role) {
+            UserRole::SuperAdmin => 'superadmin.dashboard',
+            default => 'dashboard',
+        };
+    }
 }

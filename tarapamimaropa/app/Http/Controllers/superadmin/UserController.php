@@ -5,6 +5,7 @@ namespace App\Http\Controllers\SuperAdmin;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SuperAdmin\StoreUserRequest;
+use App\Http\Requests\SuperAdmin\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -56,6 +57,33 @@ class UserController extends Controller
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => __('User created successfully.'),
+        ]);
+
+        return to_route('superadmin.users');
+    }
+
+    /**
+     * Update a user from the Super Admin panel.
+     */
+    public function update(UpdateUserRequest $request, User $user): RedirectResponse
+    {
+        $data = $request->validated();
+
+        $user->fill([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'role' => $data['role'],
+        ]);
+
+        if (! empty($data['password'])) {
+            $user->password = $data['password'];
+        }
+
+        $user->save();
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('User updated successfully.'),
         ]);
 
         return to_route('superadmin.users');

@@ -1,6 +1,8 @@
 import { Head } from '@inertiajs/react';
+import { Pencil } from 'lucide-react';
 import { useState } from 'react';
 import AddUsersModal from '@/components/modals/superadmin/AddUsersModal';
+import EditUserModal from '@/components/modals/superadmin/EditUserModal';
 import { Button } from '@/components/ui/button';
 import { useFlashToast } from '@/hooks/use-flash-toast';
 
@@ -33,7 +35,8 @@ const formatDate = (value: string | null) => {
 };
 
 const SuperAdminUsers = ({ users, roles }: Props) => {
-    const [open, setOpen] = useState(false);
+    const [createOpen, setCreateOpen] = useState(false);
+    const [editing, setEditing] = useState<ManagedUser | null>(null);
     useFlashToast();
 
     return (
@@ -50,7 +53,7 @@ const SuperAdminUsers = ({ users, roles }: Props) => {
                             Office, or Super Admin users.
                         </p>
                     </div>
-                    <Button type="button" onClick={() => setOpen(true)}>
+                    <Button type="button" onClick={() => setCreateOpen(true)}>
                         Create user
                     </Button>
                 </div>
@@ -87,6 +90,9 @@ const SuperAdminUsers = ({ users, roles }: Props) => {
                                             <th className="px-4 py-2.5 font-semibold">
                                                 Created
                                             </th>
+                                            <th className="px-4 py-2.5 text-right font-semibold">
+                                                Actions
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -111,6 +117,19 @@ const SuperAdminUsers = ({ users, roles }: Props) => {
                                                         user.created_at,
                                                     )}
                                                 </td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            setEditing(user)
+                                                        }
+                                                    >
+                                                        <Pencil className="size-3.5" />
+                                                        Edit
+                                                    </Button>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -121,7 +140,7 @@ const SuperAdminUsers = ({ users, roles }: Props) => {
                                 {users.map((user) => (
                                     <li
                                         key={user.id}
-                                        className="flex flex-col gap-1 px-4 py-3"
+                                        className="flex flex-col gap-2 px-4 py-3"
                                     >
                                         <div className="flex items-start justify-between gap-2">
                                             <p className="font-medium">
@@ -134,9 +153,22 @@ const SuperAdminUsers = ({ users, roles }: Props) => {
                                         <p className="text-muted-foreground text-xs">
                                             {user.email}
                                         </p>
-                                        <p className="text-muted-foreground text-[11px]">
-                                            {formatDate(user.created_at)}
-                                        </p>
+                                        <div className="flex items-center justify-between gap-2">
+                                            <p className="text-muted-foreground text-[11px]">
+                                                {formatDate(user.created_at)}
+                                            </p>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() =>
+                                                    setEditing(user)
+                                                }
+                                            >
+                                                <Pencil className="size-3.5" />
+                                                Edit
+                                            </Button>
+                                        </div>
                                     </li>
                                 ))}
                             </ul>
@@ -146,9 +178,18 @@ const SuperAdminUsers = ({ users, roles }: Props) => {
             </div>
 
             <AddUsersModal
-                open={open}
-                onOpenChange={setOpen}
+                open={createOpen}
+                onOpenChange={setCreateOpen}
                 roles={roles}
+            />
+
+            <EditUserModal
+                open={editing !== null}
+                onOpenChange={(open) => {
+                    if (!open) setEditing(null);
+                }}
+                roles={roles}
+                user={editing}
             />
         </>
     );

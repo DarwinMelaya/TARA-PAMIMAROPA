@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SuperAdmin\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Public Routes
@@ -13,7 +14,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('superadmin.')
         ->group(function () {
             Route::inertia('/', 'superadmin/SuperAdminDashboard')->name('dashboard');
-            Route::inertia('/users', 'superadmin/SuperAdminUsers')->name('users');
+
+            Route::get('/users', [UserController::class, 'index'])->name('users');
+            Route::post('/users', [UserController::class, 'store'])->name('users.store');
         });
 });
 

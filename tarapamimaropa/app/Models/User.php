@@ -54,6 +54,7 @@ class User extends Authenticatable
     {
         return match ($this->role) {
             UserRole::SuperAdmin => 'superadmin.dashboard',
+            UserRole::RegionalOffice => 'region.dashboard',
             default => 'dashboard',
         };
     }

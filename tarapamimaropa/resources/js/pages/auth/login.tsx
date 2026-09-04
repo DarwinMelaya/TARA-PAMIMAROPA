@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -11,17 +12,61 @@ import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 
+const EMAIL_KEY = 'tara_login_email';
+const REMEMBER_KEY = 'tara_login_remember';
+
 type Props = {
     status?: string;
     canResetPassword: boolean;
     canRegister: boolean;
+    email?: string;
 };
 
 export default function Login({
     status,
     canResetPassword,
     canRegister,
+    email: emailFromServer = '',
 }: Props) {
+    const [email, setEmail] = useState(emailFromServer);
+    const [remember, setRemember] = useState(false);
+    const [hydrated, setHydrated] = useState(false);
+
+    useEffect(() => {
+        const savedRemember = localStorage.getItem(REMEMBER_KEY) === '1';
+        const savedEmail = localStorage.getItem(EMAIL_KEY) ?? '';
+
+        setRemember(savedRemember);
+
+        if (!emailFromServer && savedRemember && savedEmail) {
+            setEmail(savedEmail);
+        } else if (emailFromServer) {
+            setEmail(emailFromServer);
+        }
+
+        setHydrated(true);
+    }, [emailFromServer]);
+
+    const persistLoginPrefs = (nextRemember = remember, nextEmail = email) => {
+        if (nextRemember && nextEmail.trim()) {
+            localStorage.setItem(EMAIL_KEY, nextEmail.trim());
+            localStorage.setItem(REMEMBER_KEY, '1');
+            return;
+        }
+
+        localStorage.removeItem(EMAIL_KEY);
+        localStorage.removeItem(REMEMBER_KEY);
+    };
+
+    // Keep email in localStorage while Remember me is on (not only on submit).
+    useEffect(() => {
+        if (!hydrated) {
+            return;
+        }
+
+        persistLoginPrefs();
+    }, [hydrated, remember, email]);
+
     return (
         <>
             <Head title="Log in" />
@@ -33,6 +78,13 @@ export default function Login({
             >
                 {({ processing, errors }) => (
                     <>
+                        {/* Radix Checkbox is not a native input — hidden field posts remember. */}
+                        <input
+                            type="hidden"
+                            name="remember"
+                            value={remember ? '1' : '0'}
+                        />
+
                         <div className="grid gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email address</Label>
@@ -45,6 +97,10 @@ export default function Login({
                                     tabIndex={1}
                                     autoComplete="email"
                                     placeholder="email@example.com"
+                                    value={hydrated ? email : emailFromServer}
+                                    onChange={(event) =>
+                                        setEmail(event.target.value)
+                                    }
                                 />
                                 <InputError message={errors.email} />
                             </div>
@@ -76,8 +132,11 @@ export default function Login({
                             <div className="flex items-center space-x-3">
                                 <Checkbox
                                     id="remember"
-                                    name="remember"
                                     tabIndex={3}
+                                    checked={remember}
+                                    onCheckedChange={(value) =>
+                                        setRemember(value === true)
+                                    }
                                 />
                                 <Label htmlFor="remember">Remember me</Label>
                             </div>

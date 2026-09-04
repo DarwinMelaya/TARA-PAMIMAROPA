@@ -36,6 +36,20 @@ test('super admin users are redirected to the super admin dashboard', function (
     $response->assertRedirect(route('superadmin.dashboard', absolute: false));
 });
 
+test('regional office users are redirected to the region dashboard', function () {
+    $user = User::factory()->create([
+        'role' => \App\Enums\UserRole::RegionalOffice,
+    ]);
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect(route('region.dashboard', absolute: false));
+});
+
 test('users with two factor enabled are redirected to two factor challenge', function () {
     $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
 

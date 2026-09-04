@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { FolderKanban, LayoutGrid, MapPinned } from 'lucide-react';
+import AppearanceToggle from '@/components/appearance-toggle';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -52,6 +53,7 @@ const RegionSidebar = () => {
             </SidebarContent>
 
             <SidebarFooter>
+                <AppearanceToggle />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

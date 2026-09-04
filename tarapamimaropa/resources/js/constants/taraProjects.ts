@@ -490,10 +490,56 @@ export const projectImage = (id: string): string =>
 export const describeProject = (project: TaraProject): string =>
     project.description;
 
-export const projectType = (project: TaraProject): string => project.sector;
+/** DOST Impression-style project type labels shown in Programs UI. */
+export type TaraType =
+    | 'SETUP'
+    | 'Roll-out'
+    | 'TAPI-assisted'
+    | 'GIA (Community Based)'
+    | 'GIA (Region-initiated Projects) Internally Funded'
+    | 'GIA (Region-initiated Projects) Externally Funded'
+    | 'CEST';
 
-export const projectYear = (project: TaraProject): string =>
-    project.start_date.slice(0, 4);
+export const TARA_TYPES: TaraType[] = [
+    'SETUP',
+    'Roll-out',
+    'TAPI-assisted',
+    'GIA (Community Based)',
+    'GIA (Region-initiated Projects) Internally Funded',
+    'GIA (Region-initiated Projects) Externally Funded',
+    'CEST',
+];
+
+const PROGRAM_TO_TYPE: Record<TaraProgram, TaraType> = {
+    SETUP: 'SETUP',
+    CEST: 'CEST',
+    GIA: 'GIA (Community Based)',
+    STARBOOKS: 'Roll-out',
+    Community: 'GIA (Community Based)',
+    Water: 'GIA (Community Based)',
+    Energy: 'GIA (Region-initiated Projects) Internally Funded',
+};
+
+/** Sector chips used by ProgramsGraphs (matches mock project sectors). */
+export const SECTORS = [
+    'Industry',
+    'Water',
+    'Education',
+    'Environment',
+    'Energy',
+    'DRRM',
+    'Agriculture',
+    'Tourism',
+    'Fisheries',
+] as const;
+
+export type TaraSector = (typeof SECTORS)[number];
+
+export const projectType = (project: TaraProject): TaraType =>
+    PROGRAM_TO_TYPE[project.program];
+
+export const projectYear = (project: TaraProject): number =>
+    Number(project.start_date.slice(0, 4));
 
 export const PROGRAMS: TaraProgram[] = [
     'SETUP',

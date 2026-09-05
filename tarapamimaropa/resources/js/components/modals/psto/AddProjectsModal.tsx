@@ -1,6 +1,7 @@
 import { Form } from '@inertiajs/react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { XIcon } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import ProjectController from '@/actions/App/Http/Controllers/Psto/ProjectController';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ import {
     PROJECT_STATUS_LABELS,
     SECTORS,
     TARA_TYPES,
+    buildProjectCode,
     type Province,
 } from '@/constants/taraProjects';
 import { cn } from '@/lib/utils';
@@ -27,14 +29,43 @@ type Props = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     lockedProvince: Province;
+    nextCodeSequence?: number;
 };
 
 const selectClassName =
     'border-input bg-background focus-visible:ring-ring/50 flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:ring-[3px]';
 
-const AddProjectsModal = ({ open, onOpenChange, lockedProvince }: Props) => {
+const AddProjectsModal = ({
+    open,
+    onOpenChange,
+    lockedProvince,
+    nextCodeSequence = 1,
+}: Props) => {
+    const currentYear = new Date().getFullYear();
+    const [yearApproved, setYearApproved] = useState(String(currentYear));
+    const [district, setDistrict] = useState('');
+
+    const previewCode = useMemo(() => {
+        const yearNum = Number(yearApproved);
+        return buildProjectCode(
+            lockedProvince,
+            Number.isFinite(yearNum) ? yearNum : currentYear,
+            district,
+            nextCodeSequence,
+        );
+    }, [lockedProvince, yearApproved, district, nextCodeSequence, currentYear]);
+
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog
+            open={open}
+            onOpenChange={(next) => {
+                if (!next) {
+                    setYearApproved(String(currentYear));
+                    setDistrict('');
+                }
+                onOpenChange(next);
+            }}
+        >
             <DialogPortal>
                 <DialogOverlay className="bg-slate-950/45 backdrop-blur-md" />
                 <DialogPrimitive.Content
@@ -45,8 +76,8 @@ const AddProjectsModal = ({ open, onOpenChange, lockedProvince }: Props) => {
                     <DialogHeader>
                         <DialogTitle>Add project</DialogTitle>
                         <DialogDescription>
-                            Create a project under {lockedProvince}. Province is
-                            fixed to your PSTO assignment.
+                            Create a project under {lockedProvince}. Code follows
+                            the QR-TTC layout used by existing projects.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -63,7 +94,6 @@ const AddProjectsModal = ({ open, onOpenChange, lockedProvince }: Props) => {
                         {...ProjectController.store.form()}
                         resetOnSuccess={[
                             'name',
-                            'code',
                             'type',
                             'year_approved',
                             'beneficiary',
@@ -80,7 +110,11 @@ const AddProjectsModal = ({ open, onOpenChange, lockedProvince }: Props) => {
                         ]}
                         options={{ preserveScroll: true }}
                         className="grid gap-4 sm:grid-cols-2"
-                        onSuccess={() => onOpenChange(false)}
+                        onSuccess={() => {
+                            setYearApproved(String(currentYear));
+                            setDistrict('');
+                            onOpenChange(false);
+                        }}
                     >
                         {({ processing, errors }) => (
                             <>
@@ -110,9 +144,16 @@ const AddProjectsModal = ({ open, onOpenChange, lockedProvince }: Props) => {
                                     </Label>
                                     <Input
                                         id="add-project-code"
-                                        name="code"
-                                        placeholder="Optional unique code"
+                                        value={previewCode}
+                                        readOnly
+                                        disabled
+                                        className="font-mono text-sm"
                                     />
+                                    <p className="text-muted-foreground text-xs">
+                                        Auto-generated like existing codes (e.g.
+                                        QR-TTC-C5-1-17-0391). Updates with year
+                                        and district.
+                                    </p>
                                     <InputError message={errors.code} />
                                 </div>
 
@@ -126,9 +167,11 @@ const AddProjectsModal = ({ open, onOpenChange, lockedProvince }: Props) => {
                                         type="number"
                                         min={1990}
                                         max={2100}
-                                        placeholder={String(
-                                            new Date().getFullYear(),
-                                        )}
+                                        value={yearApproved}
+                                        onChange={(e) =>
+                                            setYearApproved(e.target.value)
+                                        }
+                                        placeholder={String(currentYear)}
                                     />
                                     <InputError
                                         message={errors.year_approved}
@@ -265,7 +308,11 @@ const AddProjectsModal = ({ open, onOpenChange, lockedProvince }: Props) => {
                                     <Input
                                         id="add-project-district"
                                         name="district"
-                                        placeholder="Optional district"
+                                        value={district}
+                                        onChange={(e) =>
+                                            setDistrict(e.target.value)
+                                        }
+                                        placeholder="e.g. 1st or 1"
                                     />
                                     <InputError message={errors.district} />
                                 </div>

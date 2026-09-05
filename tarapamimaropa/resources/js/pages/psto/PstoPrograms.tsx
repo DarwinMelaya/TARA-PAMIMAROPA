@@ -6,10 +6,15 @@ import { dashboard } from '@/routes/psto';
 type PageProps = {
   projects?: TaraProject[];
   lockedProvince?: string | null;
+  nextCodeSequence?: number;
 };
 
 const PstoPrograms = () => {
-  const { projects = [], lockedProvince = null } = usePage<PageProps>().props;
+  const {
+    projects = [],
+    lockedProvince = null,
+    nextCodeSequence = 1,
+  } = usePage<PageProps>().props;
 
   if (!lockedProvince) {
     return (
@@ -32,6 +37,7 @@ const PstoPrograms = () => {
       lockedProvince={lockedProvince as Province}
       allowImport={false}
       allowMutate
+      nextCodeSequence={nextCodeSequence}
       homeHref={dashboard.url()}
       homeLabel="Dashboard"
       pageTitle="PSTO Programs"

@@ -254,6 +254,82 @@ class Project extends Model
         return 'Community';
     }
 
+    /**
+     * Province → QR-TTC cluster number (C1…C5), matching imported Excel codes.
+     */
+    public static function provinceClusterNumber(string $province): int
+    {
+        return match ($province) {
+            'Occidental Mindoro' => 1,
+            'Oriental Mindoro' => 2,
+            'Marinduque' => 3,
+            'Romblon' => 4,
+            'Palawan' => 5,
+            default => 5,
+        };
+    }
+
+    /**
+     * Next trailing sequence used by QR-TTC-…-{seq} codes.
+     */
+    public static function nextCodeSequence(): int
+    {
+        $max = 0;
+
+        foreach (static::query()->whereNotNull('code')->pluck('code') as $code) {
+            $normalized = preg_replace('/\s+/', '', (string) $code) ?? '';
+
+            if (preg_match('/-(\d+)$/', $normalized, $matches) === 1) {
+                $max = max($max, (int) $matches[1]);
+            }
+        }
+
+        return $max + 1;
+    }
+
+    /**
+     * Build a code in the imported layout: QR-TTC-C{n}-{district}-{yy}-{seq}.
+     */
+    public static function buildCode(
+        string $province,
+        ?int $yearApproved = null,
+        ?string $district = null,
+        ?int $sequence = null,
+    ): string {
+        $cluster = self::provinceClusterNumber($province);
+        $districtNum = 1;
+
+        if (filled($district) && preg_match('/(\d+)/', $district, $matches) === 1) {
+            $districtNum = max(1, (int) $matches[1]);
+        }
+
+        $year = ($yearApproved !== null && $yearApproved >= 1990)
+            ? $yearApproved
+            : (int) now()->format('Y');
+        $yy = substr((string) $year, -2);
+        $seq = $sequence ?? self::nextCodeSequence();
+
+        return sprintf('QR-TTC-C%d-%d-%s-%04d', $cluster, $districtNum, $yy, $seq);
+    }
+
+    /**
+     * Allocate a unique code matching the Excel QR-TTC layout.
+     */
+    public static function generateCode(
+        string $province,
+        ?int $yearApproved = null,
+        ?string $district = null,
+    ): string {
+        $sequence = self::nextCodeSequence();
+
+        do {
+            $code = self::buildCode($province, $yearApproved, $district, $sequence);
+            $sequence++;
+        } while (static::query()->where('code', $code)->exists());
+
+        return $code;
+    }
+
     private function buildDescription(): string
     {
         $bits = array_filter([

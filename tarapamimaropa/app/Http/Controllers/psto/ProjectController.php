@@ -16,9 +16,16 @@ class ProjectController extends Controller
         $data = $request->validated();
         $province = $request->user()->province->value;
 
+        unset($data['code'], $data['province']);
+
         Project::query()->create([
             ...$data,
             'province' => $province,
+            'code' => Project::generateCode(
+                $province,
+                isset($data['year_approved']) ? (int) $data['year_approved'] : null,
+                $data['district'] ?? null,
+            ),
         ]);
 
         Inertia::flash('toast', [

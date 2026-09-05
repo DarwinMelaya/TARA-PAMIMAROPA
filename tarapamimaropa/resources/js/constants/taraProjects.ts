@@ -662,6 +662,35 @@ export const PROJECT_STATUS_LABELS = [
 
 export type ProjectStatusLabel = (typeof PROJECT_STATUS_LABELS)[number];
 
+/** Province → QR-TTC cluster (C1…C5), matching Excel import codes. */
+export const PROVINCE_CLUSTER: Record<Province, number> = {
+    'Occidental Mindoro': 1,
+    'Oriental Mindoro': 2,
+    Marinduque: 3,
+    Romblon: 4,
+    Palawan: 5,
+};
+
+/** Preview / match imported layout: QR-TTC-C{n}-{district}-{yy}-{seq}. */
+export const buildProjectCode = (
+    province: Province,
+    yearApproved?: number | null,
+    district?: string | null,
+    sequence = 1,
+): string => {
+    const cluster = PROVINCE_CLUSTER[province] ?? 5;
+    const districtMatch = (district ?? '').match(/(\d+)/);
+    const districtNum = Math.max(1, districtMatch ? Number(districtMatch[1]) : 1);
+    const year =
+        yearApproved && yearApproved >= 1990
+            ? yearApproved
+            : new Date().getFullYear();
+    const yy = String(year).slice(-2);
+    const seq = String(Math.max(1, sequence)).padStart(4, '0');
+
+    return `QR-TTC-C${cluster}-${districtNum}-${yy}-${seq}`;
+};
+
 export const projectType = (project: TaraProject): string => {
     if (project.type && project.type.trim() !== '') {
         return project.type;

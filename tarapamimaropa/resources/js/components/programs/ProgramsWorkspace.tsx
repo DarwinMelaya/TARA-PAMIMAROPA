@@ -43,6 +43,8 @@ export type ProgramsWorkspaceProps = {
   importUrl?: string;
   /** PSTO: show Add / Edit project actions. */
   allowMutate?: boolean;
+  /** Next QR-TTC sequence for auto code preview. */
+  nextCodeSequence?: number;
   homeHref: string;
   homeLabel?: string;
   pageTitle?: string;
@@ -128,6 +130,7 @@ const ProgramsWorkspace = ({
   allowImport = false,
   importUrl,
   allowMutate = false,
+  nextCodeSequence = 1,
   homeHref,
   homeLabel = "Dashboard",
   pageTitle = "Programs",
@@ -1250,6 +1253,7 @@ const ProgramsWorkspace = ({
             open={addOpen}
             onOpenChange={setAddOpen}
             lockedProvince={lockedProvince as Province}
+            nextCodeSequence={nextCodeSequence}
           />
           <EditProjectsModal
             open={editing != null}

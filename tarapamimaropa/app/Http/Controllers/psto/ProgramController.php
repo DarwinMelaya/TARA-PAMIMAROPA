@@ -19,6 +19,7 @@ class ProgramController extends Controller
                 ? Project::taraCollection($province)
                 : collect(),
             'lockedProvince' => $province,
+            'nextCodeSequence' => Project::nextCodeSequence(),
         ]);
     }
 }

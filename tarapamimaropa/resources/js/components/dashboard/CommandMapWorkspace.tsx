@@ -11,6 +11,7 @@ import {
     HiDocumentText,
     HiExclamationTriangle,
     HiFunnel,
+    HiChevronDown,
     HiLightBulb,
     HiMagnifyingGlass,
     HiMap,
@@ -43,8 +44,9 @@ import {
     describeProject,
     formatCompact,
     formatPeso,
+    projectStatusClass,
+    projectStatusLabel,
     projectYear,
-    statusBadgeClass,
     summarizeProjects,
     type ProjectStatus,
     type Province,
@@ -59,6 +61,8 @@ export type CommandMapWorkspaceProps = {
   programsHref?: string;
   loginHref?: string;
   pageTitle?: string;
+  /** Public landing: scroll target for “Browse project list”. */
+  browseListHref?: string;
 };
 
 const BASE_LAYER_OPTIONS: { id: MapBaseLayer; label: string }[] = [
@@ -219,7 +223,7 @@ const openGoogleDirections = (
 type ReportFilters = {
   province: Province | "all";
   program: TaraProgram | "all";
-  status: ProjectStatus | "all";
+  status: string | "all";
   search: string;
 };
 
@@ -245,8 +249,7 @@ const describeFilters = (filters: ReportFilters): string => {
   const parts: string[] = [];
   if (filters.province !== "all") parts.push(`Province: ${filters.province}`);
   if (filters.program !== "all") parts.push(`Program: ${filters.program}`);
-  if (filters.status !== "all")
-    parts.push(`Status: ${STATUS_META[filters.status].label}`);
+  if (filters.status !== "all") parts.push(`Status: ${filters.status}`);
   if (filters.search.trim()) parts.push(`Search: "${filters.search.trim()}"`);
   return parts.length ? parts.join(" · ") : "All projects (no filters)";
 };
@@ -271,7 +274,10 @@ const downloadCsvReport = (
 
   const header = REPORT_COLUMNS.map((c) => escapeCsv(c.label)).join(",");
   const rows = projects.map((p) =>
-    REPORT_COLUMNS.map((c) => escapeCsv(p[c.key] as string | number)).join(","),
+    REPORT_COLUMNS.map((c) => {
+      if (c.key === "status") return escapeCsv(projectStatusLabel(p));
+      return escapeCsv(p[c.key] as string | number);
+    }).join(","),
   );
 
   const csv = [...headerLines, header, ...rows].join("\r\n");
@@ -311,7 +317,7 @@ const printReport = (projects: TaraProject[], filters: ReportFilters) => {
       (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c] as string,
     );
 
-  const byStatus = countBy(projects, (p) => STATUS_META[p.status].label);
+  const byStatus = countBy(projects, (p) => projectStatusLabel(p));
   const byProgram = countBy(projects, (p) => p.program);
   const byProvince = countBy(projects, (p) => p.province);
 
@@ -329,7 +335,7 @@ const printReport = (projects: TaraProject[], filters: ReportFilters) => {
         <td>${esc(p.name)}</td>
         <td>${esc(p.program)}</td>
         <td>${esc(p.province)}<br><span class="muted">${esc(p.municipality)}, ${esc(p.barangay)}</span></td>
-        <td>${esc(STATUS_META[p.status].label)}</td>
+        <td>${esc(projectStatusLabel(p))}</td>
         <td class="num">${p.progress}%</td>
         <td class="num">${esc(formatPeso(p.budget))}</td>
         <td class="num">${esc(formatCompact(p.beneficiaries))}</td>
@@ -541,6 +547,7 @@ const CommandMapWorkspace = ({
   programsHref,
   loginHref = "/login",
   pageTitle = "TARA PAMIMAROPA",
+  browseListHref,
 }: CommandMapWorkspaceProps) => {
   const { theme, isDark } = useTheme();
   const ui = UI[theme];
@@ -551,7 +558,7 @@ const CommandMapWorkspace = ({
   const [viewing, setViewing] = useState<TaraProject | null>(null);
   const [provinceFilter, setProvinceFilter] = useState<Province | "all">("all");
   const [programFilter, setProgramFilter] = useState<TaraProgram | "all">("all");
-  const [statusFilter, setStatusFilter] = useState<ProjectStatus | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<string | "all">("all");
   const [search, setSearch] = useState("");
   const [searchDraft, setSearchDraft] = useState("");
   const [mobileSheet, setMobileSheet] = useState<
@@ -573,6 +580,14 @@ const CommandMapWorkspace = ({
   const [feedLimit, setFeedLimit] = useState(FEED_PAGE_SIZE);
 
   const insights = useMemo(() => buildLiveInsights(projects), [projects]);
+
+  const statusOptions = useMemo(() => {
+    const labels = new Set<string>();
+    for (const p of projects) {
+      labels.add(projectStatusLabel(p));
+    }
+    return [...labels].sort((a, b) => a.localeCompare(b));
+  }, [projects]);
 
   const heavyDataset = projects.length >= HEAVY_DATASET;
   const perfLite = devicePerfLite || heavyDataset;
@@ -600,11 +615,19 @@ const CommandMapWorkspace = ({
 
   const filteredProjects = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const mappedKeys = Object.keys(STATUS_META);
     return projects.filter((p) => {
       if (provinceFilter !== "all" && p.province !== provinceFilter) return false;
       if (programFilter !== "all" && p.program !== programFilter) return false;
-      if (statusFilter !== "all" && p.status !== statusFilter) return false;
+      if (statusFilter !== "all") {
+        if (mappedKeys.includes(statusFilter)) {
+          if (p.status !== statusFilter) return false;
+        } else if (projectStatusLabel(p) !== statusFilter) {
+          return false;
+        }
+      }
       if (!q) return true;
+      const label = projectStatusLabel(p).toLowerCase();
       return (
         p.name.toLowerCase().includes(q) ||
         p.program.toLowerCase().includes(q) ||
@@ -612,7 +635,8 @@ const CommandMapWorkspace = ({
         p.municipality.toLowerCase().includes(q) ||
         p.barangay.toLowerCase().includes(q) ||
         p.partner_agency.toLowerCase().includes(q) ||
-        p.funding_source.toLowerCase().includes(q)
+        p.funding_source.toLowerCase().includes(q) ||
+        label.includes(q)
       );
     });
   }, [projects, provinceFilter, programFilter, statusFilter, search]);
@@ -796,14 +820,15 @@ const CommandMapWorkspace = ({
               ) : (
                 <span className="inline-flex h-2 w-2 rounded-full bg-cyan-400" />
               )}
-              TARA · STI Command Map
+              TARA · {isPublic ? "Public portfolio" : "STI Command Map"}
             </div>
             <h1 className={`mt-2 text-xl font-bold tracking-tight sm:mt-3 sm:text-3xl ${ui.title}`}>
               TARA PAMIMAROPA
             </h1>
             <p className={`mt-1 max-w-xl text-xs sm:text-sm ${ui.subtitle}`}>
-              Tracking of Accomplishments and Results of Activities and Programs
-              across MIMAROPA
+              {isPublic
+                ? "Open map of DOST-MIMAROPA projects, funding, and results across the region."
+                : "Tracking of Accomplishments and Results of Activities and Programs across MIMAROPA"}
             </p>
             <p className={`mt-1 hidden text-xs sm:block ${ui.meta}`}>
               {stats.municipalities} municipalities · {stats.barangays} barangays
@@ -1025,6 +1050,23 @@ const CommandMapWorkspace = ({
                 <span className="hidden sm:inline">Programs</span>
               </Link>
             ) : null}
+            {isPublic && browseListHref ? (
+              <a
+                href={browseListHref}
+                onClick={(e) => {
+                  const id = browseListHref.replace(/^#/, "");
+                  const el = document.getElementById(id);
+                  if (!el) return;
+                  e.preventDefault();
+                  el.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[#002d87] bg-[#0038a8] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#002d87] sm:px-4"
+              >
+                <HiChevronDown className="h-4 w-4" aria-hidden />
+                <span className="hidden sm:inline">Browse list</span>
+                <span className="sm:hidden">List</span>
+              </a>
+            ) : null}
           </div>
         </div>
 
@@ -1122,7 +1164,8 @@ const CommandMapWorkspace = ({
               ) : null}
               {searchResultProjects.map((project) => {
                 const meta = PROGRAM_META[project.program];
-                const status = STATUS_META[project.status];
+                const statusLabel = projectStatusLabel(project);
+                const statusClass = projectStatusClass(project, statusMode);
                 return (
                   <li key={project.id} className="mb-1.5 last:mb-0">
                     <button
@@ -1149,9 +1192,9 @@ const CommandMapWorkspace = ({
                         </span>
                       </span>
                       <span
-                        className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-semibold ring-1 ${statusBadgeClass(project.status, statusMode)}`}
+                        className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-semibold ring-1 ${statusClass}`}
                       >
-                        {status.label}
+                        {statusLabel}
                       </span>
                     </button>
                   </li>
@@ -1386,25 +1429,19 @@ const CommandMapWorkspace = ({
                 >
                   All status
                 </button>
-                {(
-                  [
-                    "ongoing",
-                    "completed",
-                    "delayed",
-                    "on_hold",
-                    "planning",
-                  ] as ProjectStatus[]
-                ).map((status) => (
+                {statusOptions.map((status) => (
                   <button
                     key={status}
                     type="button"
-                    onClick={() => setStatusFilter(status)}
+                    onClick={() =>
+                      setStatusFilter(statusFilter === status ? "all" : status)
+                    }
                     className={[
                       "rounded-full px-2.5 py-1 text-[10px] font-semibold",
                       statusFilter === status ? ui.chipOn : ui.chipIdle,
                     ].join(" ")}
                   >
-                    {STATUS_META[status].label}
+                    {status}
                   </button>
                 ))}
               </div>
@@ -1429,7 +1466,8 @@ const CommandMapWorkspace = ({
             ) : null}
 
             {feedProjects.map((project) => {
-              const status = STATUS_META[project.status];
+              const statusLabel = projectStatusLabel(project);
+              const statusClass = projectStatusClass(project, statusMode);
               const program = PROGRAM_META[project.program];
               const isSelected = selectedId === project.id;
 
@@ -1445,9 +1483,9 @@ const CommandMapWorkspace = ({
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${statusBadgeClass(project.status, statusMode)}`}
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${statusClass}`}
                       >
-                        {status.label}
+                        {statusLabel}
                       </span>
                       <span className={`text-[11px] font-bold ${theme === "light" ? "text-cyan-800" : "text-cyan-200"}`}>
                         {formatCompact(project.budget)}
@@ -1572,9 +1610,9 @@ const CommandMapWorkspace = ({
                 <p className={ui.modalMuted}>Status</p>
                 <p className="mt-1.5">
                   <span
-                    className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ${statusBadgeClass(viewing.status, statusMode)}`}
+                    className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ${projectStatusClass(viewing, statusMode)}`}
                   >
-                    {STATUS_META[viewing.status].label}
+                    {projectStatusLabel(viewing)}
                   </span>
                 </p>
               </div>

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import {
     HiArrowRightOnRectangle,
-    HiChevronDown,
     HiChevronLeft,
     HiChevronRight,
     HiMagnifyingGlass,
@@ -15,16 +14,15 @@ import {
 import CommandMapWorkspace from '@/components/dashboard/CommandMapWorkspace';
 import type { UserLocation } from '@/components/maps/mapTypes';
 import {
-    PROJECT_STATUSES,
     PROGRAM_META,
     PROVINCES,
-    STATUS_META,
     describeProject,
     formatPeso,
     projectImage,
+    projectStatusClass,
+    projectStatusLabel,
+    projectType,
     projectYear,
-    statusBadgeClass,
-    type ProjectStatus,
     type Province,
     type TaraProject,
 } from '@/constants/taraProjects';
@@ -153,6 +151,8 @@ const matchesQuery = (project: TaraProject, query: string) => {
         project.barangay,
         project.partner_agency,
         project.status,
+        project.status_label,
+        projectType(project),
     ]
         .join(' ')
         .toLowerCase();
@@ -165,7 +165,7 @@ const matchesQuery = (project: TaraProject, query: string) => {
 
 type ExportScope = {
     province: Province | 'all';
-    status: ProjectStatus | 'all';
+    status: string | 'all';
     search: string;
 };
 
@@ -192,8 +192,7 @@ const EXPORT_COLUMNS: { key: keyof TaraProject; label: string }[] = [
 const describeExportScope = (scope: ExportScope): string => {
     const parts: string[] = [];
     if (scope.province !== 'all') parts.push(`Province: ${scope.province}`);
-    if (scope.status !== 'all')
-        parts.push(`Status: ${STATUS_META[scope.status].label}`);
+    if (scope.status !== 'all') parts.push(`Status: ${scope.status}`);
     if (scope.search.trim()) parts.push(`Search: "${scope.search.trim()}"`);
     return parts.length ? parts.join(' · ') : 'All projects (no filters)';
 };
@@ -238,9 +237,12 @@ const downloadFilteredCsv = (projects: TaraProject[], scope: ExportScope) => {
 
     const header = EXPORT_COLUMNS.map((c) => escapeCsv(c.label)).join(',');
     const rows = projects.map((p) =>
-        EXPORT_COLUMNS.map((c) => escapeCsv(p[c.key] as string | number)).join(
-            ',',
-        ),
+        EXPORT_COLUMNS.map((c) => {
+            if (c.key === 'status') {
+                return escapeCsv(projectStatusLabel(p));
+            }
+            return escapeCsv(p[c.key] as string | number);
+        }).join(','),
     );
 
     const csv = [...meta, header, ...rows].join('\r\n');
@@ -269,9 +271,7 @@ const LandingPage = () => {
     const [provinceFilter, setProvinceFilter] = useState<Province | 'all'>(
         'all',
     );
-    const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'all'>(
-        'all',
-    );
+    const [statusFilter, setStatusFilter] = useState<string | 'all'>('all');
     const [sortKey, setSortKey] = useState<SortKey>('name');
     const [page, setPage] = useState(1);
     const [viewing, setViewing] = useState<TaraProject | null>(null);
@@ -279,15 +279,23 @@ const LandingPage = () => {
     const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
     const [locating, setLocating] = useState(false);
 
-    const statusChip = (status: ProjectStatus) =>
-        statusBadgeClass(status, isDark ? 'dark' : 'light');
+    const statusMode = isDark ? 'dark' : 'light';
+
+    const statusOptions = useMemo(() => {
+        const labels = new Set<string>();
+        for (const p of projects) {
+            labels.add(projectStatusLabel(p));
+        }
+        return [...labels].sort((a, b) => a.localeCompare(b));
+    }, [projects]);
 
     const filtered = useMemo(
         () =>
             projects.filter(
                 (p) =>
                     (provinceFilter === 'all' || p.province === provinceFilter) &&
-                    (statusFilter === 'all' || p.status === statusFilter) &&
+                    (statusFilter === 'all' ||
+                        projectStatusLabel(p) === statusFilter) &&
                     matchesQuery(p, query),
             ),
         [projects, provinceFilter, statusFilter, query],
@@ -350,51 +358,44 @@ const LandingPage = () => {
 
     return (
         <div className={`min-h-svh ${t.page}`}>
-            <div className="relative h-svh w-full">
+            <div id="top" className="relative h-svh w-full">
                 <CommandMapWorkspace
                     projects={projects}
                     variant="public"
                     loginHref="/login"
                     pageTitle="TARA PAMIMAROPA"
+                    browseListHref="#project-results"
                 />
-                <div className="pointer-events-none absolute inset-x-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-[35] flex justify-center p-3 sm:bottom-8 lg:bottom-10">
-                    <a
-                        href="#project-results"
-                        className={`pointer-events-auto inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold shadow-[0_4px_16px_rgba(0,0,0,0.2)] transition duration-[180ms] hover:-translate-y-0.5 ${t.browseCta}`}
-                    >
-                        Browse project list
-                        <HiChevronDown className="h-4 w-4" aria-hidden />
-                    </a>
-                </div>
             </div>
 
             <section
                 id="project-results"
-                className="mx-auto max-w-[96rem] scroll-mt-4 px-2 py-8 sm:px-4 lg:px-6"
+                className="mx-auto max-w-[96rem] scroll-mt-6 px-3 py-8 sm:px-5 lg:px-6"
             >
-                <div className={`overflow-hidden rounded-[14px] border ${t.card}`}>
+                <div className={`overflow-hidden rounded-2xl border ${t.card}`}>
                     <div
-                        className={`flex flex-col gap-3 border-b px-3 py-3 sm:px-4 ${t.cardHeader}`}
+                        className={`flex flex-col gap-3 border-b px-3 py-4 sm:px-5 ${t.cardHeader}`}
                     >
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div>
+                        <div className="flex flex-wrap items-end justify-between gap-3">
+                            <div className="min-w-0">
+                                <p className={`text-[11px] font-bold uppercase tracking-[0.14em] ${t.muted}`}>
+                                    Full portfolio
+                                </p>
                                 <h2
-                                    className={`text-sm font-bold uppercase tracking-[0.12em] ${t.heading}`}
+                                    className={`mt-1 text-lg font-bold tracking-tight sm:text-xl ${t.name}`}
                                 >
-                                    Project results
+                                    Browse all projects
                                 </h2>
-                                <p className={`mt-0.5 text-[12px] ${t.muted}`}>
+                                <p className={`mt-1 text-[13px] ${t.muted}`}>
                                     {sorted.length === 0
-                                        ? 'No projects match'
-                                        : `Showing ${pageStart}–${pageEnd} of ${sorted.length}`}
+                                        ? 'No projects match these filters.'
+                                        : `Showing ${pageStart}–${pageEnd} of ${sorted.length.toLocaleString()}`}
                                     {hasFilters && sorted.length > 0
-                                        ? ` · export uses ${describeExportScope(
-                                              {
-                                                  province: provinceFilter,
-                                                  status: statusFilter,
-                                                  search: query,
-                                              },
-                                          )}`
+                                        ? ` · ${describeExportScope({
+                                              province: provinceFilter,
+                                              status: statusFilter,
+                                              search: query,
+                                          })}`
                                         : null}
                                 </p>
                             </div>
@@ -403,11 +404,14 @@ const LandingPage = () => {
                                     href="#top"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        window.scrollTo({
+                                            top: 0,
+                                            behavior: 'smooth',
+                                        });
                                     }}
-                                    className={`inline-flex min-h-9 items-center gap-1.5 rounded-[6px] border px-3 py-1.5 text-[12px] font-semibold transition duration-[180ms] ${t.ghostBtn}`}
+                                    className={`inline-flex min-h-9 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-semibold transition duration-[180ms] ${t.ghostBtn}`}
                                 >
-                                    <HiMagnifyingGlass
+                                    <HiMapPin
                                         className="h-4 w-4"
                                         aria-hidden
                                     />
@@ -423,7 +427,7 @@ const LandingPage = () => {
                                             search: query,
                                         })
                                     }
-                                    className="inline-flex min-h-9 items-center gap-1.5 rounded-[6px] border border-[#0038a8] bg-[#0038a8] px-3 py-1.5 text-[12px] font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition duration-[180ms] hover:bg-[#002d87] disabled:cursor-not-allowed disabled:opacity-40"
+                                    className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[#0038a8] bg-[#0038a8] px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm transition duration-[180ms] hover:bg-[#002d87] disabled:cursor-not-allowed disabled:opacity-40"
                                     title={
                                         sorted.length === 0
                                             ? 'No rows to export'
@@ -452,7 +456,7 @@ const LandingPage = () => {
                                                 e.target.value as SortKey,
                                             )
                                         }
-                                        className={`min-h-9 rounded-[6px] border px-2.5 py-1.5 text-[12px] font-semibold outline-none transition duration-[180ms] focus:ring-2 ${t.select}`}
+                                        className={`min-h-9 rounded-lg border px-2.5 py-1.5 text-[12px] font-semibold outline-none transition duration-[180ms] focus:ring-2 ${t.select}`}
                                     >
                                         {SORT_OPTIONS.map((opt) => (
                                             <option
@@ -464,6 +468,110 @@ const LandingPage = () => {
                                         ))}
                                     </select>
                                 </label>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-2.5 border-t border-dashed border-slate-200/80 pt-3 dark:border-slate-700/80">
+                            <div className="relative max-w-md">
+                                <HiMagnifyingGlass
+                                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                                    aria-hidden
+                                />
+                                <input
+                                    type="search"
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    placeholder="Search project, LGU, sector…"
+                                    className={`min-h-10 w-full rounded-lg border py-2 pl-9 pr-3 text-sm outline-none ${t.select}`}
+                                />
+                            </div>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                                <button
+                                    type="button"
+                                    onClick={() => setProvinceFilter('all')}
+                                    className={[
+                                        'rounded-full px-2.5 py-1 text-[11px] font-semibold transition',
+                                        provinceFilter === 'all'
+                                            ? 'bg-[#0038a8] text-white'
+                                            : t.ghostBtn,
+                                    ].join(' ')}
+                                >
+                                    All provinces
+                                </button>
+                                {PROVINCES.map((province) => (
+                                    <button
+                                        key={province}
+                                        type="button"
+                                        onClick={() =>
+                                            setProvinceFilter(
+                                                provinceFilter === province
+                                                    ? 'all'
+                                                    : province,
+                                            )
+                                        }
+                                        className={[
+                                            'rounded-full px-2.5 py-1 text-[11px] font-semibold transition',
+                                            provinceFilter === province
+                                                ? 'bg-[#0038a8] text-white'
+                                                : t.ghostBtn,
+                                        ].join(' ')}
+                                    >
+                                        {province}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                                <button
+                                    type="button"
+                                    onClick={() => setStatusFilter('all')}
+                                    className={[
+                                        'rounded-full px-2.5 py-1 text-[11px] font-semibold transition',
+                                        statusFilter === 'all'
+                                            ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                                            : t.ghostBtn,
+                                    ].join(' ')}
+                                >
+                                    All status
+                                </button>
+                                {statusOptions.map((status) => {
+                                    const sample = projects.find(
+                                        (p) =>
+                                            projectStatusLabel(p) === status,
+                                    );
+                                    const badgeClass = sample
+                                        ? projectStatusClass(sample, statusMode)
+                                        : t.ghostBtn;
+                                    return (
+                                    <button
+                                        key={status}
+                                        type="button"
+                                        onClick={() =>
+                                            setStatusFilter(
+                                                statusFilter === status
+                                                    ? 'all'
+                                                    : status,
+                                            )
+                                        }
+                                        className={[
+                                            'rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 transition',
+                                            statusFilter === status
+                                                ? badgeClass
+                                                : t.ghostBtn,
+                                        ].join(' ')}
+                                    >
+                                        {status}
+                                    </button>
+                                    );
+                                })}
+                                {hasFilters ? (
+                                    <button
+                                        type="button"
+                                        onClick={clearFilters}
+                                        className={`ml-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${t.muted} underline-offset-2 hover:underline`}
+                                    >
+                                        Clear filters
+                                    </button>
+                                ) : null}
                             </div>
                         </div>
                     </div>
@@ -499,8 +607,13 @@ const LandingPage = () => {
                                     </thead>
                                     <tbody>
                                         {pageItems.map((project) => {
-                                            const status =
-                                                STATUS_META[project.status];
+                                            const statusLabel =
+                                                projectStatusLabel(project);
+                                            const statusClass =
+                                                projectStatusClass(
+                                                    project,
+                                                    statusMode,
+                                                );
                                             const active =
                                                 selectedId === project.id;
                                             return (
@@ -565,9 +678,9 @@ const LandingPage = () => {
                                                     </td>
                                                     <td className="px-3 py-3">
                                                         <span
-                                                            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusChip(project.status)}`}
+                                                            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusClass}`}
                                                         >
-                                                            {status.label}
+                                                            {statusLabel}
                                                         </span>
                                                     </td>
                                                     <td
@@ -586,7 +699,12 @@ const LandingPage = () => {
 
                             <ul className={`divide-y md:hidden ${t.rowBorder}`}>
                                 {pageItems.map((project) => {
-                                    const status = STATUS_META[project.status];
+                                    const statusLabel =
+                                        projectStatusLabel(project);
+                                    const statusClass = projectStatusClass(
+                                        project,
+                                        statusMode,
+                                    );
                                     const active = selectedId === project.id;
                                     return (
                                         <li key={project.id}>
@@ -609,9 +727,9 @@ const LandingPage = () => {
                                                         {project.name}
                                                     </p>
                                                     <span
-                                                        className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusChip(project.status)}`}
+                                                        className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusClass}`}
                                                     >
-                                                        {status.label}
+                                                        {statusLabel}
                                                     </span>
                                                 </div>
                                                 <p
@@ -874,9 +992,9 @@ const LandingPage = () => {
                                 </dt>
                                 <dd className="mt-0.5">
                                     <span
-                                        className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold ${statusChip(viewing.status)}`}
+                                        className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold ${projectStatusClass(viewing, statusMode)}`}
                                     >
-                                        {STATUS_META[viewing.status].label} ·{' '}
+                                        {projectStatusLabel(viewing)} ·{' '}
                                         {viewing.progress}%
                                     </span>
                                 </dd>

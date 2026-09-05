@@ -5,6 +5,7 @@ import {
   STATUS_META,
   formatCompact,
   formatPeso,
+  projectStatusLabel,
   type ProjectStatus,
   type Province,
   type TaraProgram,
@@ -640,10 +641,10 @@ export type GraphsPanelProps = {
   projects: TaraProject[];
   expanded?: boolean;
   onToggleExpand?: () => void;
-  statusFilter?: ProjectStatus | "all";
+  statusFilter?: string | "all";
   provinceFilter?: Province | "all";
   programFilter?: TaraProgram | "all";
-  onStatusFilter?: (status: ProjectStatus | "all") => void;
+  onStatusFilter?: (status: string | "all") => void;
   onProvinceFilter?: (province: Province | "all") => void;
   onProgramFilter?: (program: TaraProgram | "all") => void;
   className?: string;
@@ -686,14 +687,24 @@ const GraphsPanel = ({
 
     const provinces = Object.keys(PROVINCE_COLORS) as Province[];
 
-    const byStatus: Slice[] = (
-      Object.keys(STATUS_META) as ProjectStatus[]
-    ).map((status) => ({
-      key: status,
-      label: STATUS_META[status].label,
-      value: projects.filter((p) => p.status === status).length,
-      color: STATUS_COLORS[status],
-    }));
+    const statusTotals = new Map<string, { count: number; mapped: ProjectStatus }>();
+    for (const p of projects) {
+      const label = projectStatusLabel(p);
+      const prev = statusTotals.get(label);
+      if (prev) {
+        prev.count += 1;
+      } else {
+        statusTotals.set(label, { count: 1, mapped: p.status });
+      }
+    }
+    const byStatus: Slice[] = [...statusTotals.entries()]
+      .map(([label, data]) => ({
+        key: label,
+        label,
+        value: data.count,
+        color: STATUS_COLORS[data.mapped] ?? "#94a3b8",
+      }))
+      .sort((a, b) => b.value - a.value);
 
     const byProvince: Slice[] = provinces.map((province) => ({
       key: province,
@@ -1004,9 +1015,7 @@ const GraphsPanel = ({
                   activeKey={statusFilter === "all" ? null : statusFilter}
                   onSliceClick={(key) => {
                     if (!onStatusFilter) return;
-                    onStatusFilter(
-                      statusFilter === key ? "all" : (key as ProjectStatus),
-                    );
+                    onStatusFilter(statusFilter === key ? "all" : key);
                   }}
                 />
               </section>

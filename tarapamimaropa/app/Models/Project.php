@@ -178,6 +178,7 @@ class Project extends Model
             'barangay' => $full['barangay'],
             'partner_agency' => $full['partner_agency'],
             'status' => $full['status'],
+            'status_label' => $full['status_label'],
             'progress' => $full['progress'],
             'budget' => $full['budget'],
             'funding_source' => $full['funding_source'],

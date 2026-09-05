@@ -1,5 +1,5 @@
-import { Head, Link } from '@inertiajs/react';
-import { useEffect, useMemo, useState } from 'react';
+import { Head, Link, usePage } from '@inertiajs/react';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import {
     HiAcademicCap,
     HiArrowTopRightOnSquare,
@@ -34,15 +34,13 @@ import Maps, {
 } from '@/components/maps/Maps';
 import ThemeToggle from '@/theme/ThemeToggle';
 import {
-    AI_INSIGHTS,
-    MOCK_TARA_PROJECTS,
     PROGRAM_META,
     PROVINCES,
     STATUS_META,
+    buildLiveInsights,
     describeProject,
     formatCompact,
     formatPeso,
-    projectImage,
     projectYear,
     summarizeProjects,
     type ProjectStatus,
@@ -51,6 +49,10 @@ import {
     type TaraProject,
 } from '@/constants/taraProjects';
 import { programs } from '@/routes/region';
+
+type PageProps = {
+  projects?: TaraProject[];
+};
 
 const BASE_LAYER_OPTIONS: { id: MapBaseLayer; label: string }[] = [
   { id: "street", label: "Street" },
@@ -76,7 +78,6 @@ const STAT_CARDS: {
   accent: string;
   valueClass: string;
   format: "number" | "peso" | "compact";
-  trend: string;
   statusFilter?: ProjectStatus | "all";
 }[] = [
   {
@@ -87,7 +88,6 @@ const STAT_CARDS: {
       "border-cyan-400/35 bg-gradient-to-br from-cyan-500/20 to-cyan-600/5 text-cyan-100",
     valueClass: "text-cyan-200",
     format: "number",
-    trend: "+8% MoM",
     statusFilter: "all",
   },
   {
@@ -98,7 +98,6 @@ const STAT_CARDS: {
       "border-blue-400/35 bg-gradient-to-br from-blue-500/20 to-blue-600/5 text-blue-100",
     valueClass: "text-blue-300",
     format: "number",
-    trend: "+3",
     statusFilter: "ongoing",
   },
   {
@@ -109,7 +108,6 @@ const STAT_CARDS: {
       "border-emerald-400/35 bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 text-emerald-100",
     valueClass: "text-emerald-300",
     format: "number",
-    trend: "+12%",
     statusFilter: "completed",
   },
   {
@@ -120,7 +118,6 @@ const STAT_CARDS: {
       "border-red-400/35 bg-gradient-to-br from-red-500/20 to-red-600/5 text-red-100",
     valueClass: "text-red-300",
     format: "number",
-    trend: "Watch",
     statusFilter: "delayed",
   },
   {
@@ -131,7 +128,6 @@ const STAT_CARDS: {
       "border-amber-400/35 bg-gradient-to-br from-amber-500/20 to-amber-600/5 text-amber-100",
     valueClass: "text-amber-300",
     format: "number",
-    trend: "Stable",
     statusFilter: "on_hold",
   },
   {
@@ -142,7 +138,6 @@ const STAT_CARDS: {
       "border-violet-400/35 bg-gradient-to-br from-violet-500/20 to-violet-600/5 text-violet-100",
     valueClass: "text-violet-300",
     format: "compact",
-    trend: "+6.2%",
   },
   {
     key: "funding",
@@ -152,7 +147,6 @@ const STAT_CARDS: {
       "border-yellow-400/35 bg-gradient-to-br from-yellow-500/20 to-yellow-600/5 text-yellow-100",
     valueClass: "text-yellow-200",
     format: "peso",
-    trend: "+4.1%",
   },
   {
     key: "utilized",
@@ -162,7 +156,6 @@ const STAT_CARDS: {
       "border-teal-400/35 bg-gradient-to-br from-teal-500/20 to-teal-600/5 text-teal-100",
     valueClass: "text-teal-300",
     format: "peso",
-    trend: "+5.8%",
   },
 ];
 
@@ -377,6 +370,9 @@ const printReport = (projects: TaraProject[], filters: ReportFilters) => {
 };
 
 const PERF_LITE_MQ = "(max-width: 1023px), (pointer: coarse)";
+/** Auto light-mode overlays when portfolio is this big. */
+const HEAVY_DATASET = 120;
+const FEED_PAGE_SIZE = 40;
 
 const readPerfLite = () =>
   typeof window !== "undefined"
@@ -391,8 +387,9 @@ const chromeBtn =
   "rounded-xl border border-slate-700/80 bg-slate-900 px-3 py-2 text-sm font-semibold text-slate-200 lg:border-slate-600/60 lg:bg-slate-900/90 lg:backdrop-blur-md";
 
 const RegionDashboard = () => {
-  const [perfLite, setPerfLite] = useState(readPerfLite);
-  const [projects] = useState<TaraProject[]>(MOCK_TARA_PROJECTS);
+  const { projects: serverProjects = [] } = usePage<PageProps>().props;
+  const projects = serverProjects;
+  const [devicePerfLite, setDevicePerfLite] = useState(readPerfLite);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [viewing, setViewing] = useState<TaraProject | null>(null);
   const [provinceFilter, setProvinceFilter] = useState<Province | "all">("all");
@@ -416,10 +413,16 @@ const RegionDashboard = () => {
   const [locateLoading, setLocateLoading] = useState(false);
   const [locateError, setLocateError] = useState("");
   const [flyToUserToken, setFlyToUserToken] = useState(0);
+  const [feedLimit, setFeedLimit] = useState(FEED_PAGE_SIZE);
+
+  const insights = useMemo(() => buildLiveInsights(projects), [projects]);
+
+  const heavyDataset = projects.length >= HEAVY_DATASET;
+  const perfLite = devicePerfLite || heavyDataset;
 
   useEffect(() => {
     const mq = window.matchMedia(PERF_LITE_MQ);
-    const sync = () => setPerfLite(mq.matches);
+    const sync = () => setDevicePerfLite(mq.matches);
     sync();
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
@@ -427,9 +430,14 @@ const RegionDashboard = () => {
 
   // Debounce search so each keystroke not rebuild map markers.
   useEffect(() => {
-    const id = window.setTimeout(() => setSearch(searchDraft), perfLite ? 220 : 120);
+    const id = window.setTimeout(() => setSearch(searchDraft), perfLite ? 280 : 160);
     return () => window.clearTimeout(id);
   }, [searchDraft, perfLite]);
+
+  // Reset feed window when filters change.
+  useEffect(() => {
+    setFeedLimit(FEED_PAGE_SIZE);
+  }, [provinceFilter, programFilter, statusFilter, search]);
 
   const stats = useMemo(() => summarizeProjects(projects), [projects]);
 
@@ -451,6 +459,16 @@ const RegionDashboard = () => {
       );
     });
   }, [projects, provinceFilter, programFilter, statusFilter, search]);
+
+  const deferredMapProjects = useDeferredValue(filteredProjects);
+  const feedProjects = useMemo(
+    () => filteredProjects.slice(0, feedLimit),
+    [filteredProjects, feedLimit],
+  );
+  const searchResultProjects = useMemo(
+    () => filteredProjects.slice(0, Math.min(feedLimit, 30)),
+    [filteredProjects, feedLimit],
+  );
 
   const scoped = useMemo(
     () => summarizeProjects(filteredProjects),
@@ -578,13 +596,13 @@ const RegionDashboard = () => {
     <section className="relative z-30 h-[calc(100svh-1rem)] min-h-[32rem] w-full overflow-hidden rounded-[inherit] bg-slate-950 pb-[calc(4.5rem+env(safe-area-inset-bottom))] text-slate-100 lg:pb-0">
       <div className="pointer-events-auto absolute inset-0 z-[5]">
         <Maps
-          projects={filteredProjects}
+          projects={deferredMapProjects}
           selectedId={selectedId}
           baseLayer={baseLayer}
-          viewMode={viewMode}
+          viewMode={heavyDataset ? "2d" : viewMode}
           userLocation={userLocation}
           flyToUserToken={flyToUserToken}
-          perfLite={perfLite && viewMode !== "3d"}
+          perfLite={perfLite}
           onViewProject={handleViewProject}
         />
       </div>
@@ -840,11 +858,13 @@ const RegionDashboard = () => {
               <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-violet-200/80">
                 AI insight
               </p>
-              <p className="mt-1 text-sm text-slate-200">{AI_INSIGHTS[insightIndex]}</p>
+              <p className="mt-1 text-sm text-slate-200">
+                {insights[insightIndex % insights.length]}
+              </p>
             </div>
             <button
               type="button"
-              onClick={() => setInsightIndex((i) => (i + 1) % AI_INSIGHTS.length)}
+              onClick={() => setInsightIndex((i) => (i + 1) % insights.length)}
               className="shrink-0 rounded-lg border border-violet-700/50 px-2 py-1 text-[10px] font-semibold text-violet-200"
             >
               Next
@@ -909,7 +929,7 @@ const RegionDashboard = () => {
                   No matches. Try another keyword or clear the province filter.
                 </li>
               ) : null}
-              {filteredProjects.map((project) => {
+              {searchResultProjects.map((project) => {
                 const meta = PROGRAM_META[project.program];
                 const status = STATUS_META[project.status];
                 return (
@@ -944,6 +964,12 @@ const RegionDashboard = () => {
                   </li>
                 );
               })}
+              {filteredProjects.length > searchResultProjects.length ? (
+                <li className="px-2 py-2 text-center text-[11px] text-slate-500">
+                  Showing {searchResultProjects.length} of{" "}
+                  {filteredProjects.length}. Refine search or open Project feed.
+                </li>
+              ) : null}
             </ul>
           </div>
         </div>
@@ -1083,26 +1109,24 @@ const RegionDashboard = () => {
           ) : null}
         </div>
 
-        {(!perfLite || mobileSheet === "graphs" || graphsExpanded) && (
-          <GraphsPanel
-            projects={filteredProjects}
-            expanded={graphsExpanded || mobileSheet === "graphs"}
-            onToggleExpand={() => setGraphsExpanded((v) => !v)}
-            statusFilter={statusFilter}
-            provinceFilter={provinceFilter}
-            programFilter={programFilter}
-            onStatusFilter={setStatusFilter}
-            onProvinceFilter={setProvinceFilter}
-            onProgramFilter={setProgramFilter}
-            className={[
-              mobileSheet === "graphs" ? "max-h-[min(58vh,480px)]" : "hidden",
-              "lg:flex",
-              graphsExpanded
-                ? "lg:max-h-[min(520px,62vh)] lg:max-w-[min(340px,calc(100%-2rem))]"
-                : "lg:max-h-14 lg:max-w-[min(240px,calc(100%-2rem))]",
-            ].join(" ")}
-          />
-        )}
+        <GraphsPanel
+          projects={filteredProjects}
+          expanded={graphsExpanded || mobileSheet === "graphs"}
+          onToggleExpand={() => setGraphsExpanded((v) => !v)}
+          statusFilter={statusFilter}
+          provinceFilter={provinceFilter}
+          programFilter={programFilter}
+          onStatusFilter={setStatusFilter}
+          onProvinceFilter={setProvinceFilter}
+          onProgramFilter={setProgramFilter}
+          className={[
+            mobileSheet === "graphs" ? "max-h-[min(58vh,480px)]" : "hidden",
+            "lg:flex",
+            graphsExpanded || mobileSheet === "graphs"
+              ? "lg:max-h-[min(520px,62vh)] lg:max-w-[min(340px,calc(100%-2rem))]"
+              : "lg:max-h-14 lg:max-w-[min(240px,calc(100%-2rem))]",
+          ].join(" ")}
+        />
 
         {mobileSheet === "ai" ? (
           <div className="pointer-events-auto block w-full lg:hidden">
@@ -1208,7 +1232,7 @@ const RegionDashboard = () => {
               </li>
             ) : null}
 
-            {filteredProjects.map((project) => {
+            {feedProjects.map((project) => {
               const status = STATUS_META[project.status];
               const program = PROGRAM_META[project.program];
               const isSelected = selectedId === project.id;
@@ -1242,14 +1266,23 @@ const RegionDashboard = () => {
                       {project.municipality}, {project.province} ·{" "}
                       <span className={program.accent}>{project.program}</span>
                     </p>
-                    <p className="flex items-center gap-1 font-mono text-[10px] text-slate-500">
-                      <HiMapPin className="h-3 w-3" aria-hidden />
-                      {project.latitude.toFixed(4)}, {project.longitude.toFixed(4)}
-                    </p>
                   </button>
                 </li>
               );
             })}
+            {feedLimit < filteredProjects.length ? (
+              <li className="pt-1">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFeedLimit((n) => n + FEED_PAGE_SIZE)
+                  }
+                  className="w-full rounded-lg border border-slate-700/80 py-2 text-[11px] font-semibold text-cyan-200 transition hover:border-cyan-500/40 hover:bg-cyan-500/10"
+                >
+                  Show more ({filteredProjects.length - feedLimit} left)
+                </button>
+              </li>
+            ) : null}
           </ul>
           ) : null}
         </div>
@@ -1282,19 +1315,29 @@ const RegionDashboard = () => {
               </button>
             </div>
 
-            <img
-              src={viewing.photo_url || projectImage(viewing.id)}
-              alt={viewing.name}
-              loading="lazy"
-              className="mt-3 h-44 w-full rounded-xl object-cover ring-1 ring-slate-700/60"
-            />
+            {viewing.photo_url ? (
+              <img
+                src={viewing.photo_url}
+                alt={viewing.name}
+                loading="lazy"
+                className="mt-3 h-44 w-full rounded-xl object-cover ring-1 ring-slate-700/60"
+              />
+            ) : (
+              <div className="mt-3 flex h-28 w-full items-center justify-center rounded-xl border border-dashed border-slate-700/80 bg-slate-950/60 text-xs text-slate-500">
+                No project photo
+              </div>
+            )}
 
-            <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-300/70">
-              Project description
-            </p>
-            <p className="mt-1 text-sm leading-relaxed text-slate-300">
-              {describeProject(viewing)}
-            </p>
+            {describeProject(viewing).trim() ? (
+              <>
+                <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-300/70">
+                  Project description
+                </p>
+                <p className="mt-1 text-sm leading-relaxed text-slate-300">
+                  {describeProject(viewing)}
+                </p>
+              </>
+            ) : null}
 
             <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-xl border border-slate-700/70 bg-slate-950/50 p-3">

@@ -16,15 +16,8 @@ class ProgramController extends Controller
 {
     public function index(): Response
     {
-        $projects = Project::query()
-            ->orderBy('province')
-            ->orderBy('name')
-            ->get()
-            ->map(fn (Project $project): array => $project->toTaraArray())
-            ->values();
-
         return Inertia::render('region/RegionPrograms', [
-            'projects' => $projects,
+            'projects' => Project::taraCollection(),
         ]);
     }
 

@@ -577,6 +577,65 @@ export const AI_INSIGHTS = [
     '3 projects flagged delayed — Sablayan Water System needs priority review.',
 ];
 
+/** Build insight blurbs from the current project list (DB / filters). */
+export const buildLiveInsights = (projects: TaraProject[]): string[] => {
+    if (projects.length === 0) {
+        return ['No projects loaded yet. Import the Excel list on Programs to populate analytics.'];
+    }
+
+    const stats = summarizeProjects(projects);
+    const byProvince = PROVINCES.map((province) => {
+        const list = projects.filter((p) => p.province === province);
+        const completed = list.filter((p) => p.status === 'completed').length;
+        const budget = list.reduce((s, p) => s + p.budget, 0);
+        const rate =
+            list.length > 0 ? Math.round((completed / list.length) * 100) : 0;
+        return { province, count: list.length, completed, budget, rate };
+    }).filter((r) => r.count > 0);
+
+    const topCount = [...byProvince].sort((a, b) => b.count - a.count)[0];
+    const topBudget = [...byProvince].sort((a, b) => b.budget - a.budget)[0];
+    const topComplete = [...byProvince].sort((a, b) => b.rate - a.rate)[0];
+    const topType = (() => {
+        const map = new Map<string, number>();
+        projects.forEach((p) => {
+            const t = projectType(p);
+            map.set(t, (map.get(t) ?? 0) + 1);
+        });
+        return [...map.entries()].sort((a, b) => b[1] - a[1])[0];
+    })();
+
+    const lines = [
+        `${stats.total} MIMAROPA projects in view · ${formatPeso(stats.funding)} total project cost · ${stats.active} ongoing · ${stats.completed} graduated/completed.`,
+    ];
+
+    if (topCount) {
+        lines.push(
+            `${topCount.province} has the most projects (${topCount.count}).`,
+        );
+    }
+    if (topBudget) {
+        lines.push(
+            `${topBudget.province} leads funding at ${formatPeso(topBudget.budget)}.`,
+        );
+    }
+    if (topComplete && topComplete.count >= 5) {
+        lines.push(
+            `${topComplete.province} leads completion rate at ${topComplete.rate}% (${topComplete.completed}/${topComplete.count}).`,
+        );
+    }
+    if (topType) {
+        lines.push(`Most common type: ${topType[0]} (${topType[1]} projects).`);
+    }
+    if (stats.delayed > 0) {
+        lines.push(`${stats.delayed} delayed project${stats.delayed === 1 ? '' : 's'} need review.`);
+    } else {
+        lines.push('No delayed projects in the current filter.');
+    }
+
+    return lines;
+};
+
 export const summarizeProjects = (projects: TaraProject[]) => {
     const total = projects.length;
     const active = projects.filter((p) => p.status === 'ongoing').length;

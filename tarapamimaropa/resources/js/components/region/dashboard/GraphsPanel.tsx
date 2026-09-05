@@ -641,6 +641,10 @@ const GraphsPanel = ({
   className = "",
 }: GraphsPanelProps) => {
   const chartData = useMemo(() => {
+    if (!expanded) {
+      return null;
+    }
+
     const provinces = Object.keys(PROVINCE_COLORS) as Province[];
 
     const byStatus: Slice[] = (
@@ -810,14 +814,53 @@ const GraphsPanel = ({
       completionRate,
       atRisk,
     };
-  }, [projects]);
+  }, [projects, expanded]);
+
+  const empty = projects.length === 0;
+
+  if (!expanded || !chartData) {
+    return (
+      <div
+        className={[
+          "pointer-events-auto flex w-full flex-col overflow-hidden rounded-2xl border border-cyan-400/25 bg-slate-900/95 shadow-[0_8px_48px_rgba(0,0,0,0.5),0_0_24px_rgba(34,211,238,0.1)] backdrop-blur-xl",
+          className,
+        ].join(" ")}
+      >
+        <div className="flex items-center justify-between gap-2 border-b border-cyan-900/50 px-3 py-2.5 sm:px-4">
+          <button
+            type="button"
+            onClick={onToggleExpand}
+            className="flex min-w-0 flex-1 items-center gap-2 text-left"
+          >
+            <HiChartBar className="h-4 w-4 shrink-0 text-cyan-300" aria-hidden />
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-cyan-200/90">
+              Graphs
+            </p>
+            <span className="rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold text-cyan-300">
+              {projects.length}
+            </span>
+          </button>
+          {onToggleExpand ? (
+            <button
+              type="button"
+              onClick={onToggleExpand}
+              className="rounded-lg border border-slate-700/80 px-2 py-1 text-[10px] font-semibold text-slate-400 hover:text-white"
+              aria-expanded={expanded}
+            >
+              <span className="inline-flex items-center gap-1">
+                Expand <HiChevronUp className="h-3 w-3" />
+              </span>
+            </button>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
 
   const utilPct =
     chartData.funding > 0
       ? Math.min(100, Math.round((chartData.utilized / chartData.funding) * 100))
       : 0;
-
-  const empty = projects.length === 0;
 
   return (
     <div

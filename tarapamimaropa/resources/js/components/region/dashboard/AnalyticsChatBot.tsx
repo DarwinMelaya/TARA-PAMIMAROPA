@@ -6,7 +6,7 @@ import {
   HiArrowPath,
 } from "react-icons/hi2";
 import type { TaraProject } from '@/constants/taraProjects';
-import { AI_INSIGHTS } from '@/constants/taraProjects';
+import { buildLiveInsights } from '@/constants/taraProjects';
 import {
   CHAT_QUICK_PROMPTS,
   buildAssistantReply,
@@ -45,6 +45,7 @@ const AnalyticsChatBot = ({
   const projectCount = projects.length;
 
   const tips = useMemo(() => CHAT_QUICK_PROMPTS, []);
+  const insights = useMemo(() => buildLiveInsights(projects), [projects]);
 
   useEffect(() => {
     if (!open) return;
@@ -129,12 +130,12 @@ const AnalyticsChatBot = ({
           Live insight
         </p>
         <p className="mt-0.5 text-[11px] leading-snug text-slate-200">
-          {AI_INSIGHTS[insightIndex]}
+          {insights[insightIndex % insights.length]}
         </p>
         <button
           type="button"
           onClick={() =>
-            setInsightIndex((i) => (i + 1) % AI_INSIGHTS.length)
+            setInsightIndex((i) => (i + 1) % Math.max(insights.length, 1))
           }
           className="mt-1 text-[10px] font-semibold text-violet-300 hover:text-violet-100"
         >

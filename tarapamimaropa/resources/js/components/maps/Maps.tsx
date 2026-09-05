@@ -15,6 +15,8 @@ export type { MapBaseLayer, MapViewMode, UserLocation };
 
 const MIMAROPA_CENTER: L.LatLngExpression = [12.0, 121.0];
 const DEFAULT_ZOOM = 7;
+/** Above this count, prefer canvas dots over rich HTML pins. */
+const HEAVY_MARKER_COUNT = 80;
 
 const BASE_LAYERS: Record<
   MapBaseLayer,
@@ -43,6 +45,17 @@ const BASE_LAYERS: Record<
   },
 };
 
+const PROGRAM_DOT_COLORS: Record<string, string> = {
+  SETUP: "#22d3ee",
+  CEST: "#a78bfa",
+  GIA: "#fbbf24",
+  STARBOOKS: "#34d399",
+  Community: "#67e8f9",
+  Water: "#38bdf8",
+  Energy: "#facc15",
+};
+
+
 const escapeHtml = (value: unknown) =>
   String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -57,7 +70,7 @@ type PositionedProject = {
 };
 
 type MarkerEntry = PositionedProject & {
-  marker: L.Marker;
+  marker: L.Layer;
 };
 
 const layoutProjectPositions = (
@@ -181,36 +194,39 @@ const Maps2D = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const tileRef = useRef<L.TileLayer | null>(null);
+  const canvasRendererRef = useRef<L.Canvas | null>(null);
   const markersRef = useRef<MarkerEntry[]>([]);
+  const layerGroupRef = useRef<L.LayerGroup | null>(null);
   const userMarkerRef = useRef<L.Marker | null>(null);
   const userAccuracyRef = useRef<L.Circle | null>(null);
   const onViewProjectRef = useRef(onViewProject);
   const selectedIdRef = useRef(selectedId);
   const perfLiteRef = useRef(perfLite);
+  const fittedProjectsKeyRef = useRef<string>("");
 
   onViewProjectRef.current = onViewProject;
   selectedIdRef.current = selectedId;
   perfLiteRef.current = perfLite;
 
-  const clearMarkers = (map: L.Map | null) => {
+  const clearMarkers = () => {
     markersRef.current.forEach((entry) => {
       entry.marker.off();
-      if (map?.hasLayer(entry.marker)) entry.marker.remove();
     });
     markersRef.current = [];
+    layerGroupRef.current?.clearLayers();
   };
 
   const goTo = (
     map: L.Map,
     latlng: L.LatLngExpression,
-    zoom: number,
+    zoomLevel: number,
     duration: number,
   ) => {
     if (perfLiteRef.current) {
-      map.setView(latlng, zoom, { animate: false });
+      map.setView(latlng, zoomLevel, { animate: false });
       return;
     }
-    map.flyTo(latlng, zoom, { duration });
+    map.flyTo(latlng, zoomLevel, { duration });
   };
 
   useEffect(() => {
@@ -221,6 +237,7 @@ const Maps2D = ({
       zoom: DEFAULT_ZOOM,
       zoomControl: false,
       tapTolerance: 18,
+      preferCanvas: true,
       fadeAnimation: !perfLite,
       zoomAnimation: !perfLite,
       markerZoomAnimation: !perfLite,
@@ -228,23 +245,27 @@ const Maps2D = ({
     });
 
     L.control.zoom({ position: "bottomright" }).addTo(map);
+    canvasRendererRef.current = L.canvas({ padding: 0.5 });
+    layerGroupRef.current = L.layerGroup().addTo(map);
 
     const initial = BASE_LAYERS[baseLayer];
     tileRef.current = L.tileLayer(initial.url, {
       attribution: initial.attribution,
       subdomains: "abcd",
       maxZoom: initial.maxZoom ?? 19,
-      updateWhenIdle: perfLite,
+      updateWhenIdle: true,
       keepBuffer: perfLite ? 1 : 2,
     }).addTo(map);
 
     mapRef.current = map;
 
     return () => {
-      clearMarkers(map);
+      clearMarkers();
       map.remove();
       mapRef.current = null;
       tileRef.current = null;
+      layerGroupRef.current = null;
+      canvasRendererRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- init once
   }, []);
@@ -262,98 +283,145 @@ const Maps2D = ({
       attribution: next.attribution,
       subdomains: "abcd",
       maxZoom: next.maxZoom ?? 19,
-      updateWhenIdle: perfLiteRef.current,
+      updateWhenIdle: true,
       keepBuffer: perfLiteRef.current ? 1 : 2,
     }).addTo(map);
   }, [baseLayer]);
 
-  // Rebuild markers only when project set changes — not on every select.
+  // Rebuild markers when project set changes.
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
+    const group = layerGroupRef.current;
+    const renderer = canvasRendererRef.current;
+    if (!map || !group) return;
 
-    clearMarkers(map);
+    clearMarkers();
 
     const valid = (projects ?? []).filter(
       (p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude),
     );
-    const positioned = layoutProjectPositions(valid);
-    const activeId = selectedIdRef.current;
+    const heavy = valid.length >= HEAVY_MARKER_COUNT || perfLiteRef.current;
 
-    positioned.forEach(({ project, lat, lng }) => {
-      const isActive = activeId === project.id;
-      const marker = L.marker([lat, lng], {
-        icon: createProjectPinIcon(project, isActive),
-        riseOnHover: !perfLiteRef.current,
-        riseOffset: 250,
-      }).addTo(map);
+    if (heavy) {
+      const positioned = layoutProjectPositions(valid);
+      const activeId = selectedIdRef.current;
 
-      if (!perfLiteRef.current) {
-        marker.bindTooltip(buildTooltipContent(project), {
-          direction: "top",
-          offset: [0, -22],
-          opacity: 1,
-          className: "project-map-tooltip",
-        });
-      }
+      positioned.forEach(({ project, lat, lng }) => {
+        const isActive = activeId === project.id;
+        const color = PROGRAM_DOT_COLORS[project.program] ?? "#22d3ee";
+        const marker = L.circleMarker([lat, lng], {
+          radius: isActive ? 8 : 5,
+          color: isActive ? "#fff" : color,
+          weight: isActive ? 2 : 1,
+          fillColor: color,
+          fillOpacity: isActive ? 0.95 : 0.75,
+          renderer: renderer ?? undefined,
+        }).addTo(group);
 
-      marker.on("click", (e) => {
-        L.DomEvent.stopPropagation(e);
-        onViewProjectRef.current?.(project);
-      });
-
-      if (!perfLiteRef.current) {
-        marker.on("mouseover", () => {
-          const isPinActive = selectedIdRef.current === project.id;
-          setPinState(marker, { active: isPinActive, hover: true });
-          elevateMarker(marker, isPinActive ? 1000 : 800);
-          marker.openTooltip();
+        marker.on("click", (e) => {
+          L.DomEvent.stopPropagation(e);
+          onViewProjectRef.current?.(project);
         });
 
-        marker.on("mouseout", () => {
-          const isPinActive = selectedIdRef.current === project.id;
-          setPinState(marker, { active: isPinActive, hover: false });
-          if (!isPinActive) resetMarkerElevation(marker);
-        });
-      }
-
-      markersRef.current.push({ marker, project, lat, lng });
-    });
-
-    if (valid.length === 1) {
-      map.setView([positioned[0].lat, positioned[0].lng], 11, {
-        animate: !perfLiteRef.current,
-      });
-    } else if (valid.length > 1) {
-      const bounds = L.latLngBounds(positioned.map((p) => [p.lat, p.lng]));
-      map.fitBounds(bounds, {
-        padding: [64, 64],
-        maxZoom: 10,
-        animate: !perfLiteRef.current,
+        markersRef.current.push({ marker, project, lat, lng });
       });
     } else {
-      map.setView(MIMAROPA_CENTER, DEFAULT_ZOOM, {
-        animate: !perfLiteRef.current,
+      const positioned = layoutProjectPositions(valid);
+      const activeId = selectedIdRef.current;
+
+      positioned.forEach(({ project, lat, lng }) => {
+        const isActive = activeId === project.id;
+        const marker = L.marker([lat, lng], {
+          icon: createProjectPinIcon(project, isActive),
+          riseOnHover: !perfLiteRef.current,
+          riseOffset: 250,
+        }).addTo(group);
+
+        if (!perfLiteRef.current) {
+          marker.bindTooltip(buildTooltipContent(project), {
+            direction: "top",
+            offset: [0, -22],
+            opacity: 1,
+            className: "project-map-tooltip",
+          });
+
+          marker.on("mouseover", () => {
+            const isPinActive = selectedIdRef.current === project.id;
+            setPinState(marker, { active: isPinActive, hover: true });
+            elevateMarker(marker, isPinActive ? 1000 : 800);
+            marker.openTooltip();
+          });
+
+          marker.on("mouseout", () => {
+            const isPinActive = selectedIdRef.current === project.id;
+            setPinState(marker, { active: isPinActive, hover: false });
+            if (!isPinActive) resetMarkerElevation(marker);
+          });
+        }
+
+        marker.on("click", (e) => {
+          L.DomEvent.stopPropagation(e);
+          onViewProjectRef.current?.(project);
+        });
+
+        markersRef.current.push({ marker, project, lat, lng });
       });
+    }
+
+    // Fit only when the project set changes — never on zoom (would fight user).
+    const projectsKey = `${valid.length}|${valid[0]?.id ?? ""}|${valid[valid.length - 1]?.id ?? ""}`;
+    if (fittedProjectsKeyRef.current !== projectsKey) {
+      fittedProjectsKeyRef.current = projectsKey;
+
+      if (valid.length === 1 && markersRef.current[0]) {
+        map.setView(
+          [markersRef.current[0].lat, markersRef.current[0].lng],
+          11,
+          { animate: !perfLiteRef.current },
+        );
+      } else if (valid.length > 1 && markersRef.current.length > 0) {
+        const bounds = L.latLngBounds(
+          markersRef.current.map((p) => [p.lat, p.lng] as [number, number]),
+        );
+        map.fitBounds(bounds, {
+          padding: [64, 64],
+          maxZoom: 10,
+          animate: !perfLiteRef.current,
+        });
+      } else if (valid.length === 0) {
+        map.setView(MIMAROPA_CENTER, DEFAULT_ZOOM, {
+          animate: !perfLiteRef.current,
+        });
+      }
     }
   }, [projects]);
 
-  // Selection: update pin state + pan only — no full marker rebuild.
+  // Selection: update pin/dot state + pan — no full rebuild for rich pins.
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
     markersRef.current.forEach(({ marker, project }) => {
       const active = selectedId === project.id;
-      setPinState(marker, { active, hover: false });
-      if (active) elevateMarker(marker, 1000);
-      else resetMarkerElevation(marker);
+      if (marker instanceof L.Marker) {
+        setPinState(marker, { active, hover: false });
+        if (active) elevateMarker(marker, 1000);
+        else resetMarkerElevation(marker);
+      } else if (marker instanceof L.CircleMarker) {
+        const color = PROGRAM_DOT_COLORS[project.program] ?? "#22d3ee";
+        marker.setStyle({
+          radius: active ? 8 : 5,
+          color: active ? "#fff" : color,
+          weight: active ? 2 : 1,
+          fillOpacity: active ? 0.95 : 0.75,
+        });
+      }
     });
 
     if (!selectedId) return;
     const entry = markersRef.current.find((m) => m.project.id === selectedId);
     if (!entry) return;
-    goTo(map, [entry.lat, entry.lng], 12, 0.6);
+    goTo(map, [entry.lat, entry.lng], Math.max(map.getZoom(), 11), 0.6);
   }, [selectedId]);
 
   useEffect(() => {
@@ -414,11 +482,12 @@ const Maps2D = ({
   );
 };
 
-const Maps = ({ viewMode = "2d", perfLite, ...props }: MapsProps) => {
-  if (viewMode === "3d") {
-    return <Maps3D {...props} />;
+const Maps = ({ viewMode = "2d", perfLite, projects, ...props }: MapsProps) => {
+  // 3D path struggles with hundreds of pins — keep 2D for heavy sets.
+  if (viewMode === "3d" && (projects?.length ?? 0) < HEAVY_MARKER_COUNT) {
+    return <Maps3D projects={projects} {...props} />;
   }
-  return <Maps2D {...props} perfLite={perfLite} />;
+  return <Maps2D projects={projects} perfLite={perfLite} {...props} />;
 };
 
 export default Maps;

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 /**
  * @property int $id
@@ -99,12 +100,103 @@ class Project extends Model
             'end_date' => sprintf('%04d-12-31', $year + 1),
             'year_approved' => $year,
             'latest_accomplishment' => '',
-            'latitude' => 0,
-            'longitude' => 0,
+            ...$this->approximateCoordinates(),
             'amount_due' => $this->amount_due !== null ? (float) $this->amount_due : null,
             'refunded' => $this->refunded !== null ? (float) $this->refunded : null,
             'refund_rate' => $this->refund_rate !== null ? (float) $this->refund_rate : null,
         ];
+    }
+
+    /**
+     * @return Collection<int, array<string, mixed>>
+     */
+    public static function taraCollection(): Collection
+    {
+        return static::query()
+            ->orderBy('province')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (self $project): array => $project->toTaraArray())
+            ->values();
+    }
+
+    /**
+     * Stable pseudo-random point inside each province bbox (no lat/lng in Excel).
+     *
+     * @return array{latitude: float, longitude: float}
+     */
+    private function approximateCoordinates(): array
+    {
+        // [latMin, latMax, lngMin, lngMax] — rough MIMAROPA land boxes
+        $boxes = [
+            'Occidental Mindoro' => [12.35, 13.52, 120.52, 121.22],
+            'Oriental Mindoro' => [12.32, 13.52, 121.05, 121.55],
+            'Marinduque' => [13.18, 13.58, 121.82, 122.18],
+            'Romblon' => [12.15, 12.78, 121.85, 122.55],
+            'Palawan' => [8.15, 11.45, 117.45, 119.55],
+        ];
+
+        [$latMin, $latMax, $lngMin, $lngMax] = $boxes[$this->province ?? '']
+            ?? [12.0, 13.0, 120.5, 122.0];
+
+        $seed = crc32((string) ($this->code ?: ('project-'.$this->id)));
+        // Two independent [0,1) fractions from the seed
+        $u = (($seed & 0xFFFF) % 10000) / 10000;
+        $v = ((($seed >> 16) & 0xFFFF) % 10000) / 10000;
+
+        return [
+            'latitude' => round($latMin + $u * ($latMax - $latMin), 5),
+            'longitude' => round($lngMin + $v * ($lngMax - $lngMin), 5),
+        ];
+    }
+
+    /**
+     * Slim payload for command-map / graphs / chat (less Inertia JSON).
+     *
+     * @return array<string, mixed>
+     */
+    public function toDashboardArray(): array
+    {
+        $full = $this->toTaraArray();
+
+        return [
+            'id' => $full['id'],
+            'code' => $full['code'],
+            'name' => $full['name'],
+            'beneficiary' => $full['beneficiary'],
+            'program' => $full['program'],
+            'type' => $full['type'],
+            'sector' => $full['sector'],
+            'province' => $full['province'],
+            'municipality' => $full['municipality'],
+            'barangay' => $full['barangay'],
+            'partner_agency' => $full['partner_agency'],
+            'status' => $full['status'],
+            'progress' => $full['progress'],
+            'budget' => $full['budget'],
+            'funding_source' => $full['funding_source'],
+            'beneficiaries' => $full['beneficiaries'],
+            'start_date' => $full['start_date'],
+            'end_date' => $full['end_date'],
+            'year_approved' => $full['year_approved'],
+            'latitude' => $full['latitude'],
+            'longitude' => $full['longitude'],
+            'description' => '',
+            'latest_accomplishment' => '',
+        ];
+    }
+
+    /**
+     * @return Collection<int, array<string, mixed>>
+     */
+    public static function dashboardCollection(): Collection
+    {
+        return static::query()
+            ->orderBy('province')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (self $project): array => $project->toDashboardArray())
+            ->values();
     }
 
     public static function mapStatus(?string $raw): string

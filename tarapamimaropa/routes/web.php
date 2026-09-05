@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Region\ProgramController;
 use App\Http\Controllers\SuperAdmin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,7 +26,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('region.')
         ->group(function () {
             Route::inertia('/', 'region/RegionDashboard')->name('dashboard');
-            Route::inertia('/programs', 'region/RegionPrograms')->name('programs');
+            Route::get('/programs', [ProgramController::class, 'index'])->name('programs');
+            Route::post('/programs/import', [ProgramController::class, 'import'])->name('programs.import');
         });
 
     Route::middleware(['role:psto'])

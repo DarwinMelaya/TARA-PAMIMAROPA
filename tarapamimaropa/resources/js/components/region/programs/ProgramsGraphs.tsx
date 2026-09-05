@@ -629,26 +629,34 @@ const ProgramsGraphs = ({
             }))
             .sort((a, b) => b.value - a.value);
 
-        const perType: Row[] = TARA_TYPES.filter(
-            (t) => (byType.get(t) ?? 0) > 0,
-        )
+        const typeKeys =
+            byType.size > 0
+                ? [...byType.keys()]
+                : TARA_TYPES.filter((t) => (byType.get(t) ?? 0) > 0);
+
+        const perType: Row[] = typeKeys
             .map((type, i) => ({
                 key: type,
                 label: type,
                 value: byType.get(type) ?? 0,
                 color: SERIES_COLORS[i % SERIES_COLORS.length],
             }))
+            .filter((r) => r.value > 0)
             .sort((a, b) => b.value - a.value);
 
-        const perSector: Row[] = SECTORS.filter(
-            (s) => (bySector.get(s) ?? 0) > 0,
-        )
+        const sectorKeys =
+            bySector.size > 0
+                ? [...bySector.keys()]
+                : SECTORS.filter((s) => (bySector.get(s) ?? 0) > 0);
+
+        const perSector: Row[] = sectorKeys
             .map((sector, i) => ({
                 key: sector,
                 label: sector,
                 value: bySector.get(sector) ?? 0,
                 color: SERIES_COLORS[i % SERIES_COLORS.length],
             }))
+            .filter((r) => r.value > 0)
             .sort((a, b) => b.value - a.value);
 
         const costPerProvince: Row[] = PROVINCES.filter(
@@ -662,15 +670,14 @@ const ProgramsGraphs = ({
             }))
             .sort((a, b) => b.value - a.value);
 
-        const costPerSector: Row[] = SECTORS.filter(
-            (s) => (costBySector.get(s) ?? 0) > 0,
-        )
+        const costPerSector: Row[] = sectorKeys
             .map((sector, i) => ({
                 key: `cost-${sector}`,
                 label: sector,
                 value: costBySector.get(sector) ?? 0,
                 color: SERIES_COLORS[i % SERIES_COLORS.length],
             }))
+            .filter((r) => r.value > 0)
             .sort((a, b) => b.value - a.value);
 
         return {

@@ -30,15 +30,20 @@ export type TaraProgram =
 
 export type TaraProject = {
     id: string;
+    code?: string | null;
     name: string;
     description: string;
     beneficiary: string;
     program: TaraProgram;
+    /** Excel "Type" when imported; falls back to program mapping. */
+    type?: string | null;
     sector: string;
     province: Province;
     municipality: string;
     barangay: string;
     partner_agency: string;
+    collaborators?: string | null;
+    district?: string | null;
     status: ProjectStatus;
     progress: number;
     budget: number;
@@ -46,10 +51,14 @@ export type TaraProject = {
     beneficiaries: number;
     start_date: string;
     end_date: string;
+    year_approved?: number | null;
     latest_accomplishment: string;
     latitude: number;
     longitude: number;
     photo_url?: string;
+    amount_due?: number | null;
+    refunded?: number | null;
+    refund_rate?: number | null;
 };
 
 export const STATUS_META: Record<
@@ -535,11 +544,21 @@ export const SECTORS = [
 
 export type TaraSector = (typeof SECTORS)[number];
 
-export const projectType = (project: TaraProject): TaraType =>
-    PROGRAM_TO_TYPE[project.program];
+export const projectType = (project: TaraProject): string => {
+    if (project.type && project.type.trim() !== '') {
+        return project.type;
+    }
 
-export const projectYear = (project: TaraProject): number =>
-    Number(project.start_date.slice(0, 4));
+    return PROGRAM_TO_TYPE[project.program];
+};
+
+export const projectYear = (project: TaraProject): number => {
+    if (project.year_approved && project.year_approved > 1900) {
+        return project.year_approved;
+    }
+
+    return Number(project.start_date.slice(0, 4));
+};
 
 export const PROGRAMS: TaraProgram[] = [
     'SETUP',

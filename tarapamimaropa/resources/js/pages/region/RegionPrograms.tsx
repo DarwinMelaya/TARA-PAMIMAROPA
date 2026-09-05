@@ -1,6 +1,7 @@
-import { Head, Link } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useMemo, useRef, useState } from 'react';
 import {
+  HiArrowUpTray,
   HiBanknotes,
   HiChartBar,
   HiChevronDown,
@@ -15,12 +16,10 @@ import {
 } from 'react-icons/hi2';
 import ProgramsGraphs from '@/components/region/programs/ProgramsGraphs';
 import {
-  MOCK_TARA_PROJECTS,
   PROGRAM_META,
   PROJECT_STATUSES,
   PROVINCES,
   STATUS_META,
-  TARA_TYPES,
   describeProject,
   formatCompact,
   formatPeso,
@@ -33,7 +32,12 @@ import {
   type TaraProject,
 } from '@/constants/taraProjects';
 import { dashboard } from '@/routes/region';
+import { importMethod } from '@/routes/region/programs';
 import { useTheme, type ThemeMode } from '@/theme/ThemeProvider';
+
+type PageProps = {
+  projects?: TaraProject[];
+};
 
 const UI = {
   light: {
@@ -116,7 +120,10 @@ const PAGE_SIZE = 10;
 const RegionPrograms = () => {
   const { theme } = useTheme();
   const ui = UI[theme];
-  const [projects] = useState<TaraProject[]>(MOCK_TARA_PROJECTS);
+  const { projects: serverProjects = [] } = usePage<PageProps>().props;
+  const projects = serverProjects;
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [provinceFilter, setProvinceFilter] = useState<Province | "all">("all");
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | "all">(
     "all",
@@ -126,6 +133,25 @@ const RegionPrograms = () => {
   const [chartsOpen, setChartsOpen] = useState(false);
   const [viewing, setViewing] = useState<TaraProject | null>(null);
   const [graphsOpen, setGraphsOpen] = useState(false);
+
+  const onPickImport = () => fileInputRef.current?.click();
+
+  const onImportFile = (file: File | undefined) => {
+    if (!file) return;
+
+    const data = new FormData();
+    data.append('file', file);
+    setImporting(true);
+
+    router.post(importMethod.url(), data, {
+      forceFormData: true,
+      preserveScroll: true,
+      onFinish: () => {
+        setImporting(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      },
+    });
+  };
 
   const scopedProjects = useMemo(
     () =>
@@ -185,14 +211,18 @@ const RegionPrograms = () => {
   }, [scopedProjects]);
 
   const byType = useMemo(() => {
-    const rows = TARA_TYPES.map((type) => {
-      const items = scopedProjects.filter((p) => projectType(p) === type);
-      return {
-        type,
-        count: items.length,
-        budget: items.reduce((s, p) => s + p.budget, 0),
-      };
-    }).filter((r) => r.count > 0);
+    const counts = new Map<string, { count: number; budget: number }>();
+    for (const p of scopedProjects) {
+      const type = projectType(p);
+      const prev = counts.get(type) ?? { count: 0, budget: 0 };
+      counts.set(type, {
+        count: prev.count + 1,
+        budget: prev.budget + p.budget,
+      });
+    }
+    const rows = [...counts.entries()]
+      .map(([type, data]) => ({ type, ...data }))
+      .sort((a, b) => b.count - a.count);
     const max = Math.max(1, ...rows.map((r) => r.count));
     return { rows, max };
   }, [scopedProjects]);
@@ -253,6 +283,22 @@ const RegionPrograms = () => {
           </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
+              className="hidden"
+              onChange={(e) => onImportFile(e.target.files?.[0])}
+            />
+            <button
+              type="button"
+              disabled={importing}
+              onClick={onPickImport}
+              className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition duration-[180ms] disabled:opacity-50 ${ui.ghostBtn}`}
+            >
+              <HiArrowUpTray className="h-4 w-4" aria-hidden />
+              {importing ? 'Importing…' : 'Import Excel'}
+            </button>
             <button
               type="button"
               onClick={() => setGraphsOpen(true)}
@@ -754,7 +800,7 @@ const RegionPrograms = () => {
               <div>
                 <dt className={`text-xs ${ui.muted}`}>Type</dt>
                 <dd className={`mt-0.5 font-medium ${ui.heading}`}>
-                  {viewing.program}
+                  {projectType(viewing)}
                 </dd>
               </div>
               <div>

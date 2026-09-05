@@ -1,57 +1,37 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     HiArrowRightOnRectangle,
     HiChevronDown,
     HiChevronLeft,
     HiChevronRight,
-    HiCube,
     HiMagnifyingGlass,
-    HiMap,
     HiMapPin,
-    HiSquares2X2,
-    HiSquare3Stack3D,
-    HiUserGroup,
-    HiBanknotes,
     HiArrowDownTray,
     HiArrowTopRightOnSquare,
     HiPaperAirplane,
     HiXMark,
 } from 'react-icons/hi2';
-import Maps from '../../components/maps/Maps';
-import type {
-    MapBaseLayer,
-    MapViewMode,
-    UserLocation,
-} from '../../components/maps/mapTypes';
+import CommandMapWorkspace from '@/components/dashboard/CommandMapWorkspace';
+import type { UserLocation } from '@/components/maps/mapTypes';
 import {
-    MOCK_TARA_PROJECTS,
     PROJECT_STATUSES,
-    PROVINCES,
     PROGRAM_META,
+    PROVINCES,
     STATUS_META,
     describeProject,
-    formatCompact,
     formatPeso,
     projectImage,
-    projectType,
     projectYear,
-    summarizeProjects,
+    statusBadgeClass,
     type ProjectStatus,
     type Province,
     type TaraProject,
-} from '../../constants/taraProjects';
-import ThemeToggle from '../../theme/ThemeToggle';
-import { useTheme, type ThemeMode } from '../../theme/ThemeProvider';
+} from '@/constants/taraProjects';
+import { useTheme, type ThemeMode } from '@/theme/ThemeProvider';
 
-/** Light-theme status chips for public list / detail (STATUS_META tuned for dark dashboards). */
-const STATUS_PUBLIC: Record<ProjectStatus, string> = {
-    planning: 'bg-slate-100 text-slate-700 border-slate-300',
-    ongoing: 'bg-blue-50 text-blue-800 border-blue-300',
-    completed: 'bg-emerald-50 text-emerald-800 border-emerald-300',
-    delayed: 'bg-red-50 text-red-800 border-red-300',
-    on_hold: 'bg-amber-50 text-amber-900 border-amber-300',
-    cancelled: 'bg-rose-50 text-rose-800 border-rose-300',
+type PageProps = {
+    projects?: TaraProject[];
 };
 
 const UI = {
@@ -183,14 +163,6 @@ const matchesQuery = (project: TaraProject, query: string) => {
         .every((token) => haystack.includes(token));
 };
 
-const BASE_LAYERS: { id: MapBaseLayer; label: string }[] = [
-    { id: 'street', label: 'Map' },
-    { id: 'satellite', label: 'Satellite' },
-    { id: 'terrain', label: 'Terrain' },
-];
-
-const QUICK_SEARCHES = ['SETUP', 'Water', 'Coral', 'Solar', 'STARBOOKS'];
-
 type ExportScope = {
     province: Province | 'all';
     status: ProjectStatus | 'all';
@@ -288,6 +260,11 @@ const downloadFilteredCsv = (projects: TaraProject[], scope: ExportScope) => {
 };
 
 const LandingPage = () => {
+    const { theme, isDark } = useTheme();
+    const t = UI[theme];
+    const { projects: serverProjects = [] } = usePage<PageProps>().props;
+    const projects = serverProjects;
+
     const [query, setQuery] = useState('');
     const [provinceFilter, setProvinceFilter] = useState<Province | 'all'>(
         'all',
@@ -299,20 +276,11 @@ const LandingPage = () => {
     const [page, setPage] = useState(1);
     const [viewing, setViewing] = useState<TaraProject | null>(null);
     const [selectedId, setSelectedId] = useState<string | null>(null);
-    const [baseLayer, setBaseLayer] = useState<MapBaseLayer>('satellite');
-    const [viewMode, setViewMode] = useState<MapViewMode>('2d');
     const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
-    const [flyToUserToken, setFlyToUserToken] = useState(0);
     const [locating, setLocating] = useState(false);
-    const [locateError, setLocateError] = useState('');
-    const [searchOpen, setSearchOpen] = useState(false);
-    const { theme, isDark } = useTheme();
 
-    const t = UI[theme];
     const statusChip = (status: ProjectStatus) =>
-        isDark ? STATUS_META[status].className : STATUS_PUBLIC[status];
-
-    const projects = MOCK_TARA_PROJECTS;
+        statusBadgeClass(status, isDark ? 'dark' : 'light');
 
     const filtered = useMemo(
         () =>
@@ -343,8 +311,6 @@ const LandingPage = () => {
         setPage(1);
     }, [query, provinceFilter, statusFilter, sortKey]);
 
-    const stats = useMemo(() => summarizeProjects(filtered), [filtered]);
-
     const hasFilters =
         provinceFilter !== 'all' ||
         statusFilter !== 'all' ||
@@ -359,16 +325,13 @@ const LandingPage = () => {
     const openProject = (project: TaraProject) => {
         setSelectedId(project.id);
         setViewing(project);
-        setSearchOpen(false);
     };
 
     const locateMe = () => {
         if (!('geolocation' in navigator)) {
-            setLocateError('Geolocation not supported on this browser.');
             return;
         }
         setLocating(true);
-        setLocateError('');
         navigator.geolocation.getCurrentPosition(
             (pos) => {
                 setUserLocation({
@@ -376,457 +339,34 @@ const LandingPage = () => {
                     lng: pos.coords.longitude,
                     accuracy: pos.coords.accuracy,
                 });
-                setFlyToUserToken((n) => n + 1);
                 setLocating(false);
             },
-            (error) => {
+            () => {
                 setLocating(false);
-                if (error.code === error.PERMISSION_DENIED) {
-                    setLocateError('Location permission denied.');
-                    return;
-                }
-                setLocateError('Could not get current location.');
             },
             { enableHighAccuracy: true, timeout: 10_000 },
         );
     };
 
-    const kpis = [
-        { label: 'Projects', value: String(stats.total), icon: HiSquares2X2 },
-        {
-            label: 'Beneficiaries',
-            value: formatCompact(stats.beneficiaries),
-            icon: HiUserGroup,
-        },
-        {
-            label: 'Municipalities',
-            value: String(stats.municipalities),
-            icon: HiMapPin,
-        },
-        {
-            label: 'Funding',
-            value: formatCompact(stats.funding),
-            icon: HiBanknotes,
-        },
-    ];
-
     return (
-        <div className={`${t.page} transition-colors duration-[180ms]`}>
-            <section className="relative h-[100dvh] w-full overflow-hidden bg-slate-950">
-                <div className="absolute inset-0 z-[5]">
-                    <Maps
-                        projects={filtered}
-                        selectedId={selectedId}
-                        baseLayer={baseLayer}
-                        viewMode={viewMode}
-                        userLocation={userLocation}
-                        flyToUserToken={flyToUserToken}
-                        onViewProject={openProject}
-                    />
-                </div>
-
-                <div
-                    className={[
-                        'pointer-events-none absolute inset-0 z-10',
-                        viewMode === '3d'
-                            ? 'bg-[radial-gradient(circle_at_20%_0%,rgba(0,56,168,0.08),transparent_42%),linear-gradient(to_bottom,rgba(2,6,23,0.02),rgba(2,6,23,0.35))]'
-                            : 'bg-[radial-gradient(circle_at_20%_0%,rgba(0,56,168,0.18),transparent_45%),linear-gradient(to_bottom,rgba(2,6,23,0.15),rgba(2,6,23,0.55))]',
-                    ].join(' ')}
+        <div className={`min-h-svh ${t.page}`}>
+            <div className="relative h-svh w-full">
+                <CommandMapWorkspace
+                    projects={projects}
+                    variant="public"
+                    loginHref="/login"
+                    pageTitle="TARA PAMIMAROPA"
                 />
-                <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-36 bg-gradient-to-b from-slate-950/90 via-slate-950/40 to-transparent" />
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-40 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-transparent" />
-
-                <header className="pointer-events-none absolute inset-x-0 top-0 z-20 p-3 sm:p-5">
-                    <div className="pointer-events-auto flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-                        <div className="min-w-0 max-w-xl">
-                            <div className="flex items-center gap-2.5">
-                                <span className="grid h-10 w-10 place-items-center rounded-[10px] bg-[#0038a8] text-sm font-black text-white shadow-[0_2px_12px_rgba(0,56,168,0.45)]">
-                                    T
-                                </span>
-                                <div className="leading-tight">
-                                    <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/35 bg-slate-900/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-100 backdrop-blur-md">
-                                        <HiMap className="h-3.5 w-3.5" aria-hidden />
-                                        <span className="relative flex h-2 w-2">
-                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-60" />
-                                            <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-400" />
-                                        </span>
-                                        Public project map
-                                    </div>
-                                    <h1 className="mt-1.5 text-xl font-black tracking-tight text-white sm:text-2xl">
-                                        TARAPAMIMAROPA
-                                    </h1>
-                                </div>
-                            </div>
-                            <p className="mt-2 hidden max-w-md text-xs leading-relaxed text-blue-100/80 sm:block">
-                                Tracking of Accomplishments and Results of
-                                Activities and Programs across MIMAROPA ·{' '}
-                                {filtered.length} on map
-                            </p>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                            <div className="relative shrink-0">
-                                <HiMapPin
-                                    className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-300"
-                                    aria-hidden
-                                />
-                                <select
-                                    value={provinceFilter}
-                                    onChange={(e) =>
-                                        setProvinceFilter(
-                                            e.target.value as Province | 'all',
-                                        )
-                                    }
-                                    aria-label="Filter by province"
-                                    className={[
-                                        'cursor-pointer appearance-none rounded-xl border bg-slate-900/90 py-2 pl-8 pr-8 text-sm font-semibold text-white backdrop-blur-md outline-none transition duration-[180ms]',
-                                        provinceFilter !== 'all'
-                                            ? 'border-blue-400/60 shadow-[0_0_18px_rgba(59,130,246,0.25)]'
-                                            : 'border-slate-600/60 hover:border-blue-500/40',
-                                    ].join(' ')}
-                                >
-                                    <option value="all">All provinces</option>
-                                    {PROVINCES.map((province) => (
-                                        <option key={province} value={province}>
-                                            {province}
-                                        </option>
-                                    ))}
-                                </select>
-                                <svg
-                                    className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                    aria-hidden
-                                >
-                                    <path
-                                        fillRule="evenodd"
-                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                                        clipRule="evenodd"
-                                    />
-                                </svg>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() => setSearchOpen((v) => !v)}
-                                className={[
-                                    'inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold backdrop-blur-md transition duration-[180ms]',
-                                    searchOpen
-                                        ? 'border-blue-400/60 bg-blue-500/25 text-blue-50 shadow-[0_0_18px_rgba(59,130,246,0.28)]'
-                                        : 'border-slate-600/60 bg-slate-900/90 text-slate-200 hover:border-blue-500/40',
-                                ].join(' ')}
-                                aria-pressed={searchOpen}
-                            >
-                                <HiMagnifyingGlass
-                                    className="h-4 w-4"
-                                    aria-hidden
-                                />
-                                <span className="hidden sm:inline">Search</span>
-                            </button>
-
-                            <div className="flex shrink-0 rounded-xl border border-slate-700/80 bg-slate-900/90 p-1 backdrop-blur-md">
-                                {BASE_LAYERS.map((layer) => (
-                                    <button
-                                        key={layer.id}
-                                        type="button"
-                                        onClick={() => setBaseLayer(layer.id)}
-                                        className={[
-                                            'rounded-lg px-2 py-1.5 text-[10px] font-bold uppercase tracking-wide transition duration-[180ms] sm:px-2.5',
-                                            baseLayer === layer.id
-                                                ? 'bg-blue-500/30 text-blue-50'
-                                                : 'text-slate-400 hover:text-white',
-                                        ].join(' ')}
-                                    >
-                                        {layer.label}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setViewMode((mode) => {
-                                        const next =
-                                            mode === '2d' ? '3d' : '2d';
-                                        if (
-                                            next === '3d' &&
-                                            (baseLayer === 'street' ||
-                                                baseLayer === 'terrain')
-                                        ) {
-                                            setBaseLayer('satellite');
-                                        }
-                                        return next;
-                                    });
-                                }}
-                                className={[
-                                    'inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold backdrop-blur-md transition duration-[180ms]',
-                                    viewMode === '3d'
-                                        ? 'border-fuchsia-400/50 bg-fuchsia-500/20 text-fuchsia-100'
-                                        : 'border-slate-600/60 bg-slate-900/90 text-slate-200 hover:border-fuchsia-500/40',
-                                ].join(' ')}
-                                aria-pressed={viewMode === '3d'}
-                            >
-                                {viewMode === '3d' ? (
-                                    <HiCube className="h-4 w-4" aria-hidden />
-                                ) : (
-                                    <HiSquare3Stack3D
-                                        className="h-4 w-4"
-                                        aria-hidden
-                                    />
-                                )}
-                                <span className="hidden sm:inline">
-                                    {viewMode === '3d' ? '3D on' : '3D'}
-                                </span>
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={locateMe}
-                                disabled={locating}
-                                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-slate-900/90 px-3 py-2 text-sm font-semibold text-emerald-100 backdrop-blur-md transition duration-[180ms] disabled:opacity-50"
-                            >
-                                <HiMapPin
-                                    className={`h-4 w-4 ${locating ? 'animate-pulse' : ''}`}
-                                    aria-hidden
-                                />
-                                <span className="hidden sm:inline">
-                                    {locating ? 'Locating…' : 'Near me'}
-                                </span>
-                            </button>
-
-                            <ThemeToggle />
-
-                            <Link
-                                href="/login"
-                                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[#0038a8] bg-[#0038a8] px-3 py-2 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(0,56,168,0.35)] transition duration-[180ms] hover:bg-[#002d87]"
-                            >
-                                <HiArrowRightOnRectangle
-                                    className="h-4 w-4"
-                                    aria-hidden
-                                />
-                                <span className="hidden sm:inline">
-                                    Staff login
-                                </span>
-                            </Link>
-                        </div>
-                    </div>
-
-                    {locateError ? (
-                        <div className="pointer-events-auto mt-2 max-w-md rounded-xl border border-red-500/40 bg-slate-900/95 px-3 py-2 text-xs text-red-300 backdrop-blur">
-                            {locateError}
-                        </div>
-                    ) : null}
-
-                    <div className="pointer-events-auto mt-3 flex max-w-3xl items-center gap-1.5 overflow-x-auto pb-0.5 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                        <button
-                            type="button"
-                            onClick={() => setStatusFilter('all')}
-                            className={[
-                                'shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold backdrop-blur-md transition duration-[180ms]',
-                                statusFilter === 'all'
-                                    ? 'bg-white text-slate-900'
-                                    : 'border border-slate-600/70 bg-slate-900/80 text-slate-300 hover:border-blue-400/40',
-                            ].join(' ')}
-                        >
-                            All status
-                        </button>
-                        {PROJECT_STATUSES.map((status) => {
-                            const count = projects.filter(
-                                (p) =>
-                                    (provinceFilter === 'all' ||
-                                        p.province === provinceFilter) &&
-                                    p.status === status,
-                            ).length;
-                            if (count === 0) return null;
-                            return (
-                                <button
-                                    key={status}
-                                    type="button"
-                                    onClick={() =>
-                                        setStatusFilter(
-                                            statusFilter === status
-                                                ? 'all'
-                                                : status,
-                                        )
-                                    }
-                                    className={[
-                                        'shrink-0 rounded-full px-3 py-1.5 text-[11px] font-semibold ring-1 backdrop-blur-md transition duration-[180ms]',
-                                        statusFilter === status
-                                            ? STATUS_META[status].className
-                                            : 'border border-slate-600/70 bg-slate-900/80 text-slate-400 ring-transparent hover:text-slate-200',
-                                    ].join(' ')}
-                                >
-                                    {STATUS_META[status].label}
-                                    <span className="ml-1 opacity-70">
-                                        {count}
-                                    </span>
-                                </button>
-                            );
-                        })}
-                        {hasFilters ? (
-                            <button
-                                type="button"
-                                onClick={clearFilters}
-                                className="shrink-0 rounded-full border border-amber-500/40 bg-amber-500/15 px-3 py-1.5 text-[11px] font-semibold text-amber-100 backdrop-blur-md"
-                            >
-                                Clear filters
-                            </button>
-                        ) : null}
-                    </div>
-                </header>
-
-                {searchOpen ? (
-                    <div className="pointer-events-auto absolute inset-0 z-40 flex items-start justify-center p-3 pt-28 sm:pt-32">
-                        <button
-                            type="button"
-                            className="absolute inset-0 cursor-default bg-slate-950/45 backdrop-blur-[2px]"
-                            onClick={() => setSearchOpen(false)}
-                            aria-label="Close search"
-                        />
-                        <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-blue-400/30 bg-slate-900/95 shadow-[0_16px_60px_rgba(0,0,0,0.55),0_0_28px_rgba(59,130,246,0.12)] backdrop-blur-xl">
-                            <div className="border-b border-slate-800 p-3">
-                                <div className="relative">
-                                    <HiMagnifyingGlass
-                                        className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-blue-300"
-                                        aria-hidden
-                                    />
-                                    <input
-                                        type="search"
-                                        autoFocus
-                                        value={query}
-                                        onChange={(e) =>
-                                            setQuery(e.target.value)
-                                        }
-                                        placeholder="Search project, municipality, program, sector…"
-                                        className="w-full rounded-xl border border-slate-700/80 bg-slate-950/80 py-3 pl-11 pr-10 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setSearchOpen(false)}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition duration-[180ms] hover:text-white"
-                                        aria-label="Close"
-                                    >
-                                        <HiXMark
-                                            className="h-5 w-5"
-                                            aria-hidden
-                                        />
-                                    </button>
-                                </div>
-                                <p className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-400">
-                                    <HiMapPin
-                                        className="h-3.5 w-3.5 text-blue-400"
-                                        aria-hidden
-                                    />
-                                    Searching in{' '}
-                                    <span className="font-semibold text-blue-200">
-                                        {provinceFilter === 'all'
-                                            ? 'all MIMAROPA'
-                                            : provinceFilter}
-                                    </span>
-                                    · {filtered.length} result
-                                    {filtered.length === 1 ? '' : 's'}
-                                </p>
-                                <div className="mt-2 flex flex-wrap gap-1.5">
-                                    {QUICK_SEARCHES.map((term) => (
-                                        <button
-                                            key={term}
-                                            type="button"
-                                            onClick={() => setQuery(term)}
-                                            className="rounded-md border border-slate-700 bg-slate-950/60 px-2 py-0.5 text-[11px] font-semibold text-slate-300 transition duration-[180ms] hover:border-blue-400/50 hover:text-blue-100"
-                                        >
-                                            {term}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <ul className="max-h-[min(52vh,420px)] overflow-y-auto overscroll-contain p-2 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]">
-                                {filtered.length === 0 ? (
-                                    <li className="px-3 py-8 text-center text-sm text-slate-500">
-                                        No matches. Try another keyword or clear
-                                        filters.
-                                    </li>
-                                ) : null}
-                                {filtered.slice(0, 40).map((project) => {
-                                    const meta = PROGRAM_META[project.program];
-                                    const status = STATUS_META[project.status];
-                                    return (
-                                        <li
-                                            key={project.id}
-                                            className="mb-1.5 last:mb-0"
-                                        >
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    openProject(project)
-                                                }
-                                                className="flex w-full items-center gap-3 rounded-xl border border-slate-800/80 bg-slate-800/40 p-2.5 text-left transition duration-[180ms] hover:border-blue-500/50 hover:bg-slate-800/70"
-                                            >
-                                                <span
-                                                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-950/70 text-[9px] font-extrabold uppercase ring-1 ring-slate-700/60 ${meta.accent}`}
-                                                >
-                                                    {meta.short}
-                                                </span>
-                                                <span className="min-w-0 flex-1">
-                                                    <span className="block truncate text-sm font-semibold text-white">
-                                                        {project.name}
-                                                    </span>
-                                                    <span className="block truncate text-[11px] text-slate-400">
-                                                        {project.municipality},{' '}
-                                                        {project.province}
-                                                    </span>
-                                                </span>
-                                                <span
-                                                    className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-semibold ring-1 ${status.className}`}
-                                                >
-                                                    {status.label}
-                                                </span>
-                                            </button>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        </div>
-                    </div>
-                ) : null}
-
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 p-3 sm:p-5">
-                    <div className="pointer-events-auto mx-auto flex max-w-5xl flex-col items-center gap-3">
-                        <div className="hidden w-full grid-cols-4 gap-2 sm:grid">
-                            {kpis.map((kpi) => {
-                                const Icon = kpi.icon;
-                                return (
-                                    <div
-                                        key={kpi.label}
-                                        className="rounded-xl border border-slate-600/60 bg-slate-900/90 px-3 py-2.5 backdrop-blur-md"
-                                    >
-                                        <div className="flex items-center justify-between gap-2">
-                                            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                                                {kpi.label}
-                                            </p>
-                                            <Icon
-                                                className="h-3.5 w-3.5 text-blue-300"
-                                                aria-hidden
-                                            />
-                                        </div>
-                                        <p className="mt-1 truncate text-lg font-bold tabular-nums text-white">
-                                            {kpi.value}
-                                        </p>
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        <a
-                            href="#project-results"
-                            className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold shadow-[0_4px_16px_rgba(0,0,0,0.2)] transition duration-[180ms] hover:-translate-y-0.5 ${t.browseCta}`}
-                        >
-                            Browse project list
-                            <HiChevronDown className="h-4 w-4" aria-hidden />
-                        </a>
-                    </div>
+                <div className="pointer-events-none absolute inset-x-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-[35] flex justify-center p-3 sm:bottom-8 lg:bottom-10">
+                    <a
+                        href="#project-results"
+                        className={`pointer-events-auto inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold shadow-[0_4px_16px_rgba(0,0,0,0.2)] transition duration-[180ms] hover:-translate-y-0.5 ${t.browseCta}`}
+                    >
+                        Browse project list
+                        <HiChevronDown className="h-4 w-4" aria-hidden />
+                    </a>
                 </div>
-            </section>
+            </div>
 
             <section
                 id="project-results"
@@ -859,17 +399,20 @@ const LandingPage = () => {
                                 </p>
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setSearchOpen(true)}
+                                <a
+                                    href="#top"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
                                     className={`inline-flex min-h-9 items-center gap-1.5 rounded-[6px] border px-3 py-1.5 text-[12px] font-semibold transition duration-[180ms] ${t.ghostBtn}`}
                                 >
                                     <HiMagnifyingGlass
                                         className="h-4 w-4"
                                         aria-hidden
                                     />
-                                    Search map
-                                </button>
+                                    Back to map
+                                </a>
                                 <button
                                     type="button"
                                     disabled={sorted.length === 0}

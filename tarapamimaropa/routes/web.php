@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Psto\ProgramController as PstoProgramController;
 use App\Http\Controllers\Region\DashboardController;
 use App\Http\Controllers\Region\ProgramController;
@@ -7,7 +8,7 @@ use App\Http\Controllers\SuperAdmin\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Public Routes
-Route::inertia('/', 'public/LandingPage')->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');

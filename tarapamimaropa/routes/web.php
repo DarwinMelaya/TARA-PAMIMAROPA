@@ -40,6 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->group(function () {
             Route::inertia('/', 'psto/PstoDashboard')->name('dashboard');
             Route::get('/programs', [PstoProgramController::class, 'index'])->name('programs');
+            Route::post('/programs/import', [PstoProgramController::class, 'import'])->name('programs.import');
             Route::post('/projects', [PstoProjectController::class, 'store'])->name('projects.store');
             Route::put('/projects/{project}', [PstoProjectController::class, 'update'])->name('projects.update');
         });

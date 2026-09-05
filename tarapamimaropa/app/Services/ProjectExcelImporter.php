@@ -37,7 +37,7 @@ class ProjectExcelImporter
     /**
      * @return array{imported: int, updated: int, skipped: int}
      */
-    public function import(string $absolutePath): array
+    public function import(string $absolutePath, ?string $onlyProvince = null): array
     {
         if (! is_readable($absolutePath)) {
             throw new RuntimeException("Spreadsheet not readable: {$absolutePath}");
@@ -62,7 +62,7 @@ class ProjectExcelImporter
         $updated = 0;
         $skipped = 0;
 
-        DB::transaction(function () use ($rows, &$imported, &$updated, &$skipped): void {
+        DB::transaction(function () use ($rows, $onlyProvince, &$imported, &$updated, &$skipped): void {
             foreach (array_slice($rows, 1) as $row) {
                 $payload = $this->mapRow($row);
 
@@ -72,10 +72,28 @@ class ProjectExcelImporter
                     continue;
                 }
 
+                if ($onlyProvince !== null) {
+                    $rowProvince = $payload['province'] ?? null;
+
+                    if ($rowProvince !== null && $rowProvince !== $onlyProvince) {
+                        $skipped++;
+
+                        continue;
+                    }
+
+                    $payload['province'] = $onlyProvince;
+                }
+
                 if ($payload['code'] !== null) {
                     $existing = Project::query()->where('code', $payload['code'])->first();
 
                     if ($existing) {
+                        if ($onlyProvince !== null && $existing->province !== $onlyProvince) {
+                            $skipped++;
+
+                            continue;
+                        }
+
                         $existing->fill($payload)->save();
                         $updated++;
 
@@ -94,9 +112,9 @@ class ProjectExcelImporter
     /**
      * @return array{imported: int, updated: int, skipped: int}
      */
-    public function importUpload(UploadedFile $file): array
+    public function importUpload(UploadedFile $file, ?string $onlyProvince = null): array
     {
-        return $this->import($file->getRealPath() ?: $file->path());
+        return $this->import($file->getRealPath() ?: $file->path(), $onlyProvince);
     }
 
     /**

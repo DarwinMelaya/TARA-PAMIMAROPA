@@ -2,6 +2,7 @@ import { Head, usePage } from '@inertiajs/react';
 import ProgramsWorkspace from '@/components/programs/ProgramsWorkspace';
 import type { Province, TaraProject } from '@/constants/taraProjects';
 import { dashboard } from '@/routes/psto';
+import { importMethod } from '@/routes/psto/programs';
 
 type PageProps = {
   projects?: TaraProject[];
@@ -35,7 +36,8 @@ const PstoPrograms = () => {
     <ProgramsWorkspace
       projects={projects}
       lockedProvince={lockedProvince as Province}
-      allowImport={false}
+      allowImport
+      importUrl={importMethod.url()}
       allowMutate
       nextCodeSequence={nextCodeSequence}
       homeHref={dashboard.url()}

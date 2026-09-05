@@ -1,12 +1,14 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useMemo, useRef, useState } from 'react';
 import {
+  HiArrowDownTray,
   HiArrowUpTray,
   HiBanknotes,
   HiChartBar,
   HiChevronDown,
   HiChevronUp,
   HiClipboardDocumentList,
+  HiDocumentArrowDown,
   HiMagnifyingGlass,
   HiMapPin,
   HiPencilSquare,
@@ -41,6 +43,10 @@ export type ProgramsWorkspaceProps = {
   lockedProvince?: Province | null;
   allowImport?: boolean;
   importUrl?: string;
+  /** PSTO: export live data + blank import template. */
+  allowExport?: boolean;
+  exportUrl?: string;
+  exportTemplateUrl?: string;
   /** PSTO: show Add / Edit project actions. */
   allowMutate?: boolean;
   /** Next QR-TTC sequence for auto code preview. */
@@ -129,6 +135,9 @@ const ProgramsWorkspace = ({
   lockedProvince = null,
   allowImport = false,
   importUrl,
+  allowExport = false,
+  exportUrl,
+  exportTemplateUrl,
   allowMutate = false,
   nextCodeSequence = 1,
   homeHref,
@@ -455,6 +464,24 @@ const ProgramsWorkspace = ({
                   {importing ? "Importing…" : "Import Excel"}
                 </button>
               </>
+            ) : null}
+            {allowExport && exportUrl ? (
+              <a
+                href={exportUrl}
+                className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition duration-[180ms] ${ui.ghostBtn}`}
+              >
+                <HiArrowDownTray className="h-4 w-4" aria-hidden />
+                Export Excel
+              </a>
+            ) : null}
+            {allowExport && exportTemplateUrl ? (
+              <a
+                href={exportTemplateUrl}
+                className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition duration-[180ms] ${ui.ghostBtn}`}
+              >
+                <HiDocumentArrowDown className="h-4 w-4" aria-hidden />
+                Template
+              </a>
             ) : null}
             <button
               type="button"

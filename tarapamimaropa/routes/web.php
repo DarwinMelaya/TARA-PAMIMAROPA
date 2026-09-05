@@ -41,6 +41,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::inertia('/', 'psto/PstoDashboard')->name('dashboard');
             Route::get('/programs', [PstoProgramController::class, 'index'])->name('programs');
             Route::post('/programs/import', [PstoProgramController::class, 'import'])->name('programs.import');
+            Route::get('/programs/export', [PstoProgramController::class, 'export'])->name('programs.export');
+            Route::get('/programs/export-template', [PstoProgramController::class, 'exportTemplate'])->name('programs.export-template');
             Route::post('/projects', [PstoProjectController::class, 'store'])->name('projects.store');
             Route::put('/projects/{project}', [PstoProjectController::class, 'update'])->name('projects.update');
         });

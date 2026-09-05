@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Psto;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Psto\ImportProjectsRequest;
 use App\Models\Project;
+use App\Services\ProjectExcelExporter;
 use App\Services\ProjectExcelImporter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 class ProgramController extends Controller
@@ -63,5 +65,34 @@ class ProgramController extends Controller
         ]);
 
         return to_route('psto.programs');
+    }
+
+    public function export(Request $request, ProjectExcelExporter $exporter): StreamedResponse
+    {
+        $province = $this->requirePstoProvince($request);
+
+        $projects = Project::query()
+            ->where('province', $province)
+            ->orderBy('row_number')
+            ->orderBy('name')
+            ->get();
+
+        return $exporter->downloadData($projects, $province);
+    }
+
+    public function exportTemplate(Request $request, ProjectExcelExporter $exporter): StreamedResponse
+    {
+        $province = $this->requirePstoProvince($request);
+
+        return $exporter->downloadTemplate($province);
+    }
+
+    private function requirePstoProvince(Request $request): string
+    {
+        $province = $request->user()?->province?->value;
+
+        abort_unless(filled($province), 403);
+
+        return $province;
     }
 }

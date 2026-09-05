@@ -15,7 +15,7 @@ class ProjectExcelImporter
      *
      * @var list<string>
      */
-    private const HEADERS = [
+    public const HEADERS = [
         '#',
         'Code',
         'Project',

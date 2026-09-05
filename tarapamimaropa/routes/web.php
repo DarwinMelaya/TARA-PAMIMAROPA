@@ -1,9 +1,10 @@
 <?php
 
-use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Psto\ProgramController as PstoProgramController;
+use App\Http\Controllers\Psto\ProjectController as PstoProjectController;
 use App\Http\Controllers\Region\DashboardController;
 use App\Http\Controllers\Region\ProgramController;
+use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\SuperAdmin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +40,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->group(function () {
             Route::inertia('/', 'psto/PstoDashboard')->name('dashboard');
             Route::get('/programs', [PstoProgramController::class, 'index'])->name('programs');
+            Route::post('/projects', [PstoProjectController::class, 'store'])->name('projects.store');
+            Route::put('/projects/{project}', [PstoProjectController::class, 'update'])->name('projects.update');
         });
 });
 

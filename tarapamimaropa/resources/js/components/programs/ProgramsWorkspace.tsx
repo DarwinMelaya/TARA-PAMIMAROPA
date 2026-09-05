@@ -9,11 +9,15 @@ import {
   HiClipboardDocumentList,
   HiMagnifyingGlass,
   HiMapPin,
+  HiPencilSquare,
+  HiPlus,
   HiPresentationChartLine,
   HiSquares2X2,
   HiUserGroup,
   HiXMark,
 } from 'react-icons/hi2';
+import AddProjectsModal from '@/components/modals/psto/AddProjectsModal';
+import EditProjectsModal from '@/components/modals/psto/EditProjectsModal';
 import ProgramsGraphs from '@/components/region/programs/ProgramsGraphs';
 import {
   PROVINCES,
@@ -37,6 +41,8 @@ export type ProgramsWorkspaceProps = {
   lockedProvince?: Province | null;
   allowImport?: boolean;
   importUrl?: string;
+  /** PSTO: show Add / Edit project actions. */
+  allowMutate?: boolean;
   homeHref: string;
   homeLabel?: string;
   pageTitle?: string;
@@ -121,6 +127,7 @@ const ProgramsWorkspace = ({
   lockedProvince = null,
   allowImport = false,
   importUrl,
+  allowMutate = false,
   homeHref,
   homeLabel = "Dashboard",
   pageTitle = "Programs",
@@ -131,6 +138,7 @@ const ProgramsWorkspace = ({
   const provinceLocked =
     lockedProvince != null &&
     (PROVINCES as readonly string[]).includes(lockedProvince);
+  const canMutate = allowMutate && provinceLocked;
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [provinceFilter, setProvinceFilter] = useState<Province | "all">(
@@ -147,6 +155,8 @@ const ProgramsWorkspace = ({
   const [chartsOpen, setChartsOpen] = useState(false);
   const [viewing, setViewing] = useState<TaraProject | null>(null);
   const [graphsOpen, setGraphsOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [editing, setEditing] = useState<TaraProject | null>(null);
 
   const onPickImport = () => fileInputRef.current?.click();
 
@@ -413,6 +423,16 @@ const ProgramsWorkspace = ({
           </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            {canMutate ? (
+              <button
+                type="button"
+                onClick={() => setAddOpen(true)}
+                className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition duration-[180ms] hover:bg-emerald-500"
+              >
+                <HiPlus className="h-4 w-4" aria-hidden />
+                Add project
+              </button>
+            ) : null}
             {allowImport ? (
               <>
                 <input
@@ -1111,14 +1131,29 @@ const ProgramsWorkspace = ({
                   {viewing.name}
                 </h2>
               </div>
-              <button
-                type="button"
-                onClick={() => setViewing(null)}
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition duration-[180ms] ${ui.modalClose}`}
-                aria-label="Close"
-              >
-                <HiXMark className="h-5 w-5" aria-hidden />
-              </button>
+              <div className="flex shrink-0 items-center gap-1">
+                {canMutate && viewing.db_id ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditing(viewing);
+                      setViewing(null);
+                    }}
+                    className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition duration-[180ms] ${ui.ghostBtn}`}
+                  >
+                    <HiPencilSquare className="h-4 w-4" aria-hidden />
+                    Edit
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setViewing(null)}
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition duration-[180ms] ${ui.modalClose}`}
+                  aria-label="Close"
+                >
+                  <HiXMark className="h-5 w-5" aria-hidden />
+                </button>
+              </div>
             </div>
 
             <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
@@ -1208,6 +1243,24 @@ const ProgramsWorkspace = ({
           </div>
         </div>
       )}
+
+      {canMutate ? (
+        <>
+          <AddProjectsModal
+            open={addOpen}
+            onOpenChange={setAddOpen}
+            lockedProvince={lockedProvince as Province}
+          />
+          <EditProjectsModal
+            open={editing != null}
+            onOpenChange={(next) => {
+              if (!next) setEditing(null);
+            }}
+            lockedProvince={lockedProvince as Province}
+            project={editing}
+          />
+        </>
+      ) : null}
     </section>
     </>
   );

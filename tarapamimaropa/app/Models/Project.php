@@ -73,6 +73,7 @@ class Project extends Model
 
         return [
             'id' => (string) ($this->code ?: 'project-'.$this->id),
+            'db_id' => $this->id,
             'code' => $this->code,
             'name' => $this->name,
             'description' => $this->buildDescription(),

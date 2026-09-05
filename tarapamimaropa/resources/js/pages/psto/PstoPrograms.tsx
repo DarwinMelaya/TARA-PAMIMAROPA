@@ -31,6 +31,7 @@ const PstoPrograms = () => {
       projects={projects}
       lockedProvince={lockedProvince as Province}
       allowImport={false}
+      allowMutate
       homeHref={dashboard.url()}
       homeLabel="Dashboard"
       pageTitle="PSTO Programs"

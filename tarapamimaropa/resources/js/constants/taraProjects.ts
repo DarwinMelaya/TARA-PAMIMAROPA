@@ -30,6 +30,8 @@ export type TaraProgram =
 
 export type TaraProject = {
     id: string;
+    /** Database primary key for mutations (add/edit). */
+    db_id?: number;
     code?: string | null;
     row_number?: number | null;
     name: string;
@@ -646,6 +648,19 @@ export const SECTORS = [
 ] as const;
 
 export type TaraSector = (typeof SECTORS)[number];
+
+/** Raw status labels used in Excel / PSTO forms. */
+export const PROJECT_STATUS_LABELS = [
+    'On-going',
+    'Graduated',
+    'Terminated',
+    'Withdrawn',
+    'New',
+    'Delayed',
+    'On-hold',
+] as const;
+
+export type ProjectStatusLabel = (typeof PROJECT_STATUS_LABELS)[number];
 
 export const projectType = (project: TaraProject): string => {
     if (project.type && project.type.trim() !== '') {

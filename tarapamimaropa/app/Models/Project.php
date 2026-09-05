@@ -24,6 +24,8 @@ use Illuminate\Support\Collection;
  * @property string|null $amount_due
  * @property string|null $refunded
  * @property string|null $refund_rate
+ * @property string|null $latitude
+ * @property string|null $longitude
  */
 #[Fillable([
     'row_number',
@@ -42,6 +44,8 @@ use Illuminate\Support\Collection;
     'amount_due',
     'refunded',
     'refund_rate',
+    'latitude',
+    'longitude',
 ])]
 class Project extends Model
 {
@@ -57,6 +61,8 @@ class Project extends Model
             'amount_due' => 'decimal:2',
             'refunded' => 'decimal:2',
             'refund_rate' => 'decimal:2',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
         ];
     }
 
@@ -103,7 +109,7 @@ class Project extends Model
             'end_date' => sprintf('%04d-12-31', $year + 1),
             'year_approved' => $year,
             'latest_accomplishment' => '',
-            ...$this->approximateCoordinates(),
+            ...$this->resolveCoordinates(),
             'amount_due' => $this->amount_due !== null ? (float) $this->amount_due : null,
             'refunded' => $this->refunded !== null ? (float) $this->refunded : null,
             'refund_rate' => $this->refund_rate !== null ? (float) $this->refund_rate : null,
@@ -128,7 +134,28 @@ class Project extends Model
     }
 
     /**
-     * Stable pseudo-random point inside each province bbox (no lat/lng in Excel).
+     * Prefer saved pin; otherwise stable approximate point for map display.
+     *
+     * @return array{latitude: float, longitude: float, has_coordinates: bool}
+     */
+    private function resolveCoordinates(): array
+    {
+        if ($this->latitude !== null && $this->longitude !== null) {
+            return [
+                'latitude' => (float) $this->latitude,
+                'longitude' => (float) $this->longitude,
+                'has_coordinates' => true,
+            ];
+        }
+
+        return [
+            ...$this->approximateCoordinates(),
+            'has_coordinates' => false,
+        ];
+    }
+
+    /**
+     * Stable pseudo-random point inside each province bbox (no lat/lng saved yet).
      *
      * @return array{latitude: float, longitude: float}
      */
@@ -189,6 +216,7 @@ class Project extends Model
             'year_approved' => $full['year_approved'],
             'latitude' => $full['latitude'],
             'longitude' => $full['longitude'],
+            'has_coordinates' => $full['has_coordinates'],
             'description' => '',
             'latest_accomplishment' => '',
         ];

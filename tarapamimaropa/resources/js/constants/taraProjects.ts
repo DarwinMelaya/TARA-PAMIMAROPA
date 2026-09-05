@@ -60,6 +60,8 @@ export type TaraProject = {
     latest_accomplishment: string;
     latitude: number;
     longitude: number;
+    /** True when lat/lng were saved (not approximate). */
+    has_coordinates?: boolean;
     photo_url?: string;
     amount_due?: number | null;
     refunded?: number | null;
@@ -670,6 +672,16 @@ export const PROVINCE_CLUSTER: Record<Province, number> = {
     Romblon: 4,
     Palawan: 5,
 };
+
+/** Default map centers for PSTO coordinate picker. */
+export const PROVINCE_MAP_CENTER: Record<Province, { lat: number; lng: number }> =
+    {
+        'Occidental Mindoro': { lat: 12.85, lng: 120.92 },
+        'Oriental Mindoro': { lat: 13.0, lng: 121.2 },
+        Marinduque: { lat: 13.38, lng: 121.95 },
+        Romblon: { lat: 12.55, lng: 122.27 },
+        Palawan: { lat: 9.75, lng: 118.75 },
+    };
 
 /** Preview / match imported layout: QR-TTC-C{n}-{district}-{yy}-{seq}. */
 export const buildProjectCode = (

@@ -3,6 +3,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { XIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import ProjectController from '@/actions/App/Http/Controllers/Psto/ProjectController';
+import ProjectCoordinatePicker from '@/components/maps/ProjectCoordinatePicker';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,6 +45,8 @@ const AddProjectsModal = ({
     const currentYear = new Date().getFullYear();
     const [yearApproved, setYearApproved] = useState(String(currentYear));
     const [district, setDistrict] = useState('');
+    const [latitude, setLatitude] = useState('');
+    const [longitude, setLongitude] = useState('');
 
     const previewCode = useMemo(() => {
         const yearNum = Number(yearApproved);
@@ -55,14 +58,18 @@ const AddProjectsModal = ({
         );
     }, [lockedProvince, yearApproved, district, nextCodeSequence, currentYear]);
 
+    const resetLocal = () => {
+        setYearApproved(String(currentYear));
+        setDistrict('');
+        setLatitude('');
+        setLongitude('');
+    };
+
     return (
         <Dialog
             open={open}
             onOpenChange={(next) => {
-                if (!next) {
-                    setYearApproved(String(currentYear));
-                    setDistrict('');
-                }
+                if (!next) resetLocal();
                 onOpenChange(next);
             }}
         >
@@ -107,12 +114,13 @@ const AddProjectsModal = ({
                             'amount_due',
                             'refunded',
                             'refund_rate',
+                            'latitude',
+                            'longitude',
                         ]}
                         options={{ preserveScroll: true }}
                         className="grid gap-4 sm:grid-cols-2"
                         onSuccess={() => {
-                            setYearApproved(String(currentYear));
-                            setDistrict('');
+                            resetLocal();
                             onOpenChange(false);
                         }}
                     >
@@ -316,6 +324,27 @@ const AddProjectsModal = ({
                                     />
                                     <InputError message={errors.district} />
                                 </div>
+
+                                {open ? (
+                                    <ProjectCoordinatePicker
+                                        key={`add-map-${lockedProvince}`}
+                                        idPrefix="add-project"
+                                        province={lockedProvince}
+                                        latitude={latitude}
+                                        longitude={longitude}
+                                        onChange={({
+                                            latitude: nextLat,
+                                            longitude: nextLng,
+                                        }) => {
+                                            setLatitude(nextLat);
+                                            setLongitude(nextLng);
+                                        }}
+                                        errors={{
+                                            latitude: errors.latitude,
+                                            longitude: errors.longitude,
+                                        }}
+                                    />
+                                ) : null}
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="add-project-cost">

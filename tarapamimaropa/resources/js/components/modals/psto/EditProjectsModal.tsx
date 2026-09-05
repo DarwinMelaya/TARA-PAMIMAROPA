@@ -1,7 +1,9 @@
 import { Form } from '@inertiajs/react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { XIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import ProjectController from '@/actions/App/Http/Controllers/Psto/ProjectController';
+import ProjectCoordinatePicker from '@/components/maps/ProjectCoordinatePicker';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -48,6 +50,26 @@ const EditProjectsModal = ({
     lockedProvince,
     project,
 }: Props) => {
+    const [latitude, setLatitude] = useState('');
+    const [longitude, setLongitude] = useState('');
+
+    useEffect(() => {
+        if (!project) {
+            setLatitude('');
+            setLongitude('');
+            return;
+        }
+
+        if (project.has_coordinates) {
+            setLatitude(String(project.latitude));
+            setLongitude(String(project.longitude));
+            return;
+        }
+
+        setLatitude('');
+        setLongitude('');
+    }, [project]);
+
     if (!project?.db_id) {
         return null;
     }
@@ -297,6 +319,27 @@ const EditProjectsModal = ({
                                     />
                                     <InputError message={errors.district} />
                                 </div>
+
+                                {open ? (
+                                    <ProjectCoordinatePicker
+                                        key={`edit-map-${project.db_id}`}
+                                        idPrefix="edit-project"
+                                        province={lockedProvince}
+                                        latitude={latitude}
+                                        longitude={longitude}
+                                        onChange={({
+                                            latitude: nextLat,
+                                            longitude: nextLng,
+                                        }) => {
+                                            setLatitude(nextLat);
+                                            setLongitude(nextLng);
+                                        }}
+                                        errors={{
+                                            latitude: errors.latitude,
+                                            longitude: errors.longitude,
+                                        }}
+                                    />
+                                ) : null}
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="edit-project-cost">

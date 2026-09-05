@@ -1269,6 +1269,14 @@ const ProgramsWorkspace = ({
                   {formatRateOrDash(viewing.refund_rate)}
                 </dd>
               </div>
+              <div className="col-span-2">
+                <dt className={`text-xs ${ui.muted}`}>Coordinates</dt>
+                <dd className={`mt-0.5 font-medium tabular-nums ${ui.heading}`}>
+                  {viewing.has_coordinates
+                    ? `${viewing.latitude.toFixed(6)}, ${viewing.longitude.toFixed(6)}`
+                    : "Not pinned (map uses approximate location)"}
+                </dd>
+              </div>
             </dl>
           </div>
         </div>

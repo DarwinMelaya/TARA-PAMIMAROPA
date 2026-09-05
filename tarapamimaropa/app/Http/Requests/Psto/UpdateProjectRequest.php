@@ -44,6 +44,8 @@ class UpdateProjectRequest extends FormRequest
             'amount_due',
             'refunded',
             'refund_rate',
+            'latitude',
+            'longitude',
         ];
 
         $payload = [];
@@ -87,6 +89,18 @@ class UpdateProjectRequest extends FormRequest
             'amount_due' => ['nullable', 'numeric', 'min:0'],
             'refunded' => ['nullable', 'numeric', 'min:0'],
             'refund_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'latitude' => [
+                'nullable',
+                'required_with:longitude',
+                'numeric',
+                'between:-90,90',
+            ],
+            'longitude' => [
+                'nullable',
+                'required_with:latitude',
+                'numeric',
+                'between:-180,180',
+            ],
             'province' => [
                 'sometimes',
                 'string',

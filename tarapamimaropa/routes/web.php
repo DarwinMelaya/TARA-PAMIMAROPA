@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnalyticsChatController;
 use App\Http\Controllers\Psto\ProgramController as PstoProgramController;
 use App\Http\Controllers\Psto\ProjectController as PstoProjectController;
 use App\Http\Controllers\Region\DashboardController;
@@ -10,6 +11,9 @@ use Illuminate\Support\Facades\Route;
 
 // Public Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::post('/analytics-chat', [AnalyticsChatController::class, 'store'])
+    ->middleware('throttle:30,1')
+    ->name('analytics-chat');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');

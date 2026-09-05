@@ -36,7 +36,7 @@ export const createWelcomeMessage = (projectCount: number): ChatMessage => ({
   id: uid(),
   role: "assistant",
   createdAt: Date.now(),
-  text: `TARA AI Analytics online. I can read the ${projectCount} project${projectCount === 1 ? "" : "s"} currently on the map filters. Ask about status, provinces, funding, progress, or risk.`,
+  text: `TARA AI Analytics online (OpenAI). I read live project records from the TARA backend — not just the ${projectCount} project${projectCount === 1 ? "" : "s"} currently on your map filters. Ask about status, provinces, funding, progress, or risk.`,
 });
 
 const findProvince = (q: string): Province | null => {

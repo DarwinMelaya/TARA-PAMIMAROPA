@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Region;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Region\ImportProjectsRequest;
 use App\Models\Project;
+use App\Services\ProjectExcelExporter;
 use App\Services\ProjectExcelImporter;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 class ProgramController extends Controller
@@ -54,5 +56,10 @@ class ProgramController extends Controller
         ]);
 
         return to_route('region.programs');
+    }
+
+    public function exportTemplate(ProjectExcelExporter $exporter): StreamedResponse
+    {
+        return $exporter->downloadTemplate(null);
     }
 }

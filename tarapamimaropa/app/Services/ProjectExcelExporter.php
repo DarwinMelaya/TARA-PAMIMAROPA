@@ -51,6 +51,15 @@ class ProjectExcelExporter
         'Fisheries',
     ];
 
+    /** @var list<string> */
+    public const PROVINCES = [
+        'Occidental Mindoro',
+        'Oriental Mindoro',
+        'Marinduque',
+        'Romblon',
+        'Palawan',
+    ];
+
     private const HEADER_ROW = 5;
 
     private const DATA_START = 6;
@@ -77,19 +86,30 @@ class ProjectExcelExporter
         return $this->stream($spreadsheet, $filename);
     }
 
-    public function downloadTemplate(string $province): StreamedResponse
+    /**
+     * Blank import template. Pass a province to lock PSTO scope, or null for MIMAROPA (region).
+     */
+    public function downloadTemplate(?string $province = null): StreamedResponse
     {
+        $isRegion = $province === null;
+        $scopeLabel = $isRegion ? 'MIMAROPA (all provinces)' : $province;
+        $audience = $isRegion ? 'Region Programs' : 'PSTO Programs';
+
         $spreadsheet = $this->buildWorkbook(
             province: $province,
             title: 'Project Import Template',
-            subtitle: "Fill rows below, then Import Excel on PSTO Programs · {$province}",
+            subtitle: "Fill rows below, then Import Excel on {$audience} · {$scopeLabel}",
             projects: [],
             blankRows: self::TEMPLATE_ROWS,
             forTemplate: true,
         );
 
-        $slug = strtolower(str_replace(' ', '-', $province));
-        $filename = sprintf('tara-%s-import-template.xlsx', $slug);
+        $filename = $isRegion
+            ? 'tara-mimaropa-import-template.xlsx'
+            : sprintf(
+                'tara-%s-import-template.xlsx',
+                strtolower(str_replace(' ', '-', $province)),
+            );
 
         return $this->stream($spreadsheet, $filename);
     }
@@ -98,7 +118,7 @@ class ProjectExcelExporter
      * @param  Collection<int, Project>|iterable<int, Project>|array<int, Project>  $projects
      */
     private function buildWorkbook(
-        string $province,
+        ?string $province,
         string $title,
         string $subtitle,
         iterable $projects,
@@ -114,7 +134,7 @@ class ProjectExcelExporter
         $lastDataRow = $this->writeDataRows($sheet, $projects, $province, $blankRows, $forTemplate);
         $this->styleSheet($sheet, $lastDataRow);
         $this->addListsSheet($spreadsheet, $province);
-        $this->applyDropdowns($sheet, $lastDataRow);
+        $this->applyDropdowns($sheet, $lastDataRow, $province);
         $this->addInstructionsSheet($spreadsheet, $province, $forTemplate);
 
         $spreadsheet->setActiveSheetIndex(0);
@@ -126,12 +146,14 @@ class ProjectExcelExporter
         Worksheet $sheet,
         string $title,
         string $subtitle,
-        string $province,
+        ?string $province,
     ): void {
         $sheet->mergeCells('A1:P1');
         $sheet->mergeCells('A2:P2');
         $sheet->mergeCells('A3:P3');
         $sheet->mergeCells('A4:P4');
+
+        $scope = $province ?? 'MIMAROPA (all provinces)';
 
         $sheet->setCellValue('A1', 'DOST-MIMAROPA · TARA PAMIMAROPA');
         $sheet->setCellValue('A2', $title);
@@ -139,9 +161,9 @@ class ProjectExcelExporter
         $sheet->setCellValue(
             'A4',
             sprintf(
-                'Generated %s · Province locked: %s · Columns match Import Excel',
+                'Generated %s · Scope: %s · Columns match Import Excel',
                 now()->timezone(config('app.timezone'))->format('Y-m-d H:i'),
-                $province,
+                $scope,
             ),
         );
 
@@ -255,7 +277,7 @@ class ProjectExcelExporter
     private function writeDataRows(
         Worksheet $sheet,
         iterable $projects,
-        string $province,
+        ?string $province,
         int $blankRows,
         bool $forTemplate,
     ): int {
@@ -269,12 +291,8 @@ class ProjectExcelExporter
         $endBlank = $row + max(0, $blankRows) - 1;
         if ($blankRows > 0) {
             for ($r = $row; $r <= $endBlank; $r++) {
-                $sheet->setCellValue([9, $r], $province);
-
-                if ($forTemplate && $r === $row) {
-                    // Subtle guide values on first blank row only.
-                    $sheet->setCellValue([1, $r], '');
-                    $sheet->setCellValue([3, $r], '');
+                if ($province !== null) {
+                    $sheet->setCellValue([9, $r], $province);
                 }
             }
             $row = $endBlank + 1;
@@ -374,7 +392,7 @@ class ProjectExcelExporter
         $sheet->getStyle('L'.self::HEADER_ROW)->getFont()->setBold(true);
     }
 
-    private function addListsSheet(Spreadsheet $spreadsheet, string $province): void
+    private function addListsSheet(Spreadsheet $spreadsheet, ?string $province): void
     {
         $lists = $spreadsheet->createSheet();
         $lists->setTitle('Lists');
@@ -395,13 +413,16 @@ class ProjectExcelExporter
         }
 
         $lists->setCellValue('D1', 'Province');
-        $lists->setCellValue('D2', $province);
+        $provinces = $province !== null ? [$province] : self::PROVINCES;
+        foreach ($provinces as $i => $name) {
+            $lists->setCellValue([4, $i + 2], $name);
+        }
 
         $lists->getStyle('A1:D1')->getFont()->setBold(true);
         $lists->setSheetState(Worksheet::SHEETSTATE_HIDDEN);
     }
 
-    private function applyDropdowns(Worksheet $sheet, int $lastDataRow): void
+    private function applyDropdowns(Worksheet $sheet, int $lastDataRow, ?string $province): void
     {
         if ($lastDataRow < self::DATA_START) {
             return;
@@ -410,6 +431,7 @@ class ProjectExcelExporter
         $statusEnd = count(self::STATUSES) + 1;
         $typeEnd = count(self::TYPES) + 1;
         $sectorEnd = count(self::SECTORS) + 1;
+        $provinceEnd = ($province !== null ? 1 : count(self::PROVINCES)) + 1;
 
         $this->applyListValidation(
             $sheet,
@@ -432,8 +454,10 @@ class ProjectExcelExporter
         $this->applyListValidation(
             $sheet,
             'I'.self::DATA_START.':I'.$lastDataRow,
-            'Lists!$D$2:$D$2',
-            'Province is locked to your PSTO',
+            "Lists!\$D\$2:\$D\${$provinceEnd}",
+            $province !== null
+                ? 'Province is locked to your PSTO'
+                : 'Select MIMAROPA province',
         );
     }
 
@@ -460,31 +484,42 @@ class ProjectExcelExporter
 
     private function addInstructionsSheet(
         Spreadsheet $spreadsheet,
-        string $province,
+        ?string $province,
         bool $forTemplate,
     ): void {
         $sheet = $spreadsheet->createSheet();
         $sheet->setTitle('Instructions');
 
+        $isRegion = $province === null;
+        $scopeLine = $isRegion
+            ? 'Use the Province dropdown (all MIMAROPA provinces).'
+            : "This workbook is for {$province} only. Other provinces are skipped on import.";
+        $importLine = $isRegion
+            ? '4. Save as .xlsx and use Import Excel on Region Programs.'
+            : '4. Save as .xlsx and use Import Excel on PSTO Programs.';
+        $requiredLine = $isRegion
+            ? 'Project (name) and Province are required.'
+            : 'Project (name) is required. Province is fixed to your PSTO.';
+
         $lines = [
             ['TARA PAMIMAROPA — Excel guide', true],
             ['', false],
             ['Province scope', true],
-            ["This workbook is for {$province} only. Other provinces are skipped on import.", false],
+            [$scopeLine, false],
             ['', false],
             ['How to use', true],
             [$forTemplate
-                ? '1. Fill the Projects sheet (Status, Type, and Sector have dropdowns).'
+                ? '1. Fill the Projects sheet (Status, Type, Sector, and Province have dropdowns).'
                 : '1. This file contains your current projects. Edit if needed, then re-import.', false],
             ['2. Keep the header row exactly as-is (row 5). Do not rename columns.', false],
             ['3. Leave Code blank to create a new project, or keep an existing Code to update it.', false],
-            ['4. Save as .xlsx and use Import Excel on PSTO Programs.', false],
+            [$importLine, false],
             ['', false],
             ['Status dropdown values', true],
             [implode(' · ', self::STATUSES), false],
             ['', false],
             ['Required fields', true],
-            ['Project (name) is required. Province is fixed to your PSTO.', false],
+            [$requiredLine, false],
             ['', false],
             ['Money columns', true],
             ['Project Cost, Amount Due, Refunded — numbers only (no ₱ symbol needed).', false],

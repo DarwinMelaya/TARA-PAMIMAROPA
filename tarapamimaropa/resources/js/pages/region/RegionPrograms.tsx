@@ -2,7 +2,7 @@ import { usePage } from '@inertiajs/react';
 import ProgramsWorkspace from '@/components/programs/ProgramsWorkspace';
 import type { TaraProject } from '@/constants/taraProjects';
 import { dashboard } from '@/routes/region';
-import { importMethod } from '@/routes/region/programs';
+import { exportTemplate, importMethod } from '@/routes/region/programs';
 
 type PageProps = {
   projects?: TaraProject[];
@@ -16,6 +16,8 @@ const RegionPrograms = () => {
       projects={projects}
       allowImport
       importUrl={importMethod.url()}
+      allowExport
+      exportTemplateUrl={exportTemplate.url()}
       homeHref={dashboard.url()}
       homeLabel="Command map"
       pageTitle="Programs"

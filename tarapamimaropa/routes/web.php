@@ -32,6 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
             Route::get('/programs', [ProgramController::class, 'index'])->name('programs');
             Route::post('/programs/import', [ProgramController::class, 'import'])->name('programs.import');
+            Route::get('/programs/export-template', [ProgramController::class, 'exportTemplate'])->name('programs.export-template');
         });
 
     Route::middleware(['role:psto'])

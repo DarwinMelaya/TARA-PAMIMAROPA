@@ -10,6 +10,7 @@ import {
   type TaraProgram,
   type TaraProject,
 } from '@/constants/taraProjects';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type ChartTip = {
   label: string;
@@ -21,11 +22,17 @@ type ChartTip = {
 };
 
 const ChartTooltip = ({ tip }: { tip: ChartTip | null }) => {
+  const { theme } = useTheme();
   if (!tip) return null;
   return (
     <div
       role="tooltip"
-      className="pointer-events-none fixed z-[1100] max-w-[220px] rounded-lg border border-slate-600/80 bg-slate-950/95 px-2.5 py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.45)] backdrop-blur-md"
+      className={[
+        "pointer-events-none fixed z-[1100] max-w-[220px] rounded-lg border px-2.5 py-1.5 shadow-lg backdrop-blur-md",
+        theme === "light"
+          ? "border-slate-200 bg-white text-slate-900"
+          : "border-slate-600/80 bg-slate-950/95",
+      ].join(" ")}
       style={{
         left: tip.x,
         top: tip.y,
@@ -37,15 +44,29 @@ const ChartTooltip = ({ tip }: { tip: ChartTip | null }) => {
           className="h-2 w-2 shrink-0 rounded-full"
           style={{ background: tip.color }}
         />
-        <p className="truncate text-[11px] font-semibold text-white">
+        <p
+          className={`truncate text-[11px] font-semibold ${
+            theme === "light" ? "text-slate-900" : "text-white"
+          }`}
+        >
           {tip.label}
         </p>
       </div>
-      <p className="mt-0.5 text-[12px] font-bold tabular-nums text-cyan-200">
+      <p
+        className={`mt-0.5 text-[12px] font-bold tabular-nums ${
+          theme === "light" ? "text-cyan-800" : "text-cyan-200"
+        }`}
+      >
         {tip.value}
       </p>
       {tip.detail ? (
-        <p className="mt-0.5 text-[10px] text-slate-400">{tip.detail}</p>
+        <p
+          className={`mt-0.5 text-[10px] ${
+            theme === "light" ? "text-slate-500" : "text-slate-400"
+          }`}
+        >
+          {tip.detail}
+        </p>
       ) : null}
     </div>
   );
@@ -640,6 +661,24 @@ const GraphsPanel = ({
   onProgramFilter,
   className = "",
 }: GraphsPanelProps) => {
+  const { theme } = useTheme();
+  const shell =
+    theme === "light"
+      ? "border-cyan-500/25 bg-white/95 shadow-sm backdrop-blur-xl"
+      : "border-cyan-400/25 bg-slate-900/95 shadow-[0_8px_48px_rgba(0,0,0,0.5),0_0_24px_rgba(34,211,238,0.1)] backdrop-blur-xl";
+  const divider =
+    theme === "light" ? "border-cyan-200/80" : "border-cyan-900/50";
+  const label =
+    theme === "light" ? "text-cyan-800/90" : "text-cyan-200/90";
+  const mutedBtn =
+    theme === "light"
+      ? "border border-slate-300 text-slate-600 hover:text-slate-900"
+      : "border border-slate-700/80 text-slate-400 hover:text-white";
+  const cell =
+    theme === "light"
+      ? "border-slate-200 bg-slate-50"
+      : "border-slate-700/60 bg-slate-950/50";
+
   const chartData = useMemo(() => {
     if (!expanded) {
       return null;
@@ -822,21 +861,31 @@ const GraphsPanel = ({
     return (
       <div
         className={[
-          "pointer-events-auto flex w-full flex-col overflow-hidden rounded-2xl border border-cyan-400/25 bg-slate-900/95 shadow-[0_8px_48px_rgba(0,0,0,0.5),0_0_24px_rgba(34,211,238,0.1)] backdrop-blur-xl",
+          "pointer-events-auto flex w-full flex-col overflow-hidden rounded-2xl border",
+          shell,
           className,
         ].join(" ")}
       >
-        <div className="flex items-center justify-between gap-2 border-b border-cyan-900/50 px-3 py-2.5 sm:px-4">
+        <div
+          className={`flex items-center justify-between gap-2 border-b px-3 py-2.5 sm:px-4 ${divider}`}
+        >
           <button
             type="button"
             onClick={onToggleExpand}
             className="flex min-w-0 flex-1 items-center gap-2 text-left"
           >
-            <HiChartBar className="h-4 w-4 shrink-0 text-cyan-300" aria-hidden />
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-cyan-200/90">
+            <HiChartBar
+              className={`h-4 w-4 shrink-0 ${theme === "light" ? "text-cyan-700" : "text-cyan-300"}`}
+              aria-hidden
+            />
+            <p
+              className={`text-[11px] font-bold uppercase tracking-[0.16em] ${label}`}
+            >
               Graphs
             </p>
-            <span className="rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold text-cyan-300">
+            <span
+              className={`rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold ${theme === "light" ? "text-cyan-800" : "text-cyan-300"}`}
+            >
               {projects.length}
             </span>
           </button>
@@ -844,7 +893,7 @@ const GraphsPanel = ({
             <button
               type="button"
               onClick={onToggleExpand}
-              className="rounded-lg border border-slate-700/80 px-2 py-1 text-[10px] font-semibold text-slate-400 hover:text-white"
+              className={`rounded-lg px-2 py-1 text-[10px] font-semibold ${mutedBtn}`}
               aria-expanded={expanded}
             >
               <span className="inline-flex items-center gap-1">
@@ -865,21 +914,31 @@ const GraphsPanel = ({
   return (
     <div
       className={[
-        "pointer-events-auto flex w-full flex-col overflow-hidden rounded-2xl border border-cyan-400/25 bg-slate-900/95 shadow-[0_8px_48px_rgba(0,0,0,0.5),0_0_24px_rgba(34,211,238,0.1)] backdrop-blur-xl",
+        "pointer-events-auto flex w-full flex-col overflow-hidden rounded-2xl border",
+        shell,
         className,
       ].join(" ")}
     >
-      <div className="flex items-center justify-between gap-2 border-b border-cyan-900/50 px-3 py-2.5 sm:px-4">
+      <div
+        className={`flex items-center justify-between gap-2 border-b px-3 py-2.5 sm:px-4 ${divider}`}
+      >
         <button
           type="button"
           onClick={onToggleExpand}
           className="flex min-w-0 flex-1 items-center gap-2 text-left"
         >
-          <HiChartBar className="h-4 w-4 shrink-0 text-cyan-300" aria-hidden />
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-cyan-200/90">
+          <HiChartBar
+            className={`h-4 w-4 shrink-0 ${theme === "light" ? "text-cyan-700" : "text-cyan-300"}`}
+            aria-hidden
+          />
+          <p
+            className={`text-[11px] font-bold uppercase tracking-[0.16em] ${label}`}
+          >
             Graphs
           </p>
-          <span className="rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold text-cyan-300">
+          <span
+            className={`rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold ${theme === "light" ? "text-cyan-800" : "text-cyan-300"}`}
+          >
             {projects.length}
           </span>
         </button>
@@ -887,7 +946,7 @@ const GraphsPanel = ({
           <button
             type="button"
             onClick={onToggleExpand}
-            className="rounded-lg border border-slate-700/80 px-2 py-1 text-[10px] font-semibold text-slate-400 hover:text-white"
+            className={`rounded-lg px-2 py-1 text-[10px] font-semibold ${mutedBtn}`}
             aria-expanded={expanded}
           >
             {expanded ? (
@@ -910,7 +969,7 @@ const GraphsPanel = ({
           ) : (
             <>
               <div className="grid grid-cols-3 gap-2">
-                <div className="rounded-lg border border-slate-700/60 bg-slate-950/50 p-2 text-center">
+                <div className={`rounded-lg border p-2 text-center ${cell}`}>
                   <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">
                     Complete
                   </p>
@@ -918,7 +977,7 @@ const GraphsPanel = ({
                     {chartData.completionRate}%
                   </p>
                 </div>
-                <div className="rounded-lg border border-slate-700/60 bg-slate-950/50 p-2 text-center">
+                <div className={`rounded-lg border p-2 text-center ${cell}`}>
                   <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">
                     At risk
                   </p>
@@ -926,7 +985,7 @@ const GraphsPanel = ({
                     {chartData.atRisk}
                   </p>
                 </div>
-                <div className="rounded-lg border border-slate-700/60 bg-slate-950/50 p-2 text-center">
+                <div className={`rounded-lg border p-2 text-center ${cell}`}>
                   <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">
                     People
                   </p>
@@ -1061,7 +1120,7 @@ const GraphsPanel = ({
               </section>
 
               <section
-                className="rounded-xl border border-slate-700/70 bg-slate-950/55 p-3"
+                className={`rounded-xl border p-3 ${cell}`}
                 title={`Utilization ${utilPct}% · Used ${formatPeso(chartData.utilized)} of ${formatPeso(chartData.funding)}`}
               >
                 <div className="flex items-end justify-between gap-2">

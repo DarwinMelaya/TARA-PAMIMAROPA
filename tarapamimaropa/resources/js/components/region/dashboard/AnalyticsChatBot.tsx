@@ -14,6 +14,7 @@ import {
   createWelcomeMessage,
   type ChatMessage,
 } from "./analyticsChatEngine";
+import { useTheme } from '@/theme/ThemeProvider';
 
 type AnalyticsChatBotProps = {
   open: boolean;
@@ -31,6 +32,8 @@ const AnalyticsChatBot = ({
   className = "",
   variant = "dock",
 }: AnalyticsChatBotProps) => {
+  const { theme } = useTheme();
+  const light = theme === "light";
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     createWelcomeMessage(projects.length),
   ]);
@@ -89,18 +92,41 @@ const AnalyticsChatBot = ({
 
   const shellClass =
     variant === "sheet"
-      ? "flex h-full max-h-[min(58vh,480px)] w-full flex-col overflow-hidden rounded-2xl border border-violet-400/35 bg-slate-900/96 shadow-[0_8px_48px_rgba(0,0,0,0.55),0_0_28px_rgba(167,139,250,0.15)] backdrop-blur-xl"
-      : "pointer-events-auto flex h-[min(520px,62vh)] w-full max-w-[min(400px,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-2xl border border-violet-400/35 bg-slate-900/96 shadow-[0_8px_48px_rgba(0,0,0,0.55),0_0_28px_rgba(167,139,250,0.18)] backdrop-blur-xl";
+      ? light
+        ? "flex h-full max-h-[min(58vh,480px)] w-full flex-col overflow-hidden rounded-2xl border border-violet-300/50 bg-white shadow-sm"
+        : "flex h-full max-h-[min(58vh,480px)] w-full flex-col overflow-hidden rounded-2xl border border-violet-400/35 bg-slate-900/96 shadow-[0_8px_48px_rgba(0,0,0,0.55),0_0_28px_rgba(167,139,250,0.15)] backdrop-blur-xl"
+      : light
+        ? "pointer-events-auto flex h-[min(520px,62vh)] w-full max-w-[min(400px,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-2xl border border-violet-300/50 bg-white shadow-lg"
+        : "pointer-events-auto flex h-[min(520px,62vh)] w-full max-w-[min(400px,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-2xl border border-violet-400/35 bg-slate-900/96 shadow-[0_8px_48px_rgba(0,0,0,0.55),0_0_28px_rgba(167,139,250,0.18)] backdrop-blur-xl";
+
+  const iconBtn = light
+    ? "rounded-lg border border-slate-300 p-1.5 text-slate-500 hover:text-slate-900"
+    : "rounded-lg border border-slate-700/80 p-1.5 text-slate-400 hover:text-white";
 
   return (
     <div className={[shellClass, className].join(" ")} role="dialog" aria-label="AI analytics chat">
-      <header className="flex items-start justify-between gap-2 border-b border-violet-900/50 px-3 py-2.5 sm:px-4">
+      <header
+        className={`flex items-start justify-between gap-2 border-b px-3 py-2.5 sm:px-4 ${
+          light ? "border-violet-200" : "border-violet-900/50"
+        }`}
+      >
         <div className="min-w-0">
-          <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-violet-200">
-            <HiSparkles className="h-4 w-4 shrink-0 text-violet-300" aria-hidden />
+          <p
+            className={`flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] ${
+              light ? "text-violet-800" : "text-violet-200"
+            }`}
+          >
+            <HiSparkles
+              className={`h-4 w-4 shrink-0 ${light ? "text-violet-600" : "text-violet-300"}`}
+              aria-hidden
+            />
             AI analytics chat
           </p>
-          <p className="mt-0.5 truncate text-[10px] text-slate-400">
+          <p
+            className={`mt-0.5 truncate text-[10px] ${
+              light ? "text-slate-500" : "text-slate-400"
+            }`}
+          >
             Grounded on {projectCount} filtered map project
             {projectCount === 1 ? "" : "s"}
           </p>
@@ -109,7 +135,7 @@ const AnalyticsChatBot = ({
           <button
             type="button"
             onClick={resetChat}
-            className="rounded-lg border border-slate-700/80 p-1.5 text-slate-400 hover:text-white"
+            className={iconBtn}
             title="Reset chat"
           >
             <HiArrowPath className="h-3.5 w-3.5" aria-hidden />
@@ -117,7 +143,7 @@ const AnalyticsChatBot = ({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-slate-700/80 p-1.5 text-slate-400 hover:text-white"
+            className={iconBtn}
             aria-label="Close chat"
           >
             <HiXMark className="h-4 w-4" aria-hidden />
@@ -125,11 +151,25 @@ const AnalyticsChatBot = ({
         </div>
       </header>
 
-      <div className="border-b border-violet-950/80 bg-violet-950/25 px-3 py-2">
-        <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-violet-300/80">
+      <div
+        className={`border-b px-3 py-2 ${
+          light
+            ? "border-violet-100 bg-violet-50/80"
+            : "border-violet-950/80 bg-violet-950/25"
+        }`}
+      >
+        <p
+          className={`text-[9px] font-bold uppercase tracking-[0.14em] ${
+            light ? "text-violet-700/80" : "text-violet-300/80"
+          }`}
+        >
           Live insight
         </p>
-        <p className="mt-0.5 text-[11px] leading-snug text-slate-200">
+        <p
+          className={`mt-0.5 text-[11px] leading-snug ${
+            light ? "text-slate-800" : "text-slate-200"
+          }`}
+        >
           {insights[insightIndex % insights.length]}
         </p>
         <button
@@ -137,7 +177,11 @@ const AnalyticsChatBot = ({
           onClick={() =>
             setInsightIndex((i) => (i + 1) % Math.max(insights.length, 1))
           }
-          className="mt-1 text-[10px] font-semibold text-violet-300 hover:text-violet-100"
+          className={`mt-1 text-[10px] font-semibold ${
+            light
+              ? "text-violet-700 hover:text-violet-900"
+              : "text-violet-300 hover:text-violet-100"
+          }`}
         >
           Next insight
         </button>
@@ -153,12 +197,20 @@ const AnalyticsChatBot = ({
             className={[
               "max-w-[92%] rounded-xl px-2.5 py-2 text-xs leading-relaxed whitespace-pre-wrap",
               msg.role === "user"
-                ? "ml-auto bg-cyan-500/20 text-cyan-50 border border-cyan-400/25"
-                : "mr-auto bg-slate-950/70 text-slate-200 border border-violet-500/20",
+                ? light
+                  ? "ml-auto border border-cyan-300/50 bg-cyan-50 text-cyan-900"
+                  : "ml-auto bg-cyan-500/20 text-cyan-50 border border-cyan-400/25"
+                : light
+                  ? "mr-auto border border-violet-200 bg-slate-50 text-slate-800"
+                  : "mr-auto bg-slate-950/70 text-slate-200 border border-violet-500/20",
             ].join(" ")}
           >
             {msg.role === "assistant" ? (
-              <span className="mb-1 block text-[9px] font-bold uppercase tracking-wide text-violet-300/80">
+              <span
+                className={`mb-1 block text-[9px] font-bold uppercase tracking-wide ${
+                  light ? "text-violet-700/80" : "text-violet-300/80"
+                }`}
+              >
                 TARA AI
               </span>
             ) : null}
@@ -166,7 +218,13 @@ const AnalyticsChatBot = ({
           </div>
         ))}
         {typing ? (
-          <div className="mr-auto rounded-xl border border-violet-500/20 bg-slate-950/70 px-3 py-2 text-xs text-violet-200/80">
+          <div
+            className={`mr-auto rounded-xl border px-3 py-2 text-xs ${
+              light
+                ? "border-violet-200 bg-slate-50 text-violet-700"
+                : "border-violet-500/20 bg-slate-950/70 text-violet-200/80"
+            }`}
+          >
             <span className="inline-flex gap-1">
               <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-violet-300 [animation-delay:0ms]" />
               <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-violet-300 [animation-delay:120ms]" />
@@ -176,7 +234,11 @@ const AnalyticsChatBot = ({
         ) : null}
       </div>
 
-      <div className="border-t border-violet-900/40 px-3 pb-1 pt-2">
+      <div
+        className={`border-t px-3 pb-1 pt-2 ${
+          light ? "border-violet-100" : "border-violet-900/40"
+        }`}
+      >
         <div className="flex gap-1.5 overflow-x-auto pb-2">
           {tips.map((tip) => (
             <button
@@ -184,7 +246,11 @@ const AnalyticsChatBot = ({
               type="button"
               disabled={typing}
               onClick={() => pushAnswer(tip)}
-              className="shrink-0 rounded-full border border-violet-500/30 bg-violet-950/40 px-2.5 py-1 text-[10px] font-semibold text-violet-100 transition hover:border-violet-400/60 disabled:opacity-50"
+              className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-semibold transition disabled:opacity-50 ${
+                light
+                  ? "border-violet-300 bg-violet-50 text-violet-800 hover:border-violet-400"
+                  : "border-violet-500/30 bg-violet-950/40 text-violet-100 hover:border-violet-400/60"
+              }`}
             >
               {tip}
             </button>
@@ -197,12 +263,20 @@ const AnalyticsChatBot = ({
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Ask about projects, funding, risk…"
             disabled={typing}
-            className="min-w-0 flex-1 rounded-xl border border-slate-700/80 bg-slate-950/80 px-3 py-2 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-violet-400/50"
+            className={`min-w-0 flex-1 rounded-xl border px-3 py-2 text-xs outline-none ${
+              light
+                ? "border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-violet-400/50"
+                : "border-slate-700/80 bg-slate-950/80 text-slate-100 placeholder:text-slate-500 focus:border-violet-400/50"
+            }`}
           />
           <button
             type="submit"
             disabled={typing || !draft.trim()}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-violet-400/40 bg-violet-500/25 text-violet-100 transition hover:bg-violet-500/40 disabled:opacity-40"
+            className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition disabled:opacity-40 ${
+              light
+                ? "border-violet-400/50 bg-violet-50 text-violet-800 hover:bg-violet-100"
+                : "border-violet-400/40 bg-violet-500/25 text-violet-100 hover:bg-violet-500/40"
+            }`}
             aria-label="Send message"
           >
             <HiPaperAirplane className="h-4 w-4" aria-hidden />

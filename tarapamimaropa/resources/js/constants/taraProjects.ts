@@ -66,32 +66,52 @@ export type TaraProject = {
 
 export const STATUS_META: Record<
     ProjectStatus,
-    { label: string; className: string }
+    { label: string; className: string; classNameLight: string }
 > = {
     planning: {
         label: 'Planning',
         className: 'bg-slate-800/80 text-slate-200 ring-slate-500/40',
+        classNameLight: 'bg-slate-200 text-slate-800 ring-slate-400/50',
     },
     ongoing: {
         label: 'Ongoing',
         className: 'bg-blue-500/20 text-blue-100 ring-blue-400/40',
+        classNameLight: 'bg-blue-100 text-blue-900 ring-blue-300/60',
     },
     completed: {
         label: 'Completed',
         className: 'bg-emerald-500/20 text-emerald-100 ring-emerald-400/40',
+        classNameLight: 'bg-emerald-100 text-emerald-900 ring-emerald-300/60',
     },
     delayed: {
         label: 'Delayed',
         className: 'bg-red-500/20 text-red-100 ring-red-400/40',
+        classNameLight: 'bg-red-100 text-red-900 ring-red-300/60',
     },
     on_hold: {
         label: 'On hold',
         className: 'bg-amber-500/20 text-amber-100 ring-amber-400/40',
+        classNameLight: 'bg-amber-100 text-amber-950 ring-amber-300/60',
     },
     cancelled: {
         label: 'Cancelled',
         className: 'bg-rose-500/20 text-rose-100 ring-rose-400/40',
+        classNameLight: 'bg-rose-100 text-rose-900 ring-rose-300/60',
     },
+};
+
+export const statusBadgeClass = (
+    status: ProjectStatus,
+    mode: 'light' | 'dark' = 'dark',
+): string => {
+    const meta = STATUS_META[status];
+    if (!meta) {
+        return mode === 'light'
+            ? 'bg-slate-200 text-slate-800 ring-slate-400/50'
+            : 'bg-slate-800/80 text-slate-200 ring-slate-500/40';
+    }
+
+    return mode === 'light' ? meta.classNameLight : meta.className;
 };
 
 /** Badge styles for raw Excel status labels. */

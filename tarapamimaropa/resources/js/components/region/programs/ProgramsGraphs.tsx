@@ -7,15 +7,14 @@ import {
 } from "react";
 import {
     PROVINCES,
-    PROJECT_STATUSES,
     SECTORS,
-    STATUS_META,
     TARA_TYPES,
     formatCompact,
     formatPeso,
+    projectStatusClass,
+    projectStatusLabel,
     projectType,
     projectYear,
-    type ProjectStatus,
     type Province,
     type TaraProject,
 } from '@/constants/taraProjects';
@@ -34,15 +33,6 @@ type ChartTip = {
 type ValueFormat = "number" | "peso" | "compact";
 
 const BRAND = "#22d3ee";
-
-const STATUS_COLORS: Record<ProjectStatus, string> = {
-    planning: "#94a3b8",
-    ongoing: "#22d3ee",
-    completed: "#34d399",
-    delayed: "#f87171",
-    on_hold: "#fbbf24",
-    cancelled: "#fb7185",
-};
 
 const PROVINCE_COLORS: Record<Province, string> = {
     "Oriental Mindoro": "#22d3ee",
@@ -564,7 +554,7 @@ const ProgramsGraphs = ({
         let beneficiaries = 0;
         const provinceSet = new Set<Province>();
         const byYear = new Map<number, number>();
-        const byStatus = new Map<ProjectStatus, number>();
+        const byStatus = new Map<string, number>();
         const byProvince = new Map<Province, number>();
         const byType = new Map<string, number>();
         const bySector = new Map<string, number>();
@@ -578,7 +568,8 @@ const ProgramsGraphs = ({
 
             const y = projectYear(p);
             byYear.set(y, (byYear.get(y) ?? 0) + 1);
-            byStatus.set(p.status, (byStatus.get(p.status) ?? 0) + 1);
+            const statusLabel = projectStatusLabel(p);
+            byStatus.set(statusLabel, (byStatus.get(statusLabel) ?? 0) + 1);
             byProvince.set(p.province, (byProvince.get(p.province) ?? 0) + 1);
             costByProvince.set(
                 p.province,
@@ -606,17 +597,26 @@ const ProgramsGraphs = ({
 
         const perStatusRows: Row[] = [];
         const perStatusBadges: string[] = [];
-        for (const status of PROJECT_STATUSES) {
-            const value = byStatus.get(status) ?? 0;
-            if (value <= 0) continue;
+        const statusEntries = [...byStatus.entries()].sort(
+            (a, b) => b[1] - a[1],
+        );
+        statusEntries.forEach(([status, value], i) => {
+            if (value <= 0) return;
+            const sample = projects.find(
+                (p) => projectStatusLabel(p) === status,
+            );
             perStatusRows.push({
                 key: status,
-                label: STATUS_META[status].label,
+                label: status,
                 value,
-                color: STATUS_COLORS[status],
+                color: SERIES_COLORS[i % SERIES_COLORS.length],
             });
-            perStatusBadges.push(STATUS_META[status].className);
-        }
+            perStatusBadges.push(
+                sample
+                    ? projectStatusClass(sample)
+                    : "bg-slate-800/80 text-slate-200 ring-slate-500/40",
+            );
+        });
 
         const perProvince: Row[] = PROVINCES.filter(
             (p) => (byProvince.get(p) ?? 0) > 0,

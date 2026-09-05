@@ -87,6 +87,8 @@ class Project extends Model
             'collaborators' => $this->collaborators,
             'district' => $this->district,
             'status' => $status,
+            'status_label' => $this->status ?: 'Unknown',
+            'row_number' => $this->row_number,
             'progress' => match ($status) {
                 'completed' => 100,
                 'cancelled' => 0,

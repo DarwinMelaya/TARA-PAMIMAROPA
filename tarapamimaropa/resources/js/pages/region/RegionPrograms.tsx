@@ -16,18 +16,16 @@ import {
 } from 'react-icons/hi2';
 import ProgramsGraphs from '@/components/region/programs/ProgramsGraphs';
 import {
-  PROGRAM_META,
-  PROJECT_STATUSES,
   PROVINCES,
-  STATUS_META,
-  describeProject,
   formatCompact,
+  formatMoneyOrDash,
   formatPeso,
-  projectImage,
+  formatRateOrDash,
+  projectStatusClass,
+  projectStatusLabel,
   projectType,
   projectYear,
   summarizeProjects,
-  type ProjectStatus,
   type Province,
   type TaraProject,
 } from '@/constants/taraProjects';
@@ -106,16 +104,12 @@ const UI = {
   },
 } as const satisfies Record<ThemeMode, Record<string, string>>;
 
-const emptyStatusCounts = (): Record<ProjectStatus, number> => ({
-  planning: 0,
-  ongoing: 0,
-  completed: 0,
-  delayed: 0,
-  on_hold: 0,
-  cancelled: 0,
-});
+const PAGE_SIZE = 25;
 
-const PAGE_SIZE = 10;
+const dash = (value: string | null | undefined) => {
+  const text = (value ?? "").trim();
+  return text === "" ? "—" : text;
+};
 
 const RegionPrograms = () => {
   const { theme } = useTheme();
@@ -125,9 +119,7 @@ const RegionPrograms = () => {
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [provinceFilter, setProvinceFilter] = useState<Province | "all">("all");
-  const [statusFilter, setStatusFilter] = useState<ProjectStatus | "all">(
-    "all",
-  );
+  const [statusFilter, setStatusFilter] = useState<string | "all">("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [chartsOpen, setChartsOpen] = useState(false);
@@ -164,13 +156,18 @@ const RegionPrograms = () => {
   const filteredProjects = useMemo(() => {
     const q = search.trim().toLowerCase();
     return scopedProjects.filter((p) => {
-      if (statusFilter !== "all" && p.status !== statusFilter) return false;
+      if (statusFilter !== "all" && projectStatusLabel(p) !== statusFilter) {
+        return false;
+      }
       if (!q) return true;
       return (
         p.name.toLowerCase().includes(q) ||
         p.beneficiary.toLowerCase().includes(q) ||
         p.municipality.toLowerCase().includes(q) ||
-        projectType(p).toLowerCase().includes(q)
+        (p.code ?? "").toLowerCase().includes(q) ||
+        (p.sector ?? "").toLowerCase().includes(q) ||
+        projectType(p).toLowerCase().includes(q) ||
+        projectStatusLabel(p).toLowerCase().includes(q)
       );
     });
   }, [scopedProjects, statusFilter, search]);
@@ -199,16 +196,22 @@ const RegionPrograms = () => {
   }, [projects]);
 
   const byStatus = useMemo(() => {
-    const counts = emptyStatusCounts();
+    const counts = new Map<string, number>();
     scopedProjects.forEach((p) => {
-      counts[p.status] += 1;
+      const label = projectStatusLabel(p);
+      counts.set(label, (counts.get(label) ?? 0) + 1);
     });
-    const rows = (Object.keys(counts) as ProjectStatus[])
-      .map((status) => ({ status, count: counts[status] }))
-      .filter((r) => r.count > 0);
+    const rows = [...counts.entries()]
+      .map(([status, count]) => ({ status, count }))
+      .sort((a, b) => b.count - a.count);
     const max = Math.max(1, ...rows.map((r) => r.count));
     return { rows, max };
   }, [scopedProjects]);
+
+  const statusOptions = useMemo(
+    () => byStatus.rows.map((r) => r.status),
+    [byStatus],
+  );
 
   const byType = useMemo(() => {
     const counts = new Map<string, { count: number; budget: number }>();
@@ -239,7 +242,7 @@ const RegionPrograms = () => {
     setPage(1);
   };
 
-  const setStatus = (next: ProjectStatus | "all") => {
+  const setStatus = (next: string | "all") => {
     setStatusFilter(next);
     setPage(1);
   };
@@ -462,8 +465,13 @@ const RegionPrograms = () => {
                       <p className="text-xs text-slate-500">No projects.</p>
                     ) : null}
                     {byStatus.rows.map((row) => {
-                      const meta = STATUS_META[row.status];
                       const pct = Math.round((row.count / byStatus.max) * 100);
+                      const sample = scopedProjects.find(
+                        (p) => projectStatusLabel(p) === row.status,
+                      );
+                      const badgeClass = sample
+                        ? projectStatusClass(sample)
+                        : "bg-slate-800/80 text-slate-200 ring-slate-500/40";
                       return (
                         <button
                           key={row.status}
@@ -477,9 +485,9 @@ const RegionPrograms = () => {
                         >
                           <div className="mb-1 flex items-center justify-between text-xs">
                             <span
-                              className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${meta.className}`}
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${badgeClass}`}
                             >
-                              {meta.label}
+                              {row.status}
                             </span>
                             <span className={`font-semibold ${ui.heading}`}>
                               {row.count}
@@ -591,12 +599,16 @@ const RegionPrograms = () => {
             >
               All status
             </button>
-            {PROJECT_STATUSES.map((status) => {
-              const meta = STATUS_META[status];
+            {statusOptions.map((status) => {
               const count = scopedProjects.filter(
-                (p) => p.status === status,
+                (p) => projectStatusLabel(p) === status,
               ).length;
-              if (count === 0) return null;
+              const sample = scopedProjects.find(
+                (p) => projectStatusLabel(p) === status,
+              );
+              const badgeClass = sample
+                ? projectStatusClass(sample)
+                : ui.statusIdle;
               return (
                 <button
                   key={status}
@@ -606,12 +618,10 @@ const RegionPrograms = () => {
                   }
                   className={[
                     "rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 transition duration-[180ms]",
-                    statusFilter === status
-                      ? meta.className
-                      : ui.statusIdle,
+                    statusFilter === status ? badgeClass : ui.statusIdle,
                   ].join(" ")}
                 >
-                  {meta.label}
+                  {status}
                   <span className="ml-1 opacity-70">{count}</span>
                 </button>
               );
@@ -619,21 +629,32 @@ const RegionPrograms = () => {
           </div>
 
           <div className={`mt-3 overflow-x-auto rounded-xl border [-webkit-overflow-scrolling:touch] ${ui.card}`}>
-            <table className="w-full min-w-[640px] border-collapse text-left text-[13px]">
+            <table className="w-full min-w-[1400px] border-collapse text-left text-[12px]">
               <thead>
-                <tr className={`border-b text-xs ${ui.theadBorder} ${ui.muted}`}>
-                  <th className="px-3 py-3 font-medium">Project</th>
-                  <th className="px-3 py-3 font-medium">Type</th>
-                  <th className="px-3 py-3 font-medium">Place</th>
-                  <th className="px-3 py-3 font-medium">Status</th>
-                  <th className="px-3 py-3 text-right font-medium">Cost</th>
+                <tr className={`border-b text-[11px] ${ui.theadBorder} ${ui.muted}`}>
+                  <th className="px-2 py-3 font-medium">#</th>
+                  <th className="px-2 py-3 font-medium">Code</th>
+                  <th className="px-2 py-3 font-medium">Project</th>
+                  <th className="px-2 py-3 font-medium">Type</th>
+                  <th className="px-2 py-3 font-medium">Year Approved</th>
+                  <th className="px-2 py-3 font-medium">Beneficiaries</th>
+                  <th className="px-2 py-3 font-medium">Collaborators</th>
+                  <th className="px-2 py-3 font-medium">Sector</th>
+                  <th className="px-2 py-3 font-medium">Province</th>
+                  <th className="px-2 py-3 font-medium">City</th>
+                  <th className="px-2 py-3 font-medium">District</th>
+                  <th className="px-2 py-3 font-medium">Status</th>
+                  <th className="px-2 py-3 text-right font-medium">Project Cost</th>
+                  <th className="px-2 py-3 text-right font-medium">Amount Due</th>
+                  <th className="px-2 py-3 text-right font-medium">Refunded</th>
+                  <th className="px-2 py-3 text-right font-medium">Refund Rate</th>
                 </tr>
               </thead>
               <tbody>
                 {pageRows.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={16}
                       className="px-4 py-10 text-center text-sm text-slate-500"
                     >
                       No projects match these filters.
@@ -641,38 +662,71 @@ const RegionPrograms = () => {
                   </tr>
                 ) : null}
                 {pageRows.map((project) => {
-                  const status = STATUS_META[project.status];
+                  const statusLabel = projectStatusLabel(project);
+                  const statusClass = projectStatusClass(project);
                   return (
                     <tr
                       key={project.id}
                       onClick={() => setViewing(project)}
                       className={`cursor-pointer border-b transition duration-[180ms] last:border-b-0 ${ui.rowBorder} ${ui.rowHover}`}
                     >
-                      <td className="max-w-[280px] px-3 py-3">
-                        <p className={`font-medium line-clamp-1 ${ui.heading}`}>
+                      <td className={`whitespace-nowrap px-2 py-2 tabular-nums ${ui.muted}`}>
+                        {project.row_number ?? "—"}
+                      </td>
+                      <td className={`whitespace-nowrap px-2 py-2 font-mono text-[11px] ${ui.soft}`}>
+                        {dash(project.code)}
+                      </td>
+                      <td className="max-w-[260px] px-2 py-2">
+                        <p className={`font-medium line-clamp-2 ${ui.heading}`}>
                           {project.name}
                         </p>
-                        <p className={`mt-0.5 text-[11px] ${ui.muted}`}>
-                          {projectYear(project)}
-                        </p>
                       </td>
-                      <td className={`max-w-[140px] px-3 py-3 ${ui.soft}`}>
-                        <span className="line-clamp-1">
-                          {projectType(project)}
+                      <td className={`max-w-[140px] px-2 py-2 ${ui.soft}`}>
+                        <span className="line-clamp-2">{projectType(project)}</span>
+                      </td>
+                      <td className={`whitespace-nowrap px-2 py-2 tabular-nums ${ui.body}`}>
+                        {projectYear(project)}
+                      </td>
+                      <td className={`max-w-[160px] px-2 py-2 ${ui.body}`}>
+                        <span className="line-clamp-2">{dash(project.beneficiary)}</span>
+                      </td>
+                      <td className={`max-w-[160px] px-2 py-2 ${ui.soft}`}>
+                        <span className="line-clamp-2">
+                          {dash(project.collaborators)}
                         </span>
                       </td>
-                      <td className={`whitespace-nowrap px-3 py-3 ${ui.body}`}>
-                        {project.municipality}
+                      <td className={`max-w-[140px] px-2 py-2 ${ui.soft}`}>
+                        <span className="line-clamp-2">{dash(project.sector)}</span>
                       </td>
-                      <td className="px-3 py-3">
+                      <td className={`whitespace-nowrap px-2 py-2 ${ui.body}`}>
+                        {dash(project.province)}
+                      </td>
+                      <td className={`whitespace-nowrap px-2 py-2 ${ui.body}`}>
+                        {dash(project.municipality)}
+                      </td>
+                      <td className={`whitespace-nowrap px-2 py-2 ${ui.soft}`}>
+                        {dash(project.district)}
+                      </td>
+                      <td className="px-2 py-2">
                         <span
-                          className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${status.className}`}
+                          className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${statusClass}`}
                         >
-                          {status.label}
+                          {statusLabel}
                         </span>
                       </td>
-                      <td className={`whitespace-nowrap px-3 py-3 text-right font-medium tabular-nums ${ui.heading}`}>
-                        {formatPeso(project.budget)}
+                      <td className={`whitespace-nowrap px-2 py-2 text-right font-medium tabular-nums ${ui.heading}`}>
+                        {formatMoneyOrDash(
+                          project.budget > 0 ? project.budget : null,
+                        )}
+                      </td>
+                      <td className={`whitespace-nowrap px-2 py-2 text-right tabular-nums ${ui.soft}`}>
+                        {formatMoneyOrDash(project.amount_due)}
+                      </td>
+                      <td className={`whitespace-nowrap px-2 py-2 text-right tabular-nums ${ui.soft}`}>
+                        {formatMoneyOrDash(project.refunded)}
+                      </td>
+                      <td className={`whitespace-nowrap px-2 py-2 text-right tabular-nums ${ui.soft}`}>
+                        {formatRateOrDash(project.refund_rate)}
                       </td>
                     </tr>
                   );
@@ -766,7 +820,7 @@ const RegionPrograms = () => {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className={`text-xs font-medium ${ui.muted}`}>
-                  {PROGRAM_META[viewing.program].short} · {viewing.province}
+                  {dash(viewing.code)} · {viewing.province}
                 </p>
                 <h2 className={`mt-1 text-lg font-semibold leading-snug ${ui.heading}`}>
                   {viewing.name}
@@ -782,20 +836,6 @@ const RegionPrograms = () => {
               </button>
             </div>
 
-            <img
-              src={viewing.photo_url || projectImage(viewing.id)}
-              alt={viewing.name}
-              loading="lazy"
-              className={`mt-4 h-44 w-full rounded-lg border object-cover ${ui.imgBorder}`}
-            />
-
-            <p className={`mt-4 text-xs font-medium ${ui.muted}`}>
-              Project description
-            </p>
-            <p className={`mt-1 max-w-prose text-sm leading-relaxed ${ui.body}`}>
-              {describeProject(viewing)}
-            </p>
-
             <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
               <div>
                 <dt className={`text-xs ${ui.muted}`}>Type</dt>
@@ -804,39 +844,79 @@ const RegionPrograms = () => {
                 </dd>
               </div>
               <div>
-                <dt className={`text-xs ${ui.muted}`}>Year</dt>
+                <dt className={`text-xs ${ui.muted}`}>Year Approved</dt>
                 <dd className={`mt-0.5 font-medium ${ui.heading}`}>
                   {projectYear(viewing)}
                 </dd>
               </div>
               <div className="col-span-2">
-                <dt className={`text-xs ${ui.muted}`}>Beneficiary</dt>
+                <dt className={`text-xs ${ui.muted}`}>Beneficiaries</dt>
                 <dd className={`mt-0.5 font-medium ${ui.heading}`}>
-                  {viewing.beneficiary}
+                  {dash(viewing.beneficiary)}
+                </dd>
+              </div>
+              <div className="col-span-2">
+                <dt className={`text-xs ${ui.muted}`}>Collaborators</dt>
+                <dd className={`mt-0.5 font-medium ${ui.heading}`}>
+                  {dash(viewing.collaborators)}
                 </dd>
               </div>
               <div className="col-span-2">
                 <dt className={`text-xs ${ui.muted}`}>Sector</dt>
                 <dd className={`mt-0.5 font-medium ${ui.heading}`}>
-                  {viewing.sector}
+                  {dash(viewing.sector)}
                 </dd>
               </div>
               <div>
-                <dt className={`text-xs ${ui.muted}`}>Municipality</dt>
+                <dt className={`text-xs ${ui.muted}`}>Province</dt>
                 <dd className={`mt-0.5 font-medium ${ui.heading}`}>
-                  {viewing.municipality}
+                  {dash(viewing.province)}
+                </dd>
+              </div>
+              <div>
+                <dt className={`text-xs ${ui.muted}`}>City</dt>
+                <dd className={`mt-0.5 font-medium ${ui.heading}`}>
+                  {dash(viewing.municipality)}
+                </dd>
+              </div>
+              <div>
+                <dt className={`text-xs ${ui.muted}`}>District</dt>
+                <dd className={`mt-0.5 font-medium ${ui.heading}`}>
+                  {dash(viewing.district)}
                 </dd>
               </div>
               <div>
                 <dt className={`text-xs ${ui.muted}`}>Status</dt>
-                <dd className={`mt-0.5 font-medium ${ui.heading}`}>
-                  {STATUS_META[viewing.status].label}
+                <dd className="mt-0.5">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${projectStatusClass(viewing)}`}
+                  >
+                    {projectStatusLabel(viewing)}
+                  </span>
                 </dd>
               </div>
               <div className="col-span-2">
-                <dt className={`text-xs ${ui.muted}`}>Project cost</dt>
+                <dt className={`text-xs ${ui.muted}`}>Project Cost</dt>
                 <dd className={`mt-0.5 font-semibold tabular-nums ${ui.heading}`}>
-                  {formatPeso(viewing.budget)}
+                  {formatMoneyOrDash(viewing.budget || null)}
+                </dd>
+              </div>
+              <div>
+                <dt className={`text-xs ${ui.muted}`}>Amount Due</dt>
+                <dd className={`mt-0.5 font-medium tabular-nums ${ui.heading}`}>
+                  {formatMoneyOrDash(viewing.amount_due)}
+                </dd>
+              </div>
+              <div>
+                <dt className={`text-xs ${ui.muted}`}>Refunded</dt>
+                <dd className={`mt-0.5 font-medium tabular-nums ${ui.heading}`}>
+                  {formatMoneyOrDash(viewing.refunded)}
+                </dd>
+              </div>
+              <div className="col-span-2">
+                <dt className={`text-xs ${ui.muted}`}>Refund Rate</dt>
+                <dd className={`mt-0.5 font-medium tabular-nums ${ui.heading}`}>
+                  {formatRateOrDash(viewing.refund_rate)}
                 </dd>
               </div>
             </dl>

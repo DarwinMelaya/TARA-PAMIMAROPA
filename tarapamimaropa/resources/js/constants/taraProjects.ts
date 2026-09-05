@@ -31,6 +31,7 @@ export type TaraProgram =
 export type TaraProject = {
     id: string;
     code?: string | null;
+    row_number?: number | null;
     name: string;
     description: string;
     beneficiary: string;
@@ -45,6 +46,8 @@ export type TaraProject = {
     collaborators?: string | null;
     district?: string | null;
     status: ProjectStatus;
+    /** Raw Excel / DB status label (On-going, Graduated, …). */
+    status_label?: string | null;
     progress: number;
     budget: number;
     funding_source: string;
@@ -89,6 +92,60 @@ export const STATUS_META: Record<
         label: 'Cancelled',
         className: 'bg-rose-500/20 text-rose-100 ring-rose-400/40',
     },
+};
+
+/** Badge styles for raw Excel status labels. */
+const RAW_STATUS_CLASS: Record<string, string> = {
+    'on-going': 'bg-blue-500/20 text-blue-100 ring-blue-400/40',
+    ongoing: 'bg-blue-500/20 text-blue-100 ring-blue-400/40',
+    graduated: 'bg-emerald-500/20 text-emerald-100 ring-emerald-400/40',
+    completed: 'bg-emerald-500/20 text-emerald-100 ring-emerald-400/40',
+    terminated: 'bg-rose-500/20 text-rose-100 ring-rose-400/40',
+    cancelled: 'bg-rose-500/20 text-rose-100 ring-rose-400/40',
+    canceled: 'bg-rose-500/20 text-rose-100 ring-rose-400/40',
+    widthdrawn: 'bg-slate-500/20 text-slate-200 ring-slate-400/40',
+    withdrawn: 'bg-slate-500/20 text-slate-200 ring-slate-400/40',
+    new: 'bg-cyan-500/20 text-cyan-100 ring-cyan-400/40',
+    planning: 'bg-slate-800/80 text-slate-200 ring-slate-500/40',
+    delayed: 'bg-red-500/20 text-red-100 ring-red-400/40',
+    'on hold': 'bg-amber-500/20 text-amber-100 ring-amber-400/40',
+    on_hold: 'bg-amber-500/20 text-amber-100 ring-amber-400/40',
+};
+
+export const projectStatusLabel = (project: TaraProject): string => {
+    if (project.status_label && project.status_label.trim() !== '') {
+        return project.status_label;
+    }
+
+    return STATUS_META[project.status]?.label ?? String(project.status);
+};
+
+export const projectStatusClass = (project: TaraProject): string => {
+    const raw = projectStatusLabel(project).trim().toLowerCase();
+    const key = raw.replace(/[_]+/g, ' ').replace(/\s+/g, ' ');
+    if (RAW_STATUS_CLASS[key]) return RAW_STATUS_CLASS[key];
+    if (RAW_STATUS_CLASS[raw.replace(/\s+/g, '-')]) {
+        return RAW_STATUS_CLASS[raw.replace(/\s+/g, '-')];
+    }
+
+    return STATUS_META[project.status]?.className
+        ?? 'bg-slate-800/80 text-slate-200 ring-slate-500/40';
+};
+
+export const formatMoneyOrDash = (value: number | null | undefined): string => {
+    if (value === null || value === undefined || Number.isNaN(value)) {
+        return '—';
+    }
+
+    return formatPeso(value);
+};
+
+export const formatRateOrDash = (value: number | null | undefined): string => {
+    if (value === null || value === undefined || Number.isNaN(value)) {
+        return '—';
+    }
+
+    return `${value}%`;
 };
 
 export const PROGRAM_META: Record<

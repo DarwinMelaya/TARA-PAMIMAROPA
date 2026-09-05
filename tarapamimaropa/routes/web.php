@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Psto\ProgramController as PstoProgramController;
 use App\Http\Controllers\Region\DashboardController;
 use App\Http\Controllers\Region\ProgramController;
 use App\Http\Controllers\SuperAdmin\UserController;
@@ -36,7 +37,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('psto.')
         ->group(function () {
             Route::inertia('/', 'psto/PstoDashboard')->name('dashboard');
-            Route::inertia('/programs', 'psto/PstoPrograms')->name('programs');
+            Route::get('/programs', [PstoProgramController::class, 'index'])->name('programs');
         });
 });
 

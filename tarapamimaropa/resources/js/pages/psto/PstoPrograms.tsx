@@ -1,26 +1,41 @@
 import { Head, usePage } from '@inertiajs/react';
+import ProgramsWorkspace from '@/components/programs/ProgramsWorkspace';
+import type { Province, TaraProject } from '@/constants/taraProjects';
+import { dashboard } from '@/routes/psto';
+
+type PageProps = {
+  projects?: TaraProject[];
+  lockedProvince?: string | null;
+};
 
 const PstoPrograms = () => {
-    const { auth } = usePage().props;
-    const province = auth.user?.province ?? null;
+  const { projects = [], lockedProvince = null } = usePage<PageProps>().props;
 
+  if (!lockedProvince) {
     return (
-        <>
-            <Head title="PSTO Programs" />
-            <div className="flex h-full flex-1 flex-col gap-4 p-4">
-                <div>
-                    <h1 className="text-xl font-semibold tracking-tight">
-                        Programs
-                    </h1>
-                    <p className="text-muted-foreground mt-1 text-sm">
-                        {province
-                            ? `Programs and projects for ${province}.`
-                            : 'Programs and projects for this PSTO.'}
-                    </p>
-                </div>
-            </div>
-        </>
+      <>
+        <Head title="PSTO Programs" />
+        <div className="flex h-full flex-1 flex-col gap-4 p-4">
+          <h1 className="text-xl font-semibold tracking-tight">Programs</h1>
+          <p className="text-muted-foreground mt-1 max-w-prose text-sm">
+            This PSTO account has no province assigned. Ask a super admin to set
+            the province (for example Marinduque) so projects can load.
+          </p>
+        </div>
+      </>
     );
+  }
+
+  return (
+    <ProgramsWorkspace
+      projects={projects}
+      lockedProvince={lockedProvince as Province}
+      allowImport={false}
+      homeHref={dashboard.url()}
+      homeLabel="Dashboard"
+      pageTitle="PSTO Programs"
+    />
+  );
 };
 
 export default PstoPrograms;

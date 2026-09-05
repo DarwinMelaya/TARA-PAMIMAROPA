@@ -531,8 +531,9 @@ const UI = {
 } as const satisfies Record<ThemeMode, Record<string, string>>;
 
 const RegionDashboard = () => {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const ui = UI[theme];
+  const statusMode = isDark ? "dark" : "light";
   const { projects: serverProjects = [] } = usePage<PageProps>().props;
   const projects = serverProjects;
   const [devicePerfLite, setDevicePerfLite] = useState(readPerfLite);
@@ -1105,7 +1106,9 @@ const RegionDashboard = () => {
                       className={`flex w-full items-center gap-3 rounded-xl border p-2.5 text-left transition hover:border-cyan-500/50 ${ui.feedItem}`}
                     >
                       <span
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[9px] font-extrabold uppercase ring-1 ${ui.avatarBox} ${meta.accent}`}
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[9px] font-extrabold uppercase ring-1 ${ui.avatarBox} ${
+                          theme === "light" ? "text-slate-800" : meta.accent
+                        }`}
                       >
                         {meta.short}
                       </span>
@@ -1118,7 +1121,7 @@ const RegionDashboard = () => {
                         </span>
                       </span>
                       <span
-                        className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-semibold ring-1 ${statusBadgeClass(project.status, theme)}`}
+                        className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-semibold ring-1 ${statusBadgeClass(project.status, statusMode)}`}
                       >
                         {status.label}
                       </span>
@@ -1414,7 +1417,7 @@ const RegionDashboard = () => {
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${statusBadgeClass(project.status, theme)}`}
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${statusBadgeClass(project.status, statusMode)}`}
                       >
                         {status.label}
                       </span>
@@ -1427,7 +1430,15 @@ const RegionDashboard = () => {
                     </p>
                     <p className={`line-clamp-1 text-[11px] ${ui.meta}`}>
                       {project.municipality}, {project.province} ·{" "}
-                      <span className={program.accent}>{project.program}</span>
+                      <span
+                        className={
+                          theme === "light"
+                            ? "font-semibold text-slate-700"
+                            : program.accent
+                        }
+                      >
+                        {project.program}
+                      </span>
                     </p>
                   </button>
                 </li>
@@ -1531,8 +1542,12 @@ const RegionDashboard = () => {
               </div>
               <div className={`rounded-xl border p-3 ${ui.cell}`}>
                 <p className={ui.modalMuted}>Status</p>
-                <p className={`mt-1 font-semibold ${ui.modalHeading}`}>
-                  {STATUS_META[viewing.status].label}
+                <p className="mt-1.5">
+                  <span
+                    className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ${statusBadgeClass(viewing.status, statusMode)}`}
+                  >
+                    {STATUS_META[viewing.status].label}
+                  </span>
                 </p>
               </div>
               <div className={`col-span-2 rounded-xl border p-3 ${ui.cell}`}>

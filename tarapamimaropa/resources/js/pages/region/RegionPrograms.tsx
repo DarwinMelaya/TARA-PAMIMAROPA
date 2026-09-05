@@ -112,8 +112,9 @@ const dash = (value: string | null | undefined) => {
 };
 
 const RegionPrograms = () => {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const ui = UI[theme];
+  const statusMode = isDark ? "dark" : "light";
   const { projects: serverProjects = [] } = usePage<PageProps>().props;
   const projects = serverProjects;
   const [importing, setImporting] = useState(false);
@@ -576,8 +577,10 @@ const RegionPrograms = () => {
                         (p) => projectStatusLabel(p) === row.status,
                       );
                       const badgeClass = sample
-                        ? projectStatusClass(sample)
-                        : "bg-slate-800/80 text-slate-200 ring-slate-500/40";
+                        ? projectStatusClass(sample, statusMode)
+                        : statusMode === "light"
+                          ? "border border-slate-400 bg-slate-200 text-slate-900 ring-0"
+                          : "bg-slate-800/80 text-slate-200 ring-slate-500/40";
                       return (
                         <button
                           key={row.status}
@@ -851,7 +854,7 @@ const RegionPrograms = () => {
                 (p) => projectStatusLabel(p) === status,
               );
               const badgeClass = sample
-                ? projectStatusClass(sample)
+                ? projectStatusClass(sample, statusMode)
                 : ui.statusIdle;
               return (
                 <button
@@ -907,7 +910,7 @@ const RegionPrograms = () => {
                 ) : null}
                 {pageRows.map((project) => {
                   const statusLabel = projectStatusLabel(project);
-                  const statusClass = projectStatusClass(project);
+                  const statusClass = projectStatusClass(project, statusMode);
                   return (
                     <tr
                       key={project.id}
@@ -1133,7 +1136,7 @@ const RegionPrograms = () => {
                 <dt className={`text-xs ${ui.muted}`}>Status</dt>
                 <dd className="mt-0.5">
                   <span
-                    className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${projectStatusClass(viewing)}`}
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${projectStatusClass(viewing, statusMode)}`}
                   >
                     {projectStatusLabel(viewing)}
                   </span>

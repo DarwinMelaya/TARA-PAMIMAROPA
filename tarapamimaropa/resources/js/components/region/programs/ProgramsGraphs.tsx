@@ -18,6 +18,7 @@ import {
     type Province,
     type TaraProject,
 } from '@/constants/taraProjects';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type Row = { key: string; label: string; value: number; color: string };
 
@@ -549,6 +550,9 @@ const ProgramsGraphs = ({
     projects: TaraProject[];
     scope?: string;
 }) => {
+    const { isDark } = useTheme();
+    const statusMode = isDark ? "dark" : "light";
+
     const aggregates = useMemo(() => {
         let totalCost = 0;
         let beneficiaries = 0;
@@ -613,8 +617,10 @@ const ProgramsGraphs = ({
             });
             perStatusBadges.push(
                 sample
-                    ? projectStatusClass(sample)
-                    : "bg-slate-800/80 text-slate-200 ring-slate-500/40",
+                    ? projectStatusClass(sample, statusMode)
+                    : statusMode === "light"
+                      ? "border border-slate-400 bg-slate-200 text-slate-900 ring-0"
+                      : "bg-slate-800/80 text-slate-200 ring-slate-500/40",
             );
         });
 
@@ -695,7 +701,7 @@ const ProgramsGraphs = ({
             costPerProvince,
             costPerSector,
         };
-    }, [projects]);
+    }, [projects, statusMode]);
 
     const { summary } = aggregates;
 

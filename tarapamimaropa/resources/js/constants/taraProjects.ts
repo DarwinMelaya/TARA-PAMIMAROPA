@@ -71,32 +71,38 @@ export const STATUS_META: Record<
     planning: {
         label: 'Planning',
         className: 'bg-slate-800/80 text-slate-200 ring-slate-500/40',
-        classNameLight: 'bg-slate-200 text-slate-800 ring-slate-400/50',
+        classNameLight:
+            'border border-slate-400 bg-slate-200 text-slate-900 ring-0',
     },
     ongoing: {
         label: 'Ongoing',
         className: 'bg-blue-500/20 text-blue-100 ring-blue-400/40',
-        classNameLight: 'bg-blue-100 text-blue-900 ring-blue-300/60',
+        classNameLight:
+            'border border-blue-500 bg-blue-600 text-white ring-0',
     },
     completed: {
         label: 'Completed',
         className: 'bg-emerald-500/20 text-emerald-100 ring-emerald-400/40',
-        classNameLight: 'bg-emerald-100 text-emerald-900 ring-emerald-300/60',
+        classNameLight:
+            'border border-emerald-600 bg-emerald-600 text-white ring-0',
     },
     delayed: {
         label: 'Delayed',
         className: 'bg-red-500/20 text-red-100 ring-red-400/40',
-        classNameLight: 'bg-red-100 text-red-900 ring-red-300/60',
+        classNameLight:
+            'border border-red-600 bg-red-600 text-white ring-0',
     },
     on_hold: {
         label: 'On hold',
         className: 'bg-amber-500/20 text-amber-100 ring-amber-400/40',
-        classNameLight: 'bg-amber-100 text-amber-950 ring-amber-300/60',
+        classNameLight:
+            'border border-amber-500 bg-amber-500 text-amber-950 ring-0',
     },
     cancelled: {
         label: 'Cancelled',
         className: 'bg-rose-500/20 text-rose-100 ring-rose-400/40',
-        classNameLight: 'bg-rose-100 text-rose-900 ring-rose-300/60',
+        classNameLight:
+            'border border-rose-600 bg-rose-600 text-white ring-0',
     },
 };
 
@@ -107,7 +113,7 @@ export const statusBadgeClass = (
     const meta = STATUS_META[status];
     if (!meta) {
         return mode === 'light'
-            ? 'bg-slate-200 text-slate-800 ring-slate-400/50'
+            ? 'border border-slate-400 bg-slate-200 text-slate-900 ring-0'
             : 'bg-slate-800/80 text-slate-200 ring-slate-500/40';
     }
 
@@ -132,6 +138,23 @@ const RAW_STATUS_CLASS: Record<string, string> = {
     on_hold: 'bg-amber-500/20 text-amber-100 ring-amber-400/40',
 };
 
+const RAW_STATUS_CLASS_LIGHT: Record<string, string> = {
+    'on-going': 'border border-blue-500 bg-blue-600 text-white ring-0',
+    ongoing: 'border border-blue-500 bg-blue-600 text-white ring-0',
+    graduated: 'border border-emerald-600 bg-emerald-600 text-white ring-0',
+    completed: 'border border-emerald-600 bg-emerald-600 text-white ring-0',
+    terminated: 'border border-rose-600 bg-rose-600 text-white ring-0',
+    cancelled: 'border border-rose-600 bg-rose-600 text-white ring-0',
+    canceled: 'border border-rose-600 bg-rose-600 text-white ring-0',
+    widthdrawn: 'border border-slate-400 bg-slate-500 text-white ring-0',
+    withdrawn: 'border border-slate-400 bg-slate-500 text-white ring-0',
+    new: 'border border-cyan-500 bg-cyan-600 text-white ring-0',
+    planning: 'border border-slate-400 bg-slate-200 text-slate-900 ring-0',
+    delayed: 'border border-red-600 bg-red-600 text-white ring-0',
+    'on hold': 'border border-amber-500 bg-amber-500 text-amber-950 ring-0',
+    on_hold: 'border border-amber-500 bg-amber-500 text-amber-950 ring-0',
+};
+
 export const projectStatusLabel = (project: TaraProject): string => {
     if (project.status_label && project.status_label.trim() !== '') {
         return project.status_label;
@@ -140,16 +163,19 @@ export const projectStatusLabel = (project: TaraProject): string => {
     return STATUS_META[project.status]?.label ?? String(project.status);
 };
 
-export const projectStatusClass = (project: TaraProject): string => {
+export const projectStatusClass = (
+    project: TaraProject,
+    mode: 'light' | 'dark' = 'dark',
+): string => {
     const raw = projectStatusLabel(project).trim().toLowerCase();
     const key = raw.replace(/[_]+/g, ' ').replace(/\s+/g, ' ');
-    if (RAW_STATUS_CLASS[key]) return RAW_STATUS_CLASS[key];
-    if (RAW_STATUS_CLASS[raw.replace(/\s+/g, '-')]) {
-        return RAW_STATUS_CLASS[raw.replace(/\s+/g, '-')];
-    }
+    const dashed = raw.replace(/\s+/g, '-');
+    const table = mode === 'light' ? RAW_STATUS_CLASS_LIGHT : RAW_STATUS_CLASS;
 
-    return STATUS_META[project.status]?.className
-        ?? 'bg-slate-800/80 text-slate-200 ring-slate-500/40';
+    if (table[key]) return table[key];
+    if (table[dashed]) return table[dashed];
+
+    return statusBadgeClass(project.status, mode);
 };
 
 export const formatMoneyOrDash = (value: number | null | undefined): string => {

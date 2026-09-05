@@ -483,8 +483,7 @@ const Maps2D = ({
 };
 
 const Maps = ({ viewMode = "2d", perfLite, projects, ...props }: MapsProps) => {
-  // 3D path struggles with hundreds of pins — keep 2D for heavy sets.
-  if (viewMode === "3d" && (projects?.length ?? 0) < HEAVY_MARKER_COUNT) {
+  if (viewMode === "3d") {
     return <Maps3D projects={projects} {...props} />;
   }
   return <Maps2D projects={projects} perfLite={perfLite} {...props} />;

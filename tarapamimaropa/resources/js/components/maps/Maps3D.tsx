@@ -306,6 +306,18 @@ type Maps3DProps = {
     onViewProject?: (project: TaraProject) => void;
 };
 
+const HEAVY_MARKER_COUNT = 80;
+
+const PROGRAM_DOT_COLORS: Record<string, string> = {
+    SETUP: '#22d3ee',
+    CEST: '#a78bfa',
+    GIA: '#fbbf24',
+    STARBOOKS: '#34d399',
+    Community: '#67e8f9',
+    Water: '#38bdf8',
+    Energy: '#facc15',
+};
+
 const Maps3D = ({
     projects,
     selectedId,
@@ -317,9 +329,17 @@ const Maps3D = ({
     const mapRef = useRef<maplibregl.Map | null>(null);
     const markersRef = useRef<maplibregl.Marker[]>([]);
     const userMarkerRef = useRef<maplibregl.Marker | null>(null);
+    const positionedRef = useRef<
+        { project: TaraProject; lat: number; lng: number }[]
+    >([]);
     const onViewProjectRef = useRef(onViewProject);
     const selectedIdRef = useRef(selectedId);
     const readyRef = useRef(false);
+    const clickHandlerRef = useRef<((e: maplibregl.MapLayerMouseEvent) => void) | null>(
+        null,
+    );
+    const enterHandlerRef = useRef<(() => void) | null>(null);
+    const leaveHandlerRef = useRef<(() => void) | null>(null);
 
     onViewProjectRef.current = onViewProject;
     selectedIdRef.current = selectedId;
@@ -329,13 +349,123 @@ const Maps3D = ({
         markersRef.current = [];
     };
 
+    const clearDotLayer = (map: maplibregl.Map) => {
+        if (clickHandlerRef.current) {
+            map.off('click', 'projects-dots-circle', clickHandlerRef.current);
+            clickHandlerRef.current = null;
+        }
+        if (enterHandlerRef.current) {
+            map.off('mouseenter', 'projects-dots-circle', enterHandlerRef.current);
+            enterHandlerRef.current = null;
+        }
+        if (leaveHandlerRef.current) {
+            map.off('mouseleave', 'projects-dots-circle', leaveHandlerRef.current);
+            leaveHandlerRef.current = null;
+        }
+        if (map.getLayer('projects-dots-circle')) {
+            map.removeLayer('projects-dots-circle');
+        }
+        if (map.getLayer('projects-dots-selected')) {
+            map.removeLayer('projects-dots-selected');
+        }
+        if (map.getSource('projects-dots')) {
+            map.removeSource('projects-dots');
+        }
+        map.getCanvas().style.cursor = '';
+    };
+
     const paintMarkers = (map: maplibregl.Map) => {
         clearMarkers();
+        clearDotLayer(map);
 
         const valid = (projects ?? []).filter(
             (p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude),
         );
         const positioned = layoutProjectPositions(valid);
+        positionedRef.current = positioned;
+        const heavy = valid.length >= HEAVY_MARKER_COUNT;
+
+        if (heavy) {
+            const features: GeoJSON.Feature[] = positioned.map(
+                ({ project, lat, lng }) => ({
+                    type: 'Feature',
+                    properties: {
+                        id: project.id,
+                        name: project.name,
+                        program: project.program,
+                        color:
+                            PROGRAM_DOT_COLORS[project.program] ?? '#22d3ee',
+                        selected: selectedIdRef.current === project.id ? 1 : 0,
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [lng, lat],
+                    },
+                }),
+            );
+
+            map.addSource('projects-dots', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features,
+                },
+            });
+
+            map.addLayer({
+                id: 'projects-dots-circle',
+                type: 'circle',
+                source: 'projects-dots',
+                paint: {
+                    'circle-radius': [
+                        'case',
+                        ['==', ['get', 'selected'], 1],
+                        8,
+                        5,
+                    ],
+                    'circle-color': ['get', 'color'],
+                    'circle-stroke-width': [
+                        'case',
+                        ['==', ['get', 'selected'], 1],
+                        2,
+                        1,
+                    ],
+                    'circle-stroke-color': [
+                        'case',
+                        ['==', ['get', 'selected'], 1],
+                        '#ffffff',
+                        '#0f172a',
+                    ],
+                    'circle-opacity': 0.9,
+                },
+            });
+
+            const onClick = (e: maplibregl.MapLayerMouseEvent) => {
+                const id = e.features?.[0]?.properties?.id as
+                    | string
+                    | undefined;
+                if (!id) return;
+                const hit = positionedRef.current.find(
+                    (row) => row.project.id === id,
+                );
+                if (hit) onViewProjectRef.current?.(hit.project);
+            };
+            clickHandlerRef.current = onClick;
+            map.on('click', 'projects-dots-circle', onClick);
+
+            const onEnter = () => {
+                map.getCanvas().style.cursor = 'pointer';
+            };
+            const onLeave = () => {
+                map.getCanvas().style.cursor = '';
+            };
+            enterHandlerRef.current = onEnter;
+            leaveHandlerRef.current = onLeave;
+            map.on('mouseenter', 'projects-dots-circle', onEnter);
+            map.on('mouseleave', 'projects-dots-circle', onLeave);
+
+            return { valid, positioned };
+        }
 
         positioned.forEach(({ project, lat, lng }) => {
             const isActive = selectedIdRef.current === project.id;
@@ -507,6 +637,7 @@ const Maps3D = ({
             window.removeEventListener('resize', resizeMap);
             ro?.disconnect();
             clearMarkers();
+            if (map) clearDotLayer(map);
             if (userMarkerRef.current) {
                 userMarkerRef.current.remove();
                 userMarkerRef.current = null;

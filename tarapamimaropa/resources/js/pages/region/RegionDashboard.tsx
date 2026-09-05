@@ -599,10 +599,10 @@ const RegionDashboard = () => {
           projects={deferredMapProjects}
           selectedId={selectedId}
           baseLayer={baseLayer}
-          viewMode={heavyDataset ? "2d" : viewMode}
+          viewMode={viewMode}
           userLocation={userLocation}
           flyToUserToken={flyToUserToken}
-          perfLite={perfLite}
+          perfLite={perfLite && viewMode !== "3d"}
           onViewProject={handleViewProject}
         />
       </div>

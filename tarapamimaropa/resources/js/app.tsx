@@ -4,6 +4,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
+import PstoLayout from '@/layouts/psto-layout';
 import RegionLayout from '@/layouts/region-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import SuperAdminLayout from '@/layouts/superadmin-layout';
@@ -23,6 +24,8 @@ void createInertiaApp({
                 return SuperAdminLayout;
             case name.startsWith('region/'):
                 return RegionLayout;
+            case name.startsWith('psto/'):
+                return PstoLayout;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
             default:

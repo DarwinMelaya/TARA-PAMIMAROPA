@@ -27,6 +27,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::inertia('/', 'region/RegionDashboard')->name('dashboard');
             Route::inertia('/programs', 'region/RegionPrograms')->name('programs');
         });
+
+    Route::middleware(['role:psto'])
+        ->prefix('psto')
+        ->name('psto.')
+        ->group(function () {
+            Route::inertia('/', 'psto/PstoDashboard')->name('dashboard');
+            Route::inertia('/programs', 'psto/PstoPrograms')->name('programs');
+        });
 });
 
 require __DIR__.'/settings.php';

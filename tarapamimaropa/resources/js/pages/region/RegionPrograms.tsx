@@ -120,6 +120,11 @@ const RegionPrograms = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [provinceFilter, setProvinceFilter] = useState<Province | "all">("all");
   const [statusFilter, setStatusFilter] = useState<string | "all">("all");
+  const [typeFilter, setTypeFilter] = useState<string | "all">("all");
+  const [sectorFilter, setSectorFilter] = useState<string | "all">("all");
+  const [yearFilter, setYearFilter] = useState<string | "all">("all");
+  const [cityFilter, setCityFilter] = useState<string | "all">("all");
+  const [districtFilter, setDistrictFilter] = useState<string | "all">("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [chartsOpen, setChartsOpen] = useState(false);
@@ -145,6 +150,20 @@ const RegionPrograms = () => {
     });
   };
 
+  const resetPage = () => setPage(1);
+
+  const clearFilters = () => {
+    setProvinceFilter("all");
+    setStatusFilter("all");
+    setTypeFilter("all");
+    setSectorFilter("all");
+    setYearFilter("all");
+    setCityFilter("all");
+    setDistrictFilter("all");
+    setSearch("");
+    setPage(1);
+  };
+
   const scopedProjects = useMemo(
     () =>
       provinceFilter === "all"
@@ -153,10 +172,67 @@ const RegionPrograms = () => {
     [projects, provinceFilter],
   );
 
+  const typeOptions = useMemo(() => {
+    const set = new Set<string>();
+    scopedProjects.forEach((p) => {
+      const t = projectType(p).trim();
+      if (t) set.add(t);
+    });
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [scopedProjects]);
+
+  const sectorOptions = useMemo(() => {
+    const set = new Set<string>();
+    scopedProjects.forEach((p) => {
+      const s = (p.sector ?? "").trim();
+      if (s) set.add(s);
+    });
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [scopedProjects]);
+
+  const yearOptions = useMemo(() => {
+    const set = new Set<number>();
+    scopedProjects.forEach((p) => set.add(projectYear(p)));
+    return [...set].sort((a, b) => b - a);
+  }, [scopedProjects]);
+
+  const cityOptions = useMemo(() => {
+    const set = new Set<string>();
+    scopedProjects.forEach((p) => {
+      const city = (p.municipality ?? "").trim();
+      if (city) set.add(city);
+    });
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [scopedProjects]);
+
+  const districtOptions = useMemo(() => {
+    const set = new Set<string>();
+    scopedProjects.forEach((p) => {
+      const d = (p.district ?? "").trim();
+      if (d) set.add(d);
+    });
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [scopedProjects]);
+
   const filteredProjects = useMemo(() => {
     const q = search.trim().toLowerCase();
     return scopedProjects.filter((p) => {
       if (statusFilter !== "all" && projectStatusLabel(p) !== statusFilter) {
+        return false;
+      }
+      if (typeFilter !== "all" && projectType(p) !== typeFilter) {
+        return false;
+      }
+      if (sectorFilter !== "all" && (p.sector ?? "") !== sectorFilter) {
+        return false;
+      }
+      if (yearFilter !== "all" && String(projectYear(p)) !== yearFilter) {
+        return false;
+      }
+      if (cityFilter !== "all" && (p.municipality ?? "") !== cityFilter) {
+        return false;
+      }
+      if (districtFilter !== "all" && (p.district ?? "") !== districtFilter) {
         return false;
       }
       if (!q) return true;
@@ -166,11 +242,32 @@ const RegionPrograms = () => {
         p.municipality.toLowerCase().includes(q) ||
         (p.code ?? "").toLowerCase().includes(q) ||
         (p.sector ?? "").toLowerCase().includes(q) ||
+        (p.collaborators ?? "").toLowerCase().includes(q) ||
+        (p.district ?? "").toLowerCase().includes(q) ||
         projectType(p).toLowerCase().includes(q) ||
         projectStatusLabel(p).toLowerCase().includes(q)
       );
     });
-  }, [scopedProjects, statusFilter, search]);
+  }, [
+    scopedProjects,
+    statusFilter,
+    typeFilter,
+    sectorFilter,
+    yearFilter,
+    cityFilter,
+    districtFilter,
+    search,
+  ]);
+
+  const hasActiveFilters =
+    provinceFilter !== "all" ||
+    statusFilter !== "all" ||
+    typeFilter !== "all" ||
+    sectorFilter !== "all" ||
+    yearFilter !== "all" ||
+    cityFilter !== "all" ||
+    districtFilter !== "all" ||
+    search.trim().length > 0;
 
   const stats = useMemo(
     () => summarizeProjects(scopedProjects),
@@ -239,13 +336,22 @@ const RegionPrograms = () => {
 
   const setProvince = (next: Province | "all") => {
     setProvinceFilter(next);
-    setPage(1);
+    setCityFilter("all");
+    setDistrictFilter("all");
+    resetPage();
   };
 
   const setStatus = (next: string | "all") => {
     setStatusFilter(next);
-    setPage(1);
+    resetPage();
   };
+
+  const setType = (next: string | "all") => {
+    setTypeFilter(next);
+    resetPage();
+  };
+
+  const selectClass = `min-h-10 w-full rounded-lg border px-3 py-2 text-sm outline-none transition duration-[180ms] ${ui.input}`;
 
   const scopeLabel = provinceFilter === "all" ? "MIMAROPA" : provinceFilter;
 
@@ -516,8 +622,14 @@ const RegionPrograms = () => {
                     ) : null}
                     {byType.rows.map((row) => {
                       const pct = Math.round((row.count / byType.max) * 100);
+                      const active = typeFilter === row.type;
                       return (
-                        <div key={row.type}>
+                        <button
+                          key={row.type}
+                          type="button"
+                          onClick={() => setType(active ? "all" : row.type)}
+                          className="w-full text-left"
+                        >
                           <div className="mb-1 flex items-center justify-between gap-2 text-xs">
                             <span className={`min-w-0 truncate font-medium ${ui.body}`}>
                               {row.type}
@@ -531,11 +643,14 @@ const RegionPrograms = () => {
                           </div>
                           <div className={`h-2 overflow-hidden rounded-full ${ui.track}`}>
                             <div
-                              className="h-full rounded-full bg-blue-500/80"
+                              className={[
+                                "h-full rounded-full transition-[width] duration-[320ms]",
+                                active ? "bg-blue-500" : "bg-blue-500/80",
+                              ].join(" ")}
                               style={{ width: `${pct}%` }}
                             />
                           </div>
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
@@ -545,7 +660,7 @@ const RegionPrograms = () => {
           ) : null}
         </div>
 
-        {/* List: filters + slim table */}
+        {/* List: filters + table */}
         <div className="mt-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -563,26 +678,155 @@ const RegionPrograms = () => {
                 {filteredProjects.length !== scopedProjects.length
                   ? ` of ${scopedProjects.length}`
                   : ""}{" "}
-                · {formatPeso(totalCost)} total cost
+                · {formatPeso(
+                  filteredProjects.reduce((s, p) => s + p.budget, 0),
+                )}{" "}
+                filtered cost
               </p>
             </div>
 
-            <label className="relative block w-full sm:max-w-xs">
-              <span className="sr-only">Search projects</span>
-              <HiMagnifyingGlass
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
-                aria-hidden
-              />
-              <input
-                type="search"
-                value={search}
+            <div className="flex w-full flex-col gap-2 sm:max-w-md sm:flex-row sm:items-center">
+              <label className="relative block min-w-0 flex-1">
+                <span className="sr-only">Search projects</span>
+                <HiMagnifyingGlass
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+                  aria-hidden
+                />
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    resetPage();
+                  }}
+                  placeholder="Search code, name, beneficiary…"
+                  className={`min-h-10 w-full rounded-lg border py-2 pl-9 pr-3 text-sm outline-none transition duration-[180ms] ${ui.input}`}
+                />
+              </label>
+              {hasActiveFilters ? (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition duration-[180ms] ${ui.ghostBtn}`}
+                >
+                  <HiXMark className="h-3.5 w-3.5" aria-hidden />
+                  Clear filters
+                </button>
+              ) : null}
+            </div>
+          </div>
+
+          <div className={`mt-3 grid grid-cols-1 gap-2 rounded-xl border p-3 sm:grid-cols-2 lg:grid-cols-3 ${ui.card}`}>
+            <label className="block text-xs">
+              <span className={`mb-1 block font-medium ${ui.muted}`}>Type</span>
+              <select
+                value={typeFilter}
+                onChange={(e) => setType(e.target.value)}
+                className={selectClass}
+              >
+                <option value="all">All types</option>
+                {typeOptions.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block text-xs">
+              <span className={`mb-1 block font-medium ${ui.muted}`}>Sector</span>
+              <select
+                value={sectorFilter}
                 onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
+                  setSectorFilter(e.target.value);
+                  resetPage();
                 }}
-                placeholder="Search name, beneficiary…"
-                className={`min-h-10 w-full rounded-lg border py-2 pl-9 pr-3 text-sm outline-none transition duration-[180ms] ${ui.input}`}
-              />
+                className={selectClass}
+              >
+                <option value="all">All sectors</option>
+                {sectorOptions.map((sector) => (
+                  <option key={sector} value={sector}>
+                    {sector}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block text-xs">
+              <span className={`mb-1 block font-medium ${ui.muted}`}>
+                Year approved
+              </span>
+              <select
+                value={yearFilter}
+                onChange={(e) => {
+                  setYearFilter(e.target.value);
+                  resetPage();
+                }}
+                className={selectClass}
+              >
+                <option value="all">All years</option>
+                {yearOptions.map((year) => (
+                  <option key={year} value={String(year)}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block text-xs">
+              <span className={`mb-1 block font-medium ${ui.muted}`}>City</span>
+              <select
+                value={cityFilter}
+                onChange={(e) => {
+                  setCityFilter(e.target.value);
+                  resetPage();
+                }}
+                className={selectClass}
+              >
+                <option value="all">All cities</option>
+                {cityOptions.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block text-xs">
+              <span className={`mb-1 block font-medium ${ui.muted}`}>
+                District
+              </span>
+              <select
+                value={districtFilter}
+                onChange={(e) => {
+                  setDistrictFilter(e.target.value);
+                  resetPage();
+                }}
+                className={selectClass}
+              >
+                <option value="all">All districts</option>
+                {districtOptions.map((district) => (
+                  <option key={district} value={district}>
+                    {district}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block text-xs">
+              <span className={`mb-1 block font-medium ${ui.muted}`}>Status</span>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatus(e.target.value)}
+                className={selectClass}
+              >
+                <option value="all">All status</option>
+                {statusOptions.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
 

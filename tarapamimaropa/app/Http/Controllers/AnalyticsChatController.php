@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
 use App\Http\Requests\AnalyticsChatRequest;
-use App\Services\OpenAiAnalyticsChatService;
+use App\Services\GeminiAnalyticsChatService;
 use Illuminate\Http\JsonResponse;
 use RuntimeException;
 
@@ -12,7 +12,7 @@ class AnalyticsChatController extends Controller
 {
     public function store(
         AnalyticsChatRequest $request,
-        OpenAiAnalyticsChatService $chat,
+        GeminiAnalyticsChatService $chat,
     ): JsonResponse {
         $user = $request->user();
         $provinceScope = null;

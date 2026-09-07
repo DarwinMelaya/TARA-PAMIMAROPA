@@ -204,7 +204,7 @@ const AnalyticsChatBot = ({
                             light ? 'text-slate-500' : 'text-slate-400'
                         }`}
                     >
-                        OpenAI · live backend data · map shows{' '}
+                        Gemini · live backend data · map shows{' '}
                         {projectCount} project
                         {projectCount === 1 ? '' : 's'}
                     </p>

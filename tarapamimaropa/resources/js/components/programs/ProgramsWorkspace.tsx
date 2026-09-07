@@ -162,6 +162,9 @@ const ProgramsWorkspace = ({
   const [yearFilter, setYearFilter] = useState<string | "all">("all");
   const [cityFilter, setCityFilter] = useState<string | "all">("all");
   const [districtFilter, setDistrictFilter] = useState<string | "all">("all");
+  const [sortBy, setSortBy] = useState<
+    "year_asc" | "year_desc" | "name" | "province" | "status"
+  >("year_asc");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [chartsOpen, setChartsOpen] = useState(false);
@@ -201,6 +204,7 @@ const ProgramsWorkspace = ({
     setYearFilter("all");
     setCityFilter("all");
     setDistrictFilter("all");
+    setSortBy("year_asc");
     setSearch("");
     setPage(1);
   };
@@ -234,7 +238,7 @@ const ProgramsWorkspace = ({
   const yearOptions = useMemo(() => {
     const set = new Set<number>();
     scopedProjects.forEach((p) => set.add(projectYear(p)));
-    return [...set].sort((a, b) => b - a);
+    return [...set].sort((a, b) => a - b);
   }, [scopedProjects]);
 
   const cityOptions = useMemo(() => {
@@ -257,7 +261,7 @@ const ProgramsWorkspace = ({
 
   const filteredProjects = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return scopedProjects.filter((p) => {
+    const list = scopedProjects.filter((p) => {
       if (statusFilter !== "all" && projectStatusLabel(p) !== statusFilter) {
         return false;
       }
@@ -289,6 +293,30 @@ const ProgramsWorkspace = ({
         projectStatusLabel(p).toLowerCase().includes(q)
       );
     });
+
+    return [...list].sort((a, b) => {
+      if (sortBy === "year_asc") {
+        const dy = projectYear(a) - projectYear(b);
+        return dy !== 0 ? dy : a.name.localeCompare(b.name);
+      }
+      if (sortBy === "year_desc") {
+        const dy = projectYear(b) - projectYear(a);
+        return dy !== 0 ? dy : a.name.localeCompare(b.name);
+      }
+      if (sortBy === "province") {
+        const dp = a.province.localeCompare(b.province);
+        if (dp !== 0) return dp;
+        const dy = projectYear(a) - projectYear(b);
+        return dy !== 0 ? dy : a.name.localeCompare(b.name);
+      }
+      if (sortBy === "status") {
+        const ds = projectStatusLabel(a).localeCompare(projectStatusLabel(b));
+        if (ds !== 0) return ds;
+        const dy = projectYear(a) - projectYear(b);
+        return dy !== 0 ? dy : a.name.localeCompare(b.name);
+      }
+      return a.name.localeCompare(b.name);
+    });
   }, [
     scopedProjects,
     statusFilter,
@@ -298,6 +326,7 @@ const ProgramsWorkspace = ({
     cityFilter,
     districtFilter,
     search,
+    sortBy,
   ]);
 
   const hasActiveFilters =
@@ -308,6 +337,7 @@ const ProgramsWorkspace = ({
     yearFilter !== "all" ||
     cityFilter !== "all" ||
     districtFilter !== "all" ||
+    sortBy !== "year_asc" ||
     search.trim().length > 0;
 
   const stats = useMemo(
@@ -807,7 +837,7 @@ const ProgramsWorkspace = ({
             </div>
           </div>
 
-          <div className={`mt-3 grid grid-cols-1 gap-2 rounded-xl border p-3 sm:grid-cols-2 lg:grid-cols-3 ${ui.card}`}>
+          <div className={`mt-3 grid grid-cols-1 gap-2 rounded-xl border p-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${ui.card}`}>
             <label className="block text-xs">
               <span className={`mb-1 block font-medium ${ui.muted}`}>Type</span>
               <select
@@ -919,6 +949,31 @@ const ProgramsWorkspace = ({
                 ))}
               </select>
             </label>
+
+            <label className="block text-xs">
+              <span className={`mb-1 block font-medium ${ui.muted}`}>Sort by</span>
+              <select
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(
+                    e.target.value as
+                      | "year_asc"
+                      | "year_desc"
+                      | "name"
+                      | "province"
+                      | "status",
+                  );
+                  resetPage();
+                }}
+                className={selectClass}
+              >
+                <option value="year_asc">Year approved ↑ (oldest first)</option>
+                <option value="year_desc">Year approved ↓ (newest first)</option>
+                <option value="name">Project name A–Z</option>
+                <option value="province">Province A–Z</option>
+                <option value="status">Status A–Z</option>
+              </select>
+            </label>
           </div>
 
           <div className="mt-3 flex flex-wrap gap-1.5">
@@ -971,7 +1026,10 @@ const ProgramsWorkspace = ({
                   <th className="px-2 py-3 font-medium">Code</th>
                   <th className="px-2 py-3 font-medium">Project</th>
                   <th className="px-2 py-3 font-medium">Type</th>
-                  <th className="px-2 py-3 font-medium">Year Approved</th>
+                  <th className="px-2 py-3 font-medium">
+                    Year Approved
+                    {sortBy === "year_asc" ? " ↑" : sortBy === "year_desc" ? " ↓" : ""}
+                  </th>
                   <th className="px-2 py-3 font-medium">Beneficiaries</th>
                   <th className="px-2 py-3 font-medium">Collaborators</th>
                   <th className="px-2 py-3 font-medium">Sector</th>
@@ -996,17 +1054,18 @@ const ProgramsWorkspace = ({
                     </td>
                   </tr>
                 ) : null}
-                {pageRows.map((project) => {
+                {pageRows.map((project, index) => {
                   const statusLabel = projectStatusLabel(project);
                   const statusClass = projectStatusClass(project, statusMode);
+                  const listNumber = (safePage - 1) * PAGE_SIZE + index + 1;
                   return (
                     <tr
-                      key={project.id}
+                      key={project.db_id ?? project.id}
                       onClick={() => setViewing(project)}
                       className={`cursor-pointer border-b transition duration-[180ms] last:border-b-0 ${ui.rowBorder} ${ui.rowHover}`}
                     >
                       <td className={`whitespace-nowrap px-2 py-2 tabular-nums ${ui.muted}`}>
-                        {project.row_number ?? "—"}
+                        {listNumber}
                       </td>
                       <td className={`whitespace-nowrap px-2 py-2 font-mono text-[11px] ${ui.soft}`}>
                         {dash(project.code)}
@@ -1070,12 +1129,23 @@ const ProgramsWorkspace = ({
             </table>
           </div>
 
-          {filteredProjects.length > PAGE_SIZE ? (
-            <div className="mt-3 flex items-center justify-between gap-3 text-xs text-slate-500">
+          {filteredProjects.length > 0 ? (
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
               <p>
-                Page {safePage} of {pageCount}
+                Showing {(safePage - 1) * PAGE_SIZE + 1}–
+                {Math.min(safePage * PAGE_SIZE, filteredProjects.length)} of{" "}
+                {filteredProjects.length} project
+                {filteredProjects.length === 1 ? "" : "s"}
+                {filteredProjects.length !== scopedProjects.length
+                  ? ` (filtered from ${scopedProjects.length})`
+                  : ""}
               </p>
-              <div className="flex gap-2">
+              {filteredProjects.length > PAGE_SIZE ? (
+              <div className="flex items-center gap-2">
+                <p className="hidden sm:inline">
+                  Page {safePage} of {pageCount}
+                </p>
+                <div className="flex gap-2">
                 <button
                   type="button"
                   disabled={safePage <= 1}
@@ -1092,7 +1162,9 @@ const ProgramsWorkspace = ({
                 >
                   Next
                 </button>
+                </div>
               </div>
+              ) : null}
             </div>
           ) : null}
         </div>

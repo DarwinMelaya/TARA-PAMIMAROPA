@@ -8,18 +8,18 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
-class OpenAiAnalyticsChatService
+class GeminiAnalyticsChatService
 {
     /**
      * @param  list<array{role: string, content: string}>  $history
      */
     public function reply(string $message, array $history = [], ?string $provinceScope = null): string
     {
-        $apiKey = config('services.openai.key');
+        $apiKey = config('services.gemini.key');
 
         if (! filled($apiKey)) {
             throw new RuntimeException(
-                'OpenAI is not configured. Set OPENAI_API_KEY in your .env file.',
+                'Gemini is not configured. Set GEMINI_API_KEY in your .env file.',
             );
         }
 
@@ -33,21 +33,13 @@ class OpenAiAnalyticsChatService
             ->get();
 
         $payload = $this->buildDataset($projects);
-        $model = (string) config('services.openai.model', 'gpt-4o');
+        $model = (string) config('services.gemini.model', 'gemini-2.5-flash');
+        $url = sprintf(
+            'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent',
+            rawurlencode($model),
+        );
 
-        $messages = [
-            [
-                'role' => 'system',
-                'content' => $this->systemPrompt($provinceScope),
-            ],
-            [
-                'role' => 'system',
-                'content' => "LIVE PROJECT DATASET (JSON):\n".json_encode(
-                    $payload,
-                    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
-                ),
-            ],
-        ];
+        $contents = [];
 
         foreach (array_slice($history, -10) as $turn) {
             $role = $turn['role'] ?? '';
@@ -57,25 +49,34 @@ class OpenAiAnalyticsChatService
                 continue;
             }
 
-            $messages[] = [
-                'role' => $role,
-                'content' => $content,
+            $contents[] = [
+                'role' => $role === 'assistant' ? 'model' : 'user',
+                'parts' => [['text' => $content]],
             ];
         }
 
-        $messages[] = [
+        $contents[] = [
             'role' => 'user',
-            'content' => $message,
+            'parts' => [['text' => $message]],
         ];
 
+        $systemPrompt = $this->systemPrompt($provinceScope)."\n\nLIVE PROJECT DATASET (JSON):\n".json_encode(
+            $payload,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+        );
+
         try {
-            $response = Http::withToken((string) $apiKey)
-                ->acceptJson()
-                ->timeout(60)
-                ->post('https://api.openai.com/v1/chat/completions', [
-                    'model' => $model,
-                    'temperature' => 0.2,
-                    'messages' => $messages,
+            $response = Http::acceptJson()
+                ->timeout(90)
+                ->withQueryParameters(['key' => (string) $apiKey])
+                ->post($url, [
+                    'system_instruction' => [
+                        'parts' => [['text' => $systemPrompt]],
+                    ],
+                    'contents' => $contents,
+                    'generationConfig' => [
+                        'temperature' => 0.2,
+                    ],
                 ])
                 ->throw()
                 ->json();
@@ -86,16 +87,32 @@ class OpenAiAnalyticsChatService
 
             throw new RuntimeException(
                 filled($body)
-                    ? "OpenAI error: {$body}"
-                    : 'Could not reach OpenAI. Try again in a moment.',
+                    ? "Gemini error: {$body}"
+                    : 'Could not reach Gemini. Try again in a moment.',
                 previous: $e,
             );
         }
 
-        $text = trim((string) data_get($response, 'choices.0.message.content', ''));
+        $parts = data_get($response, 'candidates.0.content.parts', []);
+        $text = '';
+
+        if (is_array($parts)) {
+            foreach ($parts as $part) {
+                $text .= (string) ($part['text'] ?? '');
+            }
+        }
+
+        $text = trim($text);
 
         if ($text === '') {
-            throw new RuntimeException('OpenAI returned an empty reply.');
+            $blockReason = data_get($response, 'promptFeedback.blockReason')
+                ?? data_get($response, 'candidates.0.finishReason');
+
+            throw new RuntimeException(
+                filled($blockReason)
+                    ? "Gemini returned no reply ({$blockReason})."
+                    : 'Gemini returned an empty reply.',
+            );
         }
 
         return $text;

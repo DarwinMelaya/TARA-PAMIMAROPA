@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import { setWorkerUrl } from 'maplibre-gl';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
@@ -22,6 +22,9 @@ const DEFAULT_ZOOM = 7.2;
 /** Match AdminFleetMap camera */
 const PITCH_3D = 62;
 const BEARING_3D = -22;
+/** Below → glowing GPU dots. At/above → labeled callout pins (viewport only). */
+const DETAIL_ZOOM = 8.5;
+const VIEWPORT_PAD_RATIO = 0.15;
 
 /** Dark chrome close to 2D CARTO dark / LandingPage slate. */
 const DARK = {
@@ -272,9 +275,24 @@ const buildTooltipContent = (project: TaraProject) => {
       <strong>◈ ${escapeHtml(project.name)}</strong>
       <span>${escapeHtml(project.program)} · ${escapeHtml(status.label)} · ${project.progress}%</span>
       <p>${escapeHtml(project.municipality)}, ${escapeHtml(project.province)}</p>
-      <em>3D buildings · Click for project intel · ${escapeHtml(program.short)}</em>
+      <em>MapLibre · Click for project intel · ${escapeHtml(program.short)}</em>
     </div>
   `;
+};
+
+const programDotColor = (program: string) =>
+    PROGRAM_META[program as keyof typeof PROGRAM_META]?.color ?? '#22d3ee';
+
+const paddedViewport = (map: maplibregl.Map) => {
+    const bounds = map.getBounds();
+    const latPad =
+        (bounds.getNorth() - bounds.getSouth()) * VIEWPORT_PAD_RATIO;
+    const lngPad =
+        (bounds.getEast() - bounds.getWest()) * VIEWPORT_PAD_RATIO;
+    return new maplibregl.LngLatBounds(
+        [bounds.getWest() - lngPad, bounds.getSouth() - latPad],
+        [bounds.getEast() + lngPad, bounds.getNorth() + latPad],
+    );
 };
 
 const cameraAngles = (flat: boolean) =>
@@ -317,19 +335,6 @@ type Maps3DProps = {
     onViewProject?: (project: TaraProject) => void;
 };
 
-const HEAVY_MARKER_COUNT = 80;
-
-const PROGRAM_DOT_COLORS: Record<string, string> = {
-    SETUP: '#16823c',
-    CEST: '#c9440b',
-    GIA: '#1d51db',
-    SSCP: '#7f23d0',
-    STARBOOKS: '#ca8a04',
-    Community: '#be185d',
-    Water: '#1e40af',
-    Energy: '#a16207',
-};
-
 const Maps3D = ({
     projects,
     selectedId,
@@ -351,11 +356,14 @@ const Maps3D = ({
     const isDarkRef = useRef(isDark);
     const flatRef = useRef(flat);
     const readyRef = useRef(false);
+    const modeRef = useRef<'overview' | 'detail'>('overview');
+    const paintRef = useRef<() => void>(() => {});
     const clickHandlerRef = useRef<((e: maplibregl.MapLayerMouseEvent) => void) | null>(
         null,
     );
     const enterHandlerRef = useRef<(() => void) | null>(null);
     const leaveHandlerRef = useRef<(() => void) | null>(null);
+    const [overviewHint, setOverviewHint] = useState(true);
 
     onViewProjectRef.current = onViewProject;
     selectedIdRef.current = selectedId;
@@ -380,11 +388,12 @@ const Maps3D = ({
             map.off('mouseleave', 'projects-dots-circle', leaveHandlerRef.current);
             leaveHandlerRef.current = null;
         }
-        if (map.getLayer('projects-dots-circle')) {
-            map.removeLayer('projects-dots-circle');
-        }
-        if (map.getLayer('projects-dots-selected')) {
-            map.removeLayer('projects-dots-selected');
+        for (const id of [
+            'projects-dots-circle',
+            'projects-dots-halo',
+            'projects-dots-selected',
+        ]) {
+            if (map.getLayer(id)) map.removeLayer(id);
         }
         if (map.getSource('projects-dots')) {
             map.removeSource('projects-dots');
@@ -392,100 +401,131 @@ const Maps3D = ({
         map.getCanvas().style.cursor = '';
     };
 
-    const paintMarkers = (map: maplibregl.Map) => {
+    const paintOverviewDots = (
+        map: maplibregl.Map,
+        positioned: { project: TaraProject; lat: number; lng: number }[],
+    ) => {
         clearMarkers();
         clearDotLayer(map);
 
-        const valid = (projects ?? []).filter(
-            (p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude),
+        const features: GeoJSON.Feature[] = positioned.map(
+            ({ project, lat, lng }) => ({
+                type: 'Feature',
+                properties: {
+                    id: project.id,
+                    name: project.name,
+                    program: project.program,
+                    color: programDotColor(project.program),
+                    selected: selectedIdRef.current === project.id ? 1 : 0,
+                },
+                geometry: {
+                    type: 'Point',
+                    coordinates: [lng, lat],
+                },
+            }),
         );
-        const positioned = layoutProjectPositions(valid);
-        positionedRef.current = positioned;
-        const heavy = false; // always use callout pins (same as 2D)
 
-        if (heavy) {
-            const features: GeoJSON.Feature[] = positioned.map(
-                ({ project, lat, lng }) => ({
-                    type: 'Feature',
-                    properties: {
-                        id: project.id,
-                        name: project.name,
-                        program: project.program,
-                        color:
-                            PROGRAM_DOT_COLORS[project.program] ?? '#22d3ee',
-                        selected: selectedIdRef.current === project.id ? 1 : 0,
-                    },
-                    geometry: {
-                        type: 'Point',
-                        coordinates: [lng, lat],
-                    },
-                }),
+        map.addSource('projects-dots', {
+            type: 'geojson',
+            data: {
+                type: 'FeatureCollection',
+                features,
+            },
+        });
+
+        // Soft glow halo — constellation look when zoomed out
+        map.addLayer({
+            id: 'projects-dots-halo',
+            type: 'circle',
+            source: 'projects-dots',
+            paint: {
+                'circle-radius': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    5,
+                    ['case', ['==', ['get', 'selected'], 1], 14, 9],
+                    10,
+                    ['case', ['==', ['get', 'selected'], 1], 22, 15],
+                ],
+                'circle-color': ['get', 'color'],
+                'circle-opacity': [
+                    'case',
+                    ['==', ['get', 'selected'], 1],
+                    0.38,
+                    0.22,
+                ],
+                'circle-blur': 0.65,
+            },
+        });
+
+        map.addLayer({
+            id: 'projects-dots-circle',
+            type: 'circle',
+            source: 'projects-dots',
+            paint: {
+                'circle-radius': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    5,
+                    ['case', ['==', ['get', 'selected'], 1], 5, 3.2],
+                    10,
+                    ['case', ['==', ['get', 'selected'], 1], 8, 5.5],
+                ],
+                'circle-color': ['get', 'color'],
+                'circle-stroke-width': [
+                    'case',
+                    ['==', ['get', 'selected'], 1],
+                    2.2,
+                    1.2,
+                ],
+                'circle-stroke-color': [
+                    'case',
+                    ['==', ['get', 'selected'], 1],
+                    '#ffffff',
+                    isDarkRef.current ? '#020617' : '#ffffff',
+                ],
+                'circle-opacity': 0.95,
+            },
+        });
+
+        const onClick = (e: maplibregl.MapLayerMouseEvent) => {
+            const id = e.features?.[0]?.properties?.id as string | undefined;
+            if (!id) return;
+            const hit = positionedRef.current.find(
+                (row) => row.project.id === id,
             );
+            if (hit) onViewProjectRef.current?.(hit.project);
+        };
+        clickHandlerRef.current = onClick;
+        map.on('click', 'projects-dots-circle', onClick);
 
-            map.addSource('projects-dots', {
-                type: 'geojson',
-                data: {
-                    type: 'FeatureCollection',
-                    features,
-                },
-            });
+        const onEnter = () => {
+            map.getCanvas().style.cursor = 'pointer';
+        };
+        const onLeave = () => {
+            map.getCanvas().style.cursor = '';
+        };
+        enterHandlerRef.current = onEnter;
+        leaveHandlerRef.current = onLeave;
+        map.on('mouseenter', 'projects-dots-circle', onEnter);
+        map.on('mouseleave', 'projects-dots-circle', onLeave);
+    };
 
-            map.addLayer({
-                id: 'projects-dots-circle',
-                type: 'circle',
-                source: 'projects-dots',
-                paint: {
-                    'circle-radius': [
-                        'case',
-                        ['==', ['get', 'selected'], 1],
-                        8,
-                        5,
-                    ],
-                    'circle-color': ['get', 'color'],
-                    'circle-stroke-width': [
-                        'case',
-                        ['==', ['get', 'selected'], 1],
-                        2,
-                        1,
-                    ],
-                    'circle-stroke-color': [
-                        'case',
-                        ['==', ['get', 'selected'], 1],
-                        '#ffffff',
-                        '#0f172a',
-                    ],
-                    'circle-opacity': 0.9,
-                },
-            });
+    const paintDetailPins = (
+        map: maplibregl.Map,
+        positioned: { project: TaraProject; lat: number; lng: number }[],
+    ) => {
+        clearMarkers();
+        clearDotLayer(map);
 
-            const onClick = (e: maplibregl.MapLayerMouseEvent) => {
-                const id = e.features?.[0]?.properties?.id as
-                    | string
-                    | undefined;
-                if (!id) return;
-                const hit = positionedRef.current.find(
-                    (row) => row.project.id === id,
-                );
-                if (hit) onViewProjectRef.current?.(hit.project);
-            };
-            clickHandlerRef.current = onClick;
-            map.on('click', 'projects-dots-circle', onClick);
+        const view = paddedViewport(map);
+        const inView = positioned.filter(({ lat, lng }) =>
+            view.contains([lng, lat]),
+        );
 
-            const onEnter = () => {
-                map.getCanvas().style.cursor = 'pointer';
-            };
-            const onLeave = () => {
-                map.getCanvas().style.cursor = '';
-            };
-            enterHandlerRef.current = onEnter;
-            leaveHandlerRef.current = onLeave;
-            map.on('mouseenter', 'projects-dots-circle', onEnter);
-            map.on('mouseleave', 'projects-dots-circle', onLeave);
-
-            return { valid, positioned };
-        }
-
-        positioned.forEach(({ project, lat, lng }) => {
+        inView.forEach(({ project, lat, lng }) => {
             const isActive = selectedIdRef.current === project.id;
             const el = document.createElement('div');
             el.className = 'project-pin-leaflet-icon';
@@ -523,8 +563,33 @@ const Maps3D = ({
 
             markersRef.current.push(marker);
         });
+    };
+
+    const paintMarkers = (map: maplibregl.Map) => {
+        const valid = (projects ?? []).filter(
+            (p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude),
+        );
+        const positioned = layoutProjectPositions(valid);
+        positionedRef.current = positioned;
+
+        const mode: 'overview' | 'detail' =
+            map.getZoom() < DETAIL_ZOOM ? 'overview' : 'detail';
+        modeRef.current = mode;
+        setOverviewHint(mode === 'overview' && positioned.length > 0);
+
+        if (mode === 'overview') {
+            paintOverviewDots(map, positioned);
+        } else {
+            paintDetailPins(map, positioned);
+        }
 
         return { valid, positioned };
+    };
+
+    paintRef.current = () => {
+        const map = mapRef.current;
+        if (!map || !readyRef.current) return;
+        paintMarkers(map);
     };
 
     const frameProjects = (
@@ -588,6 +653,9 @@ const Maps3D = ({
         let cancelled = false;
         let map: maplibregl.Map | null = null;
         let ro: ResizeObserver | null = null;
+        let moveTimer: number | null = null;
+        let onZoomEnd: (() => void) | null = null;
+        let onMoveEnd: (() => void) | null = null;
 
         const resizeMap = () => {
             map?.resize();
@@ -654,6 +722,21 @@ const Maps3D = ({
                 frameProjects(map, positioned, valid);
             });
 
+            const schedulePaint = () => {
+                if (moveTimer != null) window.clearTimeout(moveTimer);
+                moveTimer = window.setTimeout(() => {
+                    paintRef.current();
+                }, 90);
+            };
+            onZoomEnd = () => {
+                schedulePaint();
+            };
+            onMoveEnd = () => {
+                if (modeRef.current === 'detail') schedulePaint();
+            };
+            map.on('zoomend', onZoomEnd);
+            map.on('moveend', onMoveEnd);
+
             ro = new ResizeObserver(() => {
                 resizeMap();
             });
@@ -666,10 +749,15 @@ const Maps3D = ({
         return () => {
             cancelled = true;
             readyRef.current = false;
+            if (moveTimer != null) window.clearTimeout(moveTimer);
             window.removeEventListener('resize', resizeMap);
             ro?.disconnect();
             clearMarkers();
-            if (map) clearDotLayer(map);
+            if (map) {
+                if (onZoomEnd) map.off('zoomend', onZoomEnd);
+                if (onMoveEnd) map.off('moveend', onMoveEnd);
+                clearDotLayer(map);
+            }
             if (userMarkerRef.current) {
                 userMarkerRef.current.remove();
                 userMarkerRef.current = null;
@@ -746,7 +834,15 @@ const Maps3D = ({
         if (map.isStyleLoaded()) run();
         else map.once('idle', run);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [projects, selectedId]);
+    }, [projects]);
+
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !readyRef.current) return;
+        // Select / deselect: highlight only — never auto zoom / fitBounds.
+        paintMarkers(map);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedId]);
 
     useEffect(() => {
         const map = mapRef.current;
@@ -819,6 +915,18 @@ const Maps3D = ({
                 {flat ? '2D' : '3D'} · MapLibre liberty · {isDark ? 'dark' : 'light'}
                 {flat ? '' : ' · drag rotate'}
             </div>
+            {overviewHint ? (
+                <p
+                    className={[
+                        'pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full border px-3 py-1.5 text-[11px] font-medium shadow-lg backdrop-blur-md',
+                        isDark
+                            ? 'border-slate-600/80 bg-slate-950/85 text-slate-200'
+                            : 'border-slate-300 bg-white/90 text-slate-700',
+                    ].join(' ')}
+                >
+                    Program glow dots · zoom in for labeled pins
+                </p>
+            ) : null}
         </div>
     );
 };

@@ -39,7 +39,6 @@ import {
     PROGRAM_META,
     PROVINCES,
     STATUS_META,
-    buildLiveInsights,
     describeProject,
     formatCompact,
     formatPeso,
@@ -561,14 +560,11 @@ const CommandMapWorkspace = ({
   const [chatSeedPrompt, setChatSeedPrompt] = useState<string | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [reportError, setReportError] = useState("");
-  const [insightIndex, setInsightIndex] = useState(0);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locateLoading, setLocateLoading] = useState(false);
   const [locateError, setLocateError] = useState("");
   const [flyToUserToken, setFlyToUserToken] = useState(0);
   const [feedLimit, setFeedLimit] = useState(FEED_PAGE_SIZE);
-
-  const insights = useMemo(() => buildLiveInsights(projects), [projects]);
 
   const statusOptions = useMemo(() => {
     const labels = new Set<string>();
@@ -1097,53 +1093,6 @@ const CommandMapWorkspace = ({
         {locateError ? (
           <div className={`pointer-events-auto mt-2 max-w-md rounded-xl border px-3 py-2 text-xs ${ui.alert}`}>
             {locateError}
-          </div>
-        ) : null}
-
-        {!perfLite && !isPublic ? (
-          <div className={`pointer-events-auto mt-3 hidden max-w-3xl items-start gap-2 rounded-xl border p-3 lg:flex ${ui.insight}`}>
-            <HiLightBulb className="mt-0.5 h-5 w-5 shrink-0 text-violet-500 dark:text-violet-300" aria-hidden />
-            <div className="min-w-0 flex-1">
-              <p className={`text-[10px] font-bold uppercase tracking-[0.16em] ${ui.insightLabel}`}>
-                AI insight
-              </p>
-              <p className={`mt-1 text-sm ${ui.modalHeading}`}>
-                {insights[insightIndex % insights.length]}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setInsightIndex((i) => (i + 1) % insights.length)}
-              className={`shrink-0 rounded-lg border px-2 py-1 text-[10px] font-semibold ${
-                theme === "light"
-                  ? "border-violet-300 text-violet-700"
-                  : "border-violet-700/50 text-violet-200"
-              }`}
-            >
-              Next
-            </button>
-            <button
-              type="button"
-              onClick={toggleChat}
-              className={`shrink-0 rounded-lg border px-2 py-1 text-[10px] font-semibold ${
-                theme === "light"
-                  ? "border-violet-400/50 bg-violet-50 text-violet-800"
-                  : "border-violet-400/40 bg-violet-500/20 text-violet-100"
-              }`}
-            >
-              Open chat
-            </button>
-            <button
-              type="button"
-              onClick={togglePlanning}
-              className={`shrink-0 rounded-lg border px-2 py-1 text-[10px] font-semibold ${
-                theme === "light"
-                  ? "border-cyan-400/50 bg-cyan-50 text-cyan-900"
-                  : "border-cyan-400/40 bg-cyan-500/20 text-cyan-100"
-              }`}
-            >
-              RD Planning
-            </button>
           </div>
         ) : null}
       </header>

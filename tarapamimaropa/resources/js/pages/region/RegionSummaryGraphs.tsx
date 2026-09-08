@@ -1,10 +1,12 @@
+import { Head, Link, usePage } from '@inertiajs/react';
 import {
     useId,
     useMemo,
     useState,
     type MouseEvent,
     type ReactNode,
-} from "react";
+} from 'react';
+import { HiArrowLeft, HiChevronLeft, HiChevronRight } from 'react-icons/hi2';
 import {
     PROVINCES,
     SECTORS,
@@ -18,7 +20,12 @@ import {
     type Province,
     type TaraProject,
 } from '@/constants/taraProjects';
+import { programs } from '@/routes/region';
 import { useTheme } from '@/theme/ThemeProvider';
+
+type PageProps = {
+    projects?: TaraProject[];
+};
 
 type Row = { key: string; label: string; value: number; color: string };
 
@@ -355,27 +362,80 @@ const ColumnChart = ({
 };
 
 /* ── Area / line ────────────────────────────────────────────────── */
+const YEAR_WINDOW = 6;
+
 const AreaLineChart = ({ rows }: { rows: Row[] }) => {
     const gradId = useId().replace(/:/g, "");
     const [tip, setTip] = useState<ChartTip | null>(null);
+    const [start, setStart] = useState(() =>
+        Math.max(0, rows.length - YEAR_WINDOW),
+    );
     const W = 320;
     const H = 150;
-    const pad = 26;
-    const max = Math.max(1, ...rows.map((r) => r.value));
-    const n = rows.length;
+    const padX = 28;
+    const padTop = 20;
+    const padBottom = 12;
+    const globalMax = Math.max(1, ...rows.map((r) => r.value));
+    const nAll = rows.length;
+    const canSlide = nAll > YEAR_WINDOW;
+    const maxStart = Math.max(0, nAll - YEAR_WINDOW);
+    const windowStart = Math.min(start, maxStart);
+    const visible = rows.slice(windowStart, windowStart + YEAR_WINDOW);
+    const n = visible.length;
     const x = (i: number) =>
-        n <= 1 ? W / 2 : pad + (i * (W - 2 * pad)) / (n - 1);
-    const y = (v: number) => H - pad - (v / max) * (H - 2 * pad);
-    const pts = rows.map((r, i) => [x(i), y(r.value)] as const);
+        n <= 1 ? W / 2 : padX + (i * (W - 2 * padX)) / (n - 1);
+    const y = (v: number) =>
+        H - padBottom - (v / globalMax) * (H - padTop - padBottom);
+    const pts = visible.map((r, i) => [x(i), y(r.value)] as const);
     const line = pts.map((p, i) => `${i ? "L" : "M"}${p[0]},${p[1]}`).join(" ");
     const area =
-        n > 0 ? `${line} L${x(n - 1)},${H - pad} L${x(0)},${H - pad} Z` : "";
+        n > 0
+            ? `${line} L${x(n - 1)},${H - padBottom} L${x(0)},${H - padBottom} Z`
+            : "";
+
+    const canPrev = windowStart > 0;
+    const canNext = windowStart < maxStart;
+    const rangeLabel =
+        n > 0
+            ? visible[0].label === visible[n - 1].label
+                ? visible[0].label
+                : `${visible[0].label} – ${visible[n - 1].label}`
+            : "";
 
     if (rows.length === 0) return <EmptyChart />;
 
     return (
         <div className="relative">
             <ChartTooltip tip={tip} />
+            {canSlide ? (
+                <div className="mb-2 flex items-center justify-between gap-2">
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setStart((s) => Math.max(0, s - 1))
+                        }
+                        disabled={!canPrev}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 text-slate-600 transition duration-[180ms] hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-35 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                        aria-label="Earlier years"
+                    >
+                        <HiChevronLeft className="h-5 w-5" aria-hidden />
+                    </button>
+                    <p className="text-[11px] font-medium tabular-nums text-slate-500">
+                        {rangeLabel}
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setStart((s) => Math.min(maxStart, s + 1))
+                        }
+                        disabled={!canNext}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 text-slate-600 transition duration-[180ms] hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-35 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                        aria-label="Later years"
+                    >
+                        <HiChevronRight className="h-5 w-5" aria-hidden />
+                    </button>
+                </div>
+            ) : null}
             <svg
                 viewBox={`0 0 ${W} ${H}`}
                 className="w-full"
@@ -391,10 +451,10 @@ const AreaLineChart = ({ rows }: { rows: Row[] }) => {
                 {[0.25, 0.5, 0.75, 1].map((g) => (
                     <line
                         key={g}
-                        x1={pad}
-                        x2={W - pad}
-                        y1={H - pad - g * (H - 2 * pad)}
-                        y2={H - pad - g * (H - 2 * pad)}
+                        x1={padX}
+                        x2={W - padX}
+                        y1={H - padBottom - g * (H - padTop - padBottom)}
+                        y2={H - padBottom - g * (H - padTop - padBottom)}
                         stroke="#1e293b"
                         strokeWidth="1"
                     />
@@ -411,7 +471,7 @@ const AreaLineChart = ({ rows }: { rows: Row[] }) => {
                     />
                 ) : null}
                 {pts.map((p, i) => {
-                    const row = rows[i];
+                    const row = visible[i];
                     const showTip = (e: MouseEvent) =>
                         setTip(
                             tipFromEvent(e, {
@@ -453,20 +513,21 @@ const AreaLineChart = ({ rows }: { rows: Row[] }) => {
                             >
                                 {row.value}
                             </text>
-                            <text
-                                x={p[0]}
-                                y={H - pad + 14}
-                                textAnchor="middle"
-                                fontSize="9"
-                                fill="#64748b"
-                                pointerEvents="none"
-                            >
-                                {row.label}
-                            </text>
                         </g>
                     );
                 })}
             </svg>
+            <div className="relative mt-1 h-4">
+                {visible.map((row, i) => (
+                    <span
+                        key={row.key}
+                        className="absolute top-0 -translate-x-1/2 text-[10px] tabular-nums leading-none text-slate-500"
+                        style={{ left: `${(x(i) / W) * 100}%` }}
+                    >
+                        {row.label}
+                    </span>
+                ))}
+            </div>
         </div>
     );
 };
@@ -543,15 +604,11 @@ const BarChart = ({
     );
 };
 
-const ProgramsGraphs = ({
-    projects,
-    scope = "MIMAROPA",
-}: {
-    projects: TaraProject[];
-    scope?: string;
-}) => {
+const RegionSummaryGraphs = () => {
+    const { projects = [] } = usePage<PageProps>().props;
+    const scope = 'MIMAROPA (all provinces)';
     const { isDark } = useTheme();
-    const statusMode = isDark ? "dark" : "light";
+    const statusMode = isDark ? 'dark' : 'light';
 
     const aggregates = useMemo(() => {
         let totalCost = 0;
@@ -729,82 +786,121 @@ const ProgramsGraphs = ({
     ];
 
     return (
-        <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
-                {tiles.map((t) => (
-                    <div
-                        key={t.label}
-                        className="rounded-xl border border-slate-200 bg-white p-3.5 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900/80 dark:shadow-[0_2px_8px_rgba(0,0,0,0.05)]"
+        <>
+            <Head title="Summary graphs" />
+            <section className="min-h-screen bg-background px-4 py-5 pb-[calc(5rem+env(safe-area-inset-bottom))] text-foreground transition-colors duration-[180ms] sm:px-6 sm:py-7 lg:pb-7">
+                <div className="mx-auto max-w-6xl">
+                    <Link
+                        href={programs.url()}
+                        className="inline-flex min-h-9 items-center gap-2 text-sm font-medium text-slate-600 transition duration-[180ms] hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                     >
-                        <p
-                            className={`truncate text-lg font-bold tabular-nums sm:text-xl ${t.accent}`}
-                        >
-                            {t.value}
+                        <HiArrowLeft className="h-4 w-4" aria-hidden />
+                        Back to Programs
+                    </Link>
+
+                    <header className="mt-4">
+                        <p className="text-xs font-medium text-slate-500">
+                            Project summaries
                         </p>
-                        <p className="mt-1 text-[11px] font-medium text-slate-500">
-                            {t.label}
+                        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+                            Summary graphs
+                        </h1>
+                        <p className="mt-1.5 max-w-prose text-sm leading-relaxed text-slate-500">
+                            Live charts for{' '}
+                            <span className="font-semibold text-slate-700 dark:text-slate-300">
+                                {scope}
+                            </span>
+                            . Computed from the current project list.
                         </p>
+                    </header>
+
+                    <div className="mt-6 space-y-4">
+                        <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+                            {tiles.map((t) => (
+                                <div
+                                    key={t.label}
+                                    className="rounded-xl border border-slate-200 bg-white p-3.5 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900/80 dark:shadow-[0_2px_8px_rgba(0,0,0,0.05)]"
+                                >
+                                    <p
+                                        className={`truncate text-lg font-bold tabular-nums sm:text-xl ${t.accent}`}
+                                    >
+                                        {t.value}
+                                    </p>
+                                    <p className="mt-1 text-[11px] font-medium text-slate-500">
+                                        {t.label}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                            <Card
+                                title="Projects per year approved"
+                                subtitle="Trend"
+                            >
+                                <AreaLineChart rows={aggregates.perYear} />
+                            </Card>
+
+                            <Card title="Projects by status" subtitle="Share">
+                                <DonutChart
+                                    rows={aggregates.perStatus.rows}
+                                    centerLabel="PROJECTS"
+                                />
+                            </Card>
+
+                            <Card
+                                title="Projects per province"
+                                subtitle="Per PSTO"
+                            >
+                                <ColumnChart rows={aggregates.perProvince} />
+                            </Card>
+
+                            <Card
+                                title="Project cost per province"
+                                subtitle="Share"
+                            >
+                                <DonutChart
+                                    rows={aggregates.costPerProvince}
+                                    format="compact"
+                                    centerLabel="COST"
+                                />
+                            </Card>
+
+                            <Card title="Projects by type" subtitle="Ranked">
+                                <BarChart rows={aggregates.perType} />
+                            </Card>
+
+                            <Card title="Projects by sector" subtitle="Ranked">
+                                <BarChart rows={aggregates.perSector} />
+                            </Card>
+
+                            <Card
+                                title="Project cost by sector"
+                                subtitle="Ranked (₱)"
+                            >
+                                <BarChart
+                                    rows={aggregates.costPerSector}
+                                    format="compact"
+                                />
+                            </Card>
+
+                            <Card title="Status counts" subtitle="Labeled">
+                                <BarChart
+                                    rows={aggregates.perStatus.rows}
+                                    badges={aggregates.perStatus.badges}
+                                />
+                            </Card>
+                        </div>
                     </div>
-                ))}
-            </div>
 
-            <p className="text-[11px] leading-relaxed text-slate-500">
-                Live summary for{" "}
-                <span className="font-semibold text-slate-700 dark:text-slate-300">
-                    {scope}
-                </span>
-                {" · "}
-                computed from the current project list.
-            </p>
-
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <Card title="Projects per year approved" subtitle="Trend">
-                    <AreaLineChart rows={aggregates.perYear} />
-                </Card>
-
-                <Card title="Projects by status" subtitle="Share">
-                    <DonutChart
-                        rows={aggregates.perStatus.rows}
-                        centerLabel="PROJECTS"
-                    />
-                </Card>
-
-                <Card title="Projects per province" subtitle="Per PSTO">
-                    <ColumnChart rows={aggregates.perProvince} />
-                </Card>
-
-                <Card title="Project cost per province" subtitle="Share">
-                    <DonutChart
-                        rows={aggregates.costPerProvince}
-                        format="compact"
-                        centerLabel="COST"
-                    />
-                </Card>
-
-                <Card title="Projects by type" subtitle="Ranked">
-                    <BarChart rows={aggregates.perType} />
-                </Card>
-
-                <Card title="Projects by sector" subtitle="Ranked">
-                    <BarChart rows={aggregates.perSector} />
-                </Card>
-
-                <Card title="Project cost by sector" subtitle="Ranked (₱)">
-                    <BarChart
-                        rows={aggregates.costPerSector}
-                        format="compact"
-                    />
-                </Card>
-
-                <Card title="Status counts" subtitle="Labeled">
-                    <BarChart
-                        rows={aggregates.perStatus.rows}
-                        badges={aggregates.perStatus.badges}
-                    />
-                </Card>
-            </div>
-        </div>
+                    <p className="mt-6 text-center text-xs text-slate-500">
+                        Information &amp; Monitoring of Projects, Services and
+                        S&amp;T Interventions · DOST-MIMAROPA
+                    </p>
+                </div>
+            </section>
+        </>
     );
 };
 
-export default ProgramsGraphs;
+export default RegionSummaryGraphs;

@@ -23,6 +23,13 @@ class ProgramController extends Controller
         ]);
     }
 
+    public function summaryGraphs(): Response
+    {
+        return Inertia::render('region/RegionSummaryGraphs', [
+            'projects' => Project::taraCollection(),
+        ]);
+    }
+
     public function import(
         ImportProjectsRequest $request,
         ProjectExcelImporter $importer,

@@ -39,6 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware('throttle:12,1')
                 ->name('analytics-planning-brief');
             Route::get('/programs', [ProgramController::class, 'index'])->name('programs');
+            Route::get('/programs/summary-graphs', [ProgramController::class, 'summaryGraphs'])->name('programs.summary-graphs');
             Route::post('/programs/import', [ProgramController::class, 'import'])->name('programs.import');
             Route::get('/programs/export-template', [ProgramController::class, 'exportTemplate'])->name('programs.export-template');
         });

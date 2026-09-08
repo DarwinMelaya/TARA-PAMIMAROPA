@@ -67,7 +67,7 @@ class Project extends Model
     }
 
     /**
-     * Shape expected by Region Programs / ProgramsGraphs (TaraProject).
+     * Shape expected by Region Programs / Summary graphs (TaraProject).
      *
      * @return array<string, mixed>
      */

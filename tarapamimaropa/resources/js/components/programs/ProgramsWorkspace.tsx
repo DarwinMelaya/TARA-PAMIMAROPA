@@ -20,7 +20,6 @@ import {
 } from 'react-icons/hi2';
 import AddProjectsModal from '@/components/modals/psto/AddProjectsModal';
 import EditProjectsModal from '@/components/modals/psto/EditProjectsModal';
-import ProgramsGraphs from '@/components/region/programs/ProgramsGraphs';
 import {
   PROVINCES,
   formatCompact,
@@ -51,6 +50,8 @@ export type ProgramsWorkspaceProps = {
   allowMutate?: boolean;
   /** Next QR-TTC sequence for auto code preview. */
   nextCodeSequence?: number;
+  /** Region: link to dedicated Summary graphs page. */
+  summaryGraphsHref?: string;
   homeHref: string;
   homeLabel?: string;
   pageTitle?: string;
@@ -140,6 +141,7 @@ const ProgramsWorkspace = ({
   exportTemplateUrl,
   allowMutate = false,
   nextCodeSequence = 1,
+  summaryGraphsHref,
   homeHref,
   homeLabel = "Dashboard",
   pageTitle = "Programs",
@@ -169,7 +171,6 @@ const ProgramsWorkspace = ({
   const [page, setPage] = useState(1);
   const [chartsOpen, setChartsOpen] = useState(false);
   const [viewing, setViewing] = useState<TaraProject | null>(null);
-  const [graphsOpen, setGraphsOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<TaraProject | null>(null);
 
@@ -460,8 +461,8 @@ const ProgramsWorkspace = ({
           </h1>
           <p className={`mt-1.5 max-w-prose text-sm leading-relaxed ${ui.muted}`}>
             {provinceLocked
-              ? `Projects for ${lockedProvince}. Deep charts stay behind Summary graphs.`
-              : "Pick a province, then scan the list. Deep charts stay behind Summary graphs."}
+              ? `Projects for ${lockedProvince}.${summaryGraphsHref ? " Deep charts stay behind Summary graphs." : ""}`
+              : `Pick a province, then scan the list.${summaryGraphsHref ? " Deep charts stay behind Summary graphs." : ""}`}
           </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -513,14 +514,15 @@ const ProgramsWorkspace = ({
                 Template
               </a>
             ) : null}
-            <button
-              type="button"
-              onClick={() => setGraphsOpen(true)}
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition duration-[180ms] hover:bg-blue-500"
-            >
-              <HiPresentationChartLine className="h-4 w-4" aria-hidden />
-              Summary graphs
-            </button>
+            {summaryGraphsHref ? (
+              <Link
+                href={summaryGraphsHref}
+                className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition duration-[180ms] hover:bg-blue-500"
+              >
+                <HiPresentationChartLine className="h-4 w-4" aria-hidden />
+                Summary graphs
+              </Link>
+            ) : null}
             <Link
               href={homeHref}
               className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition duration-[180ms] ${ui.ghostBtn}`}
@@ -1169,51 +1171,6 @@ const ProgramsWorkspace = ({
           ) : null}
         </div>
       </div>
-
-      {graphsOpen && (
-        <div
-          className="fixed inset-0 z-[1000] flex items-start justify-center bg-black/70 p-0 sm:p-4"
-          onClick={() => setGraphsOpen(false)}
-        >
-          <div
-            className={`max-h-[100vh] w-full max-w-5xl overflow-y-auto rounded-none border p-4 sm:max-h-[92vh] sm:rounded-xl sm:p-6 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] ${ui.modal}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-4 flex items-start justify-between gap-3">
-              <div>
-                <p className={`text-xs font-medium ${ui.muted}`}>
-                  Project summaries
-                </p>
-                <h2 className={`mt-1 text-lg font-semibold sm:text-xl ${ui.heading}`}>
-                  Summary graphs · {scopeLabel}
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setGraphsOpen(false)}
-                className={`flex h-9 w-9 items-center justify-center rounded-lg transition duration-[180ms] ${ui.modalClose}`}
-                aria-label="Close"
-              >
-                <HiXMark className="h-5 w-5" aria-hidden />
-              </button>
-            </div>
-
-            <ProgramsGraphs
-              projects={scopedProjects}
-              scope={
-                provinceFilter === "all"
-                  ? "MIMAROPA (all provinces)"
-                  : provinceFilter
-              }
-            />
-
-            <p className={`mt-4 text-center text-xs ${ui.muted}`}>
-              Information &amp; Monitoring of Projects, Services and S&amp;T
-              Interventions · DOST-MIMAROPA
-            </p>
-          </div>
-        </div>
-      )}
 
       {viewing && (
         <div

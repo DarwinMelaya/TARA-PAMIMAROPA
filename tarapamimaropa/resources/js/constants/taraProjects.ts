@@ -636,7 +636,7 @@ const PROGRAM_TO_TYPE: Record<TaraProgram, TaraType> = {
     Energy: 'GIA (Region-initiated Projects) Internally Funded',
 };
 
-/** Sector chips used by ProgramsGraphs (matches mock project sectors). */
+/** Sector chips used by Region Summary graphs (matches mock project sectors). */
 export const SECTORS = [
     'Industry',
     'Water',

@@ -22,6 +22,7 @@ class AnalyticsChatRequest extends FormRequest
             'history' => ['nullable', 'array', 'max:20'],
             'history.*.role' => ['required_with:history', 'string', 'in:user,assistant'],
             'history.*.content' => ['required_with:history', 'string', 'max:8000'],
+            'audience' => ['nullable', 'string', 'in:general,regional_director'],
         ];
     }
 }

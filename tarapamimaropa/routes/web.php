@@ -3,6 +3,7 @@
 use App\Http\Controllers\AnalyticsChatController;
 use App\Http\Controllers\Psto\ProgramController as PstoProgramController;
 use App\Http\Controllers\Psto\ProjectController as PstoProjectController;
+use App\Http\Controllers\Region\AnalyticsPlanningController;
 use App\Http\Controllers\Region\DashboardController;
 use App\Http\Controllers\Region\ProgramController;
 use App\Http\Controllers\Site\HomeController;
@@ -34,6 +35,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('region.')
         ->group(function () {
             Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+            Route::post('/analytics-planning-brief', [AnalyticsPlanningController::class, 'store'])
+                ->middleware('throttle:12,1')
+                ->name('analytics-planning-brief');
             Route::get('/programs', [ProgramController::class, 'index'])->name('programs');
             Route::post('/programs/import', [ProgramController::class, 'import'])->name('programs.import');
             Route::get('/programs/export-template', [ProgramController::class, 'exportTemplate'])->name('programs.export-template');

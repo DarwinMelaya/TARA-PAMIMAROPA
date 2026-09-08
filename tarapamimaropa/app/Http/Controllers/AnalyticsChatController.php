@@ -27,11 +27,16 @@ class AnalyticsChatController extends Controller
             }
         }
 
+        $audience = $user?->role === UserRole::RegionalOffice
+            ? 'regional_director'
+            : (string) $request->input('audience', 'general');
+
         try {
             $reply = $chat->reply(
                 message: $request->string('message')->toString(),
                 history: $request->input('history', []),
                 provinceScope: $provinceScope,
+                audience: $audience === 'regional_director' ? 'regional_director' : 'general',
             );
         } catch (RuntimeException $e) {
             return response()->json([

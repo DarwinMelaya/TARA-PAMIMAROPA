@@ -9,6 +9,7 @@ import type { TaraProject } from '@/constants/taraProjects';
 import { buildLiveInsights } from '@/constants/taraProjects';
 import {
     CHAT_QUICK_PROMPTS,
+    RD_PLANNING_QUICK_PROMPTS,
     buildUserMessage,
     createWelcomeMessage,
     type ChatMessage,
@@ -22,6 +23,10 @@ type AnalyticsChatBotProps = {
     className?: string;
     /** Compact sheet mode (mobile) vs floating dock */
     variant?: 'dock' | 'sheet';
+    audience?: 'general' | 'regional_director';
+    /** Auto-send once when provided (e.g. from RD planning panel) */
+    seedPrompt?: string | null;
+    onSeedPromptConsumed?: () => void;
 };
 
 const ANALYTICS_CHAT_URL = '/analytics-chat';
@@ -40,11 +45,15 @@ const AnalyticsChatBot = ({
     projects,
     className = '',
     variant = 'dock',
+    audience = 'general',
+    seedPrompt = null,
+    onSeedPromptConsumed,
 }: AnalyticsChatBotProps) => {
     const { theme } = useTheme();
     const light = theme === 'light';
+    const isDirector = audience === 'regional_director';
     const [messages, setMessages] = useState<ChatMessage[]>(() => [
-        createWelcomeMessage(projects.length),
+        createWelcomeMessage(projects.length, audience),
     ]);
     const [draft, setDraft] = useState('');
     const [typing, setTyping] = useState(false);
@@ -53,12 +62,17 @@ const AnalyticsChatBot = ({
     const inputRef = useRef<HTMLInputElement | null>(null);
     const projectsRef = useRef(projects);
     const messagesRef = useRef(messages);
+    const typingRef = useRef(typing);
     projectsRef.current = projects;
     messagesRef.current = messages;
+    typingRef.current = typing;
 
     const projectCount = projects.length;
 
-    const tips = useMemo(() => CHAT_QUICK_PROMPTS, []);
+    const tips = useMemo(
+        () => (isDirector ? RD_PLANNING_QUICK_PROMPTS : CHAT_QUICK_PROMPTS),
+        [isDirector],
+    );
     const insights = useMemo(() => buildLiveInsights(projects), [projects]);
 
     useEffect(() => {
@@ -74,7 +88,7 @@ const AnalyticsChatBot = ({
 
     const pushAnswer = async (question: string) => {
         const trimmed = question.trim();
-        if (!trimmed || typing) return;
+        if (!trimmed || typingRef.current) return;
 
         const userMsg = buildUserMessage(trimmed);
         const history = messagesRef.current
@@ -102,6 +116,7 @@ const AnalyticsChatBot = ({
                 body: JSON.stringify({
                     message: trimmed,
                     history,
+                    audience,
                 }),
             });
 
@@ -150,13 +165,23 @@ const AnalyticsChatBot = ({
         }
     };
 
+    useEffect(() => {
+        if (!open || !seedPrompt?.trim()) return;
+        const prompt = seedPrompt.trim();
+        onSeedPromptConsumed?.();
+        void pushAnswer(prompt);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open, seedPrompt]);
+
     const handleSubmit = (event: FormEvent) => {
         event.preventDefault();
         void pushAnswer(draft);
     };
 
     const resetChat = () => {
-        setMessages([createWelcomeMessage(projectsRef.current.length)]);
+        setMessages([
+            createWelcomeMessage(projectsRef.current.length, audience),
+        ]);
         setDraft('');
         setTyping(false);
     };
@@ -197,14 +222,18 @@ const AnalyticsChatBot = ({
                             className={`h-4 w-4 shrink-0 ${light ? 'text-violet-600' : 'text-violet-300'}`}
                             aria-hidden
                         />
-                        AI analytics chat
+                        {isDirector ? 'RD AI analytics chat' : 'AI analytics chat'}
                     </p>
                     <p
                         className={`mt-0.5 truncate text-[10px] ${
                             light ? 'text-slate-500' : 'text-slate-400'
                         }`}
                     >
-                        Gemini · live backend data · map shows{' '}
+                        Gemini ·{' '}
+                        {isDirector
+                            ? 'Regional Director planning · '
+                            : ''}
+                        live backend data · map shows{' '}
                         {projectCount} project
                         {projectCount === 1 ? '' : 's'}
                     </p>
@@ -346,7 +375,11 @@ const AnalyticsChatBot = ({
                         ref={inputRef}
                         value={draft}
                         onChange={(e) => setDraft(e.target.value)}
-                        placeholder="Ask about projects, funding, risk…"
+                        placeholder={
+                            isDirector
+                                ? 'Ask for RD priorities, equity, funding…'
+                                : 'Ask about projects, funding, risk…'
+                        }
                         disabled={typing}
                         className={`min-w-0 flex-1 rounded-xl border px-3 py-2 text-xs outline-none ${
                             light

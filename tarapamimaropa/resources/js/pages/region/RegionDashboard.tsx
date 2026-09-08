@@ -15,7 +15,7 @@ const RegionDashboard = () => {
       projects={projects}
       variant="region"
       programsHref={programs.url()}
-      pageTitle="Region dashboard"
+      pageTitle="Region dashboard · RD AI Planning"
     />
   );
 };

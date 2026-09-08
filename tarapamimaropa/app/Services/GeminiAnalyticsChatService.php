@@ -13,31 +13,14 @@ class GeminiAnalyticsChatService
     /**
      * @param  list<array{role: string, content: string}>  $history
      */
-    public function reply(string $message, array $history = [], ?string $provinceScope = null): string
-    {
-        $apiKey = config('services.gemini.key');
-
-        if (! filled($apiKey)) {
-            throw new RuntimeException(
-                'Gemini is not configured. Set GEMINI_API_KEY in your .env file.',
-            );
-        }
-
-        $projects = Project::query()
-            ->when(
-                filled($provinceScope),
-                fn ($query) => $query->where('province', $provinceScope),
-            )
-            ->orderBy('province')
-            ->orderBy('name')
-            ->get();
-
+    public function reply(
+        string $message,
+        array $history = [],
+        ?string $provinceScope = null,
+        string $audience = 'general',
+    ): string {
+        $projects = $this->loadProjects($provinceScope);
         $payload = $this->buildDataset($projects);
-        $model = (string) config('services.gemini.model', 'gemini-2.5-flash');
-        $url = sprintf(
-            'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent',
-            rawurlencode($model),
-        );
 
         $contents = [];
 
@@ -60,15 +43,115 @@ class GeminiAnalyticsChatService
             'parts' => [['text' => $message]],
         ];
 
-        $systemPrompt = $this->systemPrompt($provinceScope)."\n\nLIVE PROJECT DATASET (JSON):\n".json_encode(
+        $systemPrompt = $this->systemPrompt($provinceScope, $audience)."\n\nLIVE PROJECT DATASET (JSON):\n".json_encode(
             $payload,
             JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+        );
+
+        return $this->generate($systemPrompt, $contents);
+    }
+
+    /**
+     * Executive planning brief for the Regional Director.
+     *
+     * @return array{
+     *     headline: string,
+     *     situation: string,
+     *     priorities: list<array{title: string, why: string, action: string}>,
+     *     equity: list<array{province: string, signal: string, note: string}>,
+     *     risks: list<array{title: string, severity: string, mitigation: string}>,
+     *     next_30_days: list<string>,
+     *     generated_at: string,
+     *     project_count: int
+     * }
+     */
+    public function planningBrief(?string $provinceScope = null): array
+    {
+        $projects = $this->loadProjects($provinceScope);
+        $payload = $this->buildDataset($projects);
+
+        $systemPrompt = <<<PROMPT
+You are TARA AI Planning Advisor for the DOST-MIMAROPA Regional Director (TARA PAMIMAROPA).
+Use ONLY the LIVE PROJECT DATASET JSON. Do not invent projects, budgets, or statuses.
+Focus on actionable regional planning: portfolio balance across provinces, status risk, funding concentration, and what the RD should prioritize next.
+
+Return ONLY valid JSON (no markdown fences) with this exact shape:
+{
+  "headline": "one sharp line for the RD",
+  "situation": "2-4 sentences on the regional portfolio posture",
+  "priorities": [
+    {"title": "short title", "why": "why it matters", "action": "concrete next step"}
+  ],
+  "equity": [
+    {"province": "province name", "signal": "under-served|balanced|heavy load", "note": "one sentence"}
+  ],
+  "risks": [
+    {"title": "risk title", "severity": "high|medium|low", "mitigation": "what RD can do"}
+  ],
+  "next_30_days": ["action 1", "action 2", "action 3"]
+}
+
+Rules:
+- priorities: 3 to 5 items, ordered by urgency for planning.
+- equity: cover all MIMAROPA provinces present in the dataset.
+- risks: 2 to 4 items grounded in status, refund, or concentration patterns.
+- next_30_days: 3 to 5 concrete actions.
+- Prefer Philippine peso shorthand (e.g. ₱1.2M) when citing money.
+PROMPT;
+
+        $contents = [
+            [
+                'role' => 'user',
+                'parts' => [[
+                    'text' => "Generate the Regional Director planning brief from this LIVE PROJECT DATASET (JSON):\n".json_encode(
+                        $payload,
+                        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+                    ),
+                ]],
+            ],
+        ];
+
+        $text = $this->generate($systemPrompt, $contents);
+        $decoded = $this->decodeJsonObject($text);
+
+        return [
+            'headline' => (string) ($decoded['headline'] ?? 'Regional planning brief'),
+            'situation' => (string) ($decoded['situation'] ?? ''),
+            'priorities' => $this->normalizeList($decoded['priorities'] ?? [], ['title', 'why', 'action']),
+            'equity' => $this->normalizeList($decoded['equity'] ?? [], ['province', 'signal', 'note']),
+            'risks' => $this->normalizeList($decoded['risks'] ?? [], ['title', 'severity', 'mitigation']),
+            'next_30_days' => array_values(array_filter(array_map(
+                static fn ($item): string => trim((string) $item),
+                is_array($decoded['next_30_days'] ?? null) ? $decoded['next_30_days'] : [],
+            ))),
+            'generated_at' => now()->toIso8601String(),
+            'project_count' => (int) ($payload['project_count'] ?? 0),
+        ];
+    }
+
+    /**
+     * @param  list<array{role: string, parts: list<array{text: string}>}>  $contents
+     */
+    private function generate(string $systemPrompt, array $contents): string
+    {
+        $apiKey = config('services.gemini.key');
+
+        if (! filled($apiKey)) {
+            throw new RuntimeException(
+                'Gemini is not configured. Set GEMINI_API_KEY in your .env file.',
+            );
+        }
+
+        $model = (string) config('services.gemini.model', 'gemini-2.5-flash');
+        $url = sprintf(
+            'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s',
+            rawurlencode($model),
+            urlencode((string) $apiKey),
         );
 
         try {
             $response = Http::acceptJson()
                 ->timeout(90)
-                ->withQueryParameters(['key' => (string) $apiKey])
                 ->post($url, [
                     'system_instruction' => [
                         'parts' => [['text' => $systemPrompt]],
@@ -118,24 +201,98 @@ class GeminiAnalyticsChatService
         return $text;
     }
 
-    private function systemPrompt(?string $provinceScope): string
+    private function systemPrompt(?string $provinceScope, string $audience): string
     {
         $scope = $provinceScope
             ? "You only have data for the PSTO province: {$provinceScope}."
             : 'You have the full MIMAROPA project portfolio from the TARA database.';
 
+        $role = $audience === 'regional_director'
+            ? 'You advise the Regional Director on planning, equity across PSTOs, funding posture, and operational priorities. Lead with decisions and next actions.'
+            : 'Be concise and useful for executives and field officers (short paragraphs or tight bullet lists).';
+
         return <<<PROMPT
 You are TARA AI Analytics for DOST-MIMAROPA (TARA PAMIMAROPA).
 {$scope}
+{$role}
 
 Rules:
 - Answer ONLY using the LIVE PROJECT DATASET JSON provided in this conversation.
 - If the dataset does not contain enough information, say what is missing. Do not invent projects, budgets, or statuses.
-- Be concise and useful for executives and field officers (short paragraphs or tight bullet lists).
 - Prefer Philippine peso formatting when talking about money (e.g. ₱1.2M).
 - When listing projects, include code (if any), province, status, and project cost when available.
 - Status labels in the data are the real Excel/DB labels (On-going, Graduated, Terminated, etc.).
 PROMPT;
+    }
+
+    /**
+     * @return Collection<int, Project>
+     */
+    private function loadProjects(?string $provinceScope): Collection
+    {
+        return Project::query()
+            ->when(
+                filled($provinceScope),
+                fn ($query) => $query->where('province', $provinceScope),
+            )
+            ->orderBy('province')
+            ->orderBy('name')
+            ->get();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function decodeJsonObject(string $text): array
+    {
+        $cleaned = trim($text);
+        $cleaned = preg_replace('/^```(?:json)?\s*/i', '', $cleaned) ?? $cleaned;
+        $cleaned = preg_replace('/\s*```$/', '', $cleaned) ?? $cleaned;
+
+        $decoded = json_decode($cleaned, true);
+
+        if (! is_array($decoded) && preg_match('/\{.*\}/s', $cleaned, $matches) === 1) {
+            $decoded = json_decode($matches[0], true);
+        }
+
+        if (! is_array($decoded)) {
+            throw new RuntimeException('Gemini returned a planning brief that could not be parsed.');
+        }
+
+        return $decoded;
+    }
+
+    /**
+     * @param  mixed  $items
+     * @param  list<string>  $keys
+     * @return list<array<string, string>>
+     */
+    private function normalizeList(mixed $items, array $keys): array
+    {
+        if (! is_array($items)) {
+            return [];
+        }
+
+        $out = [];
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $row = [];
+            foreach ($keys as $key) {
+                $row[$key] = trim((string) ($item[$key] ?? ''));
+            }
+
+            if (implode('', $row) === '') {
+                continue;
+            }
+
+            $out[] = $row;
+        }
+
+        return $out;
     }
 
     /**

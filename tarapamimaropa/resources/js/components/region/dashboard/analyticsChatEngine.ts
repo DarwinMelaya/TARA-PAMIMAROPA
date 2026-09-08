@@ -29,14 +29,29 @@ export const CHAT_QUICK_PROMPTS = [
   "What needs attention first?",
 ];
 
+export const RD_PLANNING_QUICK_PROMPTS = [
+  "Draft RD planning priorities",
+  "Where is province equity weakest?",
+  "What should we fund next?",
+  "Flag high-risk projects",
+  "30-day action plan",
+  "Brief me for tomorrow's meeting",
+];
+
 const uid = () =>
   `msg-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 
-export const createWelcomeMessage = (projectCount: number): ChatMessage => ({
+export const createWelcomeMessage = (
+  projectCount: number,
+  audience: "general" | "regional_director" = "general",
+): ChatMessage => ({
   id: uid(),
   role: "assistant",
   createdAt: Date.now(),
-  text: `TARA AI Analytics online (Gemini). I read live project records from the TARA backend — not just the ${projectCount} project${projectCount === 1 ? "" : "s"} currently on your map filters. Ask about status, provinces, funding, progress, or risk.`,
+  text:
+    audience === "regional_director"
+      ? `TARA AI Planning Advisor online (Gemini). I advise the Regional Director using live MIMAROPA project records — not only the ${projectCount} project${projectCount === 1 ? "" : "s"} on your current map filters. Ask for priorities, equity gaps, funding posture, risks, or a 30-day plan.`
+      : `TARA AI Analytics online (Gemini). I read live project records from the TARA backend — not just the ${projectCount} project${projectCount === 1 ? "" : "s"} currently on your map filters. Ask about status, provinces, funding, progress, or risk.`,
 });
 
 const findProvince = (q: string): Province | null => {

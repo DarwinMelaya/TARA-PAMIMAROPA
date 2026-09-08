@@ -29,6 +29,7 @@ import {
 } from 'react-icons/hi2';
 import AnalyticsChatBot from '@/components/region/dashboard/AnalyticsChatBot';
 import GraphsPanel from '@/components/region/dashboard/GraphsPanel';
+import RegionalDirectorAiAnalytics from '@/components/region/dashboard/RegionalDirectorAiAnalytics';
 import Maps, {
     type MapBaseLayer,
     type MapViewMode,
@@ -562,7 +563,7 @@ const CommandMapWorkspace = ({
   const [search, setSearch] = useState("");
   const [searchDraft, setSearchDraft] = useState("");
   const [mobileSheet, setMobileSheet] = useState<
-    "stats" | "feed" | "ai" | "graphs" | null
+    "stats" | "feed" | "ai" | "graphs" | "plan" | null
   >(null);
   const [baseLayer, setBaseLayer] = useState<MapBaseLayer>("satellite");
   const [viewMode, setViewMode] = useState<MapViewMode>("2d");
@@ -570,6 +571,8 @@ const CommandMapWorkspace = ({
   const [feedExpanded, setFeedExpanded] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [planningOpen, setPlanningOpen] = useState(false);
+  const [chatSeedPrompt, setChatSeedPrompt] = useState<string | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [reportError, setReportError] = useState("");
   const [insightIndex, setInsightIndex] = useState(0);
@@ -709,13 +712,20 @@ const CommandMapWorkspace = ({
     statusFilter !== "all" ||
     search.trim().length > 0;
 
-  const toggleMobileSheet = (sheet: "stats" | "feed" | "ai" | "graphs") => {
+  const toggleMobileSheet = (
+    sheet: "stats" | "feed" | "ai" | "graphs" | "plan",
+  ) => {
     setMobileSheet((current) => {
       const next = current === sheet ? null : sheet;
       if (sheet === "ai") {
         setChatOpen(next === "ai");
+        if (next === "ai") setPlanningOpen(false);
+      } else if (sheet === "plan") {
+        setPlanningOpen(next === "plan");
+        if (next === "plan") setChatOpen(false);
       } else if (next !== null) {
         setChatOpen(false);
+        setPlanningOpen(false);
       }
       return next;
     });
@@ -724,11 +734,32 @@ const CommandMapWorkspace = ({
   const toggleChat = () => {
     setChatOpen((open) => {
       const next = !open;
+      if (next) setPlanningOpen(false);
       if (typeof window !== "undefined" && window.innerWidth < 1024) {
         setMobileSheet(next ? "ai" : null);
       }
       return next;
     });
+  };
+
+  const togglePlanning = () => {
+    setPlanningOpen((open) => {
+      const next = !open;
+      if (next) setChatOpen(false);
+      if (typeof window !== "undefined" && window.innerWidth < 1024) {
+        setMobileSheet(next ? "plan" : null);
+      }
+      return next;
+    });
+  };
+
+  const askChatFromPlanning = (prompt: string) => {
+    setPlanningOpen(false);
+    setChatSeedPrompt(prompt);
+    setChatOpen(true);
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      setMobileSheet("ai");
+    }
   };
 
   const handleLocateMe = () => {
@@ -1004,6 +1035,27 @@ const CommandMapWorkspace = ({
               <HiSparkles className="h-4 w-4" aria-hidden />
               <span className="hidden sm:inline">AI chat</span>
             </button>
+            {!isPublic ? (
+              <button
+                type="button"
+                onClick={togglePlanning}
+                className={[
+                  "inline-flex shrink-0 items-center justify-center gap-2",
+                  ui.chromeBtn,
+                  planningOpen || mobileSheet === "plan"
+                    ? theme === "light"
+                      ? "border-cyan-500/50 bg-cyan-50 text-cyan-900"
+                      : "border-cyan-400/60 bg-cyan-500/25 text-cyan-50"
+                    : theme === "light"
+                      ? "border-cyan-400/40 bg-cyan-50/80 text-cyan-900"
+                      : "border-cyan-400/40 bg-cyan-500/15 text-cyan-100",
+                ].join(" ")}
+                aria-pressed={planningOpen || mobileSheet === "plan"}
+              >
+                <HiLightBulb className="h-4 w-4" aria-hidden />
+                <span className="hidden sm:inline">AI Planning</span>
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={() => {
@@ -1109,6 +1161,19 @@ const CommandMapWorkspace = ({
             >
               Open chat
             </button>
+            {!isPublic ? (
+              <button
+                type="button"
+                onClick={togglePlanning}
+                className={`shrink-0 rounded-lg border px-2 py-1 text-[10px] font-semibold ${
+                  theme === "light"
+                    ? "border-cyan-400/50 bg-cyan-50 text-cyan-900"
+                    : "border-cyan-400/40 bg-cyan-500/20 text-cyan-100"
+                }`}
+              >
+                RD Planning
+              </button>
+            ) : null}
           </div>
         ) : null}
       </header>
@@ -1212,7 +1277,12 @@ const CommandMapWorkspace = ({
       ) : null}
 
       <div className="pointer-events-auto absolute inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-25 flex snap-x justify-start gap-2 overflow-x-auto px-3 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:justify-center lg:hidden">
-        {(["stats", "graphs", "feed", "ai"] as const).map((sheet) => (
+        {(
+          (isPublic
+            ? (["stats", "graphs", "feed", "ai"] as const)
+            : (["stats", "graphs", "feed", "plan", "ai"] as const)
+          )
+        ).map((sheet) => (
           <button
             key={sheet}
             type="button"
@@ -1224,7 +1294,11 @@ const CommandMapWorkspace = ({
                 : ui.mobileSheetBtn,
             ].join(" ")}
           >
-            {sheet === "feed" ? `Feed (${filteredProjects.length})` : sheet}
+            {sheet === "feed"
+              ? `Feed (${filteredProjects.length})`
+              : sheet === "plan"
+                ? "AI Plan"
+                : sheet}
           </button>
         ))}
         {mobileSheet ? (
@@ -1233,6 +1307,7 @@ const CommandMapWorkspace = ({
             onClick={() => {
               setMobileSheet(null);
               setChatOpen(false);
+              setPlanningOpen(false);
             }}
             className={`shrink-0 rounded-full border px-3 py-2 text-xs font-bold ${ui.mobileSheetBtn}`}
           >
@@ -1380,6 +1455,23 @@ const CommandMapWorkspace = ({
                 setChatOpen(false);
               }}
               projects={filteredProjects}
+              variant="sheet"
+              audience={isPublic ? "general" : "regional_director"}
+              seedPrompt={chatSeedPrompt}
+              onSeedPromptConsumed={() => setChatSeedPrompt(null)}
+            />
+          </div>
+        ) : null}
+
+        {!isPublic && mobileSheet === "plan" ? (
+          <div className="pointer-events-auto block w-full lg:hidden">
+            <RegionalDirectorAiAnalytics
+              open
+              onClose={() => {
+                setMobileSheet(null);
+                setPlanningOpen(false);
+              }}
+              onAskChat={askChatFromPlanning}
               variant="sheet"
             />
           </div>
@@ -1780,13 +1872,27 @@ const CommandMapWorkspace = ({
         </div>
       ) : null}
 
-      {/* Desktop AI chat dock */}
+      {/* Desktop AI chat + RD planning docks */}
       {chatOpen ? (
         <div className="pointer-events-none absolute bottom-5 right-5 z-30 hidden lg:block">
           <AnalyticsChatBot
             open={chatOpen}
             onClose={() => setChatOpen(false)}
             projects={filteredProjects}
+            variant="dock"
+            audience={isPublic ? "general" : "regional_director"}
+            seedPrompt={chatSeedPrompt}
+            onSeedPromptConsumed={() => setChatSeedPrompt(null)}
+          />
+        </div>
+      ) : null}
+
+      {!isPublic && planningOpen ? (
+        <div className="pointer-events-none absolute bottom-5 right-5 z-30 hidden lg:block">
+          <RegionalDirectorAiAnalytics
+            open={planningOpen}
+            onClose={() => setPlanningOpen(false)}
+            onAskChat={askChatFromPlanning}
             variant="dock"
           />
         </div>

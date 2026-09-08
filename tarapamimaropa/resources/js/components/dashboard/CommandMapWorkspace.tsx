@@ -860,6 +860,28 @@ const CommandMapWorkspace = ({
               {stats.municipalities} municipalities · {stats.barangays} barangays
               · {stats.partners} partners · {filteredProjects.length} on map
             </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {(
+                [
+                  ["SETUP", "#16823c"],
+                  ["CEST", "#c9440b"],
+                  ["GIA", "#1d51db"],
+                  ["SSCP", "#7f23d0"],
+                ] as const
+              ).map(([label, color]) => (
+                <span
+                  key={label}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/25 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white backdrop-blur-sm"
+                >
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: color }}
+                    aria-hidden
+                  />
+                  {label}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
@@ -1223,9 +1245,8 @@ const CommandMapWorkspace = ({
                       className={`flex w-full items-center gap-3 rounded-xl border p-2.5 text-left transition hover:border-cyan-500/50 ${ui.feedItem}`}
                     >
                       <span
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[9px] font-extrabold uppercase ring-1 ${ui.avatarBox} ${
-                          theme === "light" ? "text-slate-800" : meta.accent
-                        }`}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[9px] font-extrabold uppercase text-white ring-1 ring-white/30"
+                        style={{ backgroundColor: meta.color }}
                       >
                         {meta.short}
                       </span>
@@ -1570,11 +1591,8 @@ const CommandMapWorkspace = ({
                     <p className={`line-clamp-1 text-[11px] ${ui.meta}`}>
                       {project.municipality}, {project.province} ·{" "}
                       <span
-                        className={
-                          theme === "light"
-                            ? "font-semibold text-slate-700"
-                            : program.accent
-                        }
+                        className="font-semibold"
+                        style={{ color: program.color }}
                       >
                         {project.program}
                       </span>

@@ -263,6 +263,10 @@ class Project extends Model
             return 'SETUP';
         }
 
+        if (str_contains($type, 'SSCP')) {
+            return 'SSCP';
+        }
+
         if (str_contains($type, 'CEST')) {
             return 'CEST';
         }

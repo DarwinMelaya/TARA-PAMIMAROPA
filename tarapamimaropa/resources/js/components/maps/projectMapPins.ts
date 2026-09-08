@@ -1,5 +1,8 @@
 import L from "leaflet";
-import { PROGRAM_META, type TaraProject } from "../../constants/taraProjects";
+import {
+  PROGRAM_META,
+  type TaraProject,
+} from "../../constants/taraProjects";
 
 const escapeHtml = (value: unknown) =>
   String(value ?? "")
@@ -8,18 +11,16 @@ const escapeHtml = (value: unknown) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-/** Fill + highlight for pin gradient. */
-export const PIN_COLORS: Record<string, { fill: string; soft: string }> = {
-  SETUP: { fill: "#0284c7", soft: "#38bdf8" },
-  CEST: { fill: "#1d4ed8", soft: "#60a5fa" },
-  GIA: { fill: "#4f46e5", soft: "#818cf8" },
-  STARBOOKS: { fill: "#c2410c", soft: "#fb923c" },
-  Community: { fill: "#be185d", soft: "#f472b6" },
-  Water: { fill: "#1e40af", soft: "#60a5fa" },
-  Energy: { fill: "#a16207", soft: "#facc15" },
-};
+/** Fill + soft highlight for pin gradient (from PROGRAM_META.color). */
+export const PIN_COLORS: Record<string, { fill: string; soft: string }> =
+  Object.fromEntries(
+    Object.entries(PROGRAM_META).map(([key, meta]) => [
+      key,
+      { fill: meta.color, soft: meta.color },
+    ]),
+  );
 
-const DEFAULT_PIN = { fill: "#be185d", soft: "#f472b6" };
+const DEFAULT_PIN = { fill: "#7f23d0", soft: "#7f23d0" };
 
 export type MapProject = Pick<
   TaraProject,

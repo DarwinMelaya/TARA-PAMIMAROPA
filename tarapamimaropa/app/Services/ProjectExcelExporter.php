@@ -30,6 +30,7 @@ class ProjectExcelExporter
     /** @var list<string> */
     public const TYPES = [
         'SETUP',
+        'SSCP',
         'Roll-out',
         'TAPI-assisted',
         'GIA (Community Based)',

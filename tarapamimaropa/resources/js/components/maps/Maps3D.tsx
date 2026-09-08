@@ -309,13 +309,14 @@ type Maps3DProps = {
 const HEAVY_MARKER_COUNT = 80;
 
 const PROGRAM_DOT_COLORS: Record<string, string> = {
-    SETUP: '#22d3ee',
-    CEST: '#a78bfa',
-    GIA: '#fbbf24',
-    STARBOOKS: '#34d399',
-    Community: '#67e8f9',
-    Water: '#38bdf8',
-    Energy: '#facc15',
+    SETUP: '#16823c',
+    CEST: '#c9440b',
+    GIA: '#1d51db',
+    SSCP: '#7f23d0',
+    STARBOOKS: '#ca8a04',
+    Community: '#be185d',
+    Water: '#1e40af',
+    Energy: '#a16207',
 };
 
 const Maps3D = ({

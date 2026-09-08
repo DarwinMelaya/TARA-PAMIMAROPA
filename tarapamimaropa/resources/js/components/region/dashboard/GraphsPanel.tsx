@@ -765,14 +765,10 @@ const GraphsPanel = ({
         key: program,
         label: PROGRAM_META[program].short,
         value,
-        color: "#22d3ee",
+        color: PROGRAM_META[program].color,
       }))
       .sort((a, b) => b.value - a.value)
-      .slice(0, 6)
-      .map((slice, index) => ({
-        ...slice,
-        color: PALETTE[index % PALETTE.length],
-      }));
+      .slice(0, 6);
 
     const progressBands: Slice[] = [
       { key: "0-25", label: "0–25%", value: 0, color: "#f87171" },

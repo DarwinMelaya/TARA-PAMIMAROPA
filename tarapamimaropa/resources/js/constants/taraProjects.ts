@@ -23,6 +23,7 @@ export type TaraProgram =
     | 'SETUP'
     | 'CEST'
     | 'GIA'
+    | 'SSCP'
     | 'STARBOOKS'
     | 'Community'
     | 'Water'
@@ -200,44 +201,60 @@ export const formatRateOrDash = (value: number | null | undefined): string => {
 
 export const PROGRAM_META: Record<
     TaraProgram,
-    { short: string; pinClass: string; accent: string }
+    { short: string; pinClass: string; accent: string; color: string }
 > = {
     SETUP: {
         short: 'SETUP',
         pinClass: 'project-pin--setup',
-        accent: 'text-sky-300',
+        accent: 'text-[#16823c]',
+        color: '#16823c',
     },
     CEST: {
         short: 'CEST',
         pinClass: 'project-pin--cest',
-        accent: 'text-violet-300',
+        accent: 'text-[#c9440b]',
+        color: '#c9440b',
     },
     GIA: {
         short: 'GIA',
         pinClass: 'project-pin--gia',
-        accent: 'text-amber-300',
+        accent: 'text-[#1d51db]',
+        color: '#1d51db',
+    },
+    SSCP: {
+        short: 'SSCP',
+        pinClass: 'project-pin--sscp',
+        accent: 'text-[#7f23d0]',
+        color: '#7f23d0',
     },
     STARBOOKS: {
         short: 'SB',
         pinClass: 'project-pin--starbooks',
         accent: 'text-emerald-300',
+        color: '#ca8a04',
     },
     Community: {
         short: 'HUB',
         pinClass: 'project-pin--hub',
         accent: 'text-cyan-300',
+        color: '#be185d',
     },
     Water: {
         short: 'WATER',
         pinClass: 'project-pin--water',
         accent: 'text-blue-300',
+        color: '#1e40af',
     },
     Energy: {
         short: 'NRG',
         pinClass: 'project-pin--energy',
         accent: 'text-yellow-300',
+        color: '#a16207',
     },
 };
+
+export const programColor = (program: TaraProgram | string): string =>
+    PROGRAM_META[program as TaraProgram]?.color ?? '#64748b';
 
 export const MOCK_TARA_PROJECTS: TaraProject[] = [
     {
@@ -609,6 +626,7 @@ export const describeProject = (project: TaraProject): string =>
 /** DOST Impression-style project type labels shown in Programs UI. */
 export type TaraType =
     | 'SETUP'
+    | 'SSCP'
     | 'Roll-out'
     | 'TAPI-assisted'
     | 'GIA (Community Based)'
@@ -618,6 +636,7 @@ export type TaraType =
 
 export const TARA_TYPES: TaraType[] = [
     'SETUP',
+    'SSCP',
     'Roll-out',
     'TAPI-assisted',
     'GIA (Community Based)',
@@ -628,6 +647,7 @@ export const TARA_TYPES: TaraType[] = [
 
 const PROGRAM_TO_TYPE: Record<TaraProgram, TaraType> = {
     SETUP: 'SETUP',
+    SSCP: 'SSCP',
     CEST: 'CEST',
     GIA: 'GIA (Community Based)',
     STARBOOKS: 'Roll-out',
@@ -723,6 +743,7 @@ export const PROGRAMS: TaraProgram[] = [
     'SETUP',
     'CEST',
     'GIA',
+    'SSCP',
     'STARBOOKS',
     'Community',
     'Water',

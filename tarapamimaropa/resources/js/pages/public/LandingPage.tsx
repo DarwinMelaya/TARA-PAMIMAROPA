@@ -17,6 +17,7 @@ import {
     PROVINCES,
     describeProject,
     formatPeso,
+    programColor,
     projectImage,
     projectStatusClass,
     projectStatusLabel,
@@ -656,7 +657,12 @@ const LandingPage = () => {
                                                         </p>
                                                     </td>
                                                     <td
-                                                        className={`px-3 py-3 font-medium ${t.program}`}
+                                                        className="px-3 py-3 font-semibold"
+                                                        style={{
+                                                            color: programColor(
+                                                                project.program,
+                                                            ),
+                                                        }}
                                                     >
                                                         {project.program}
                                                     </td>
@@ -734,7 +740,12 @@ const LandingPage = () => {
                                                     className={`text-[11px] ${t.muted}`}
                                                 >
                                                     <span
-                                                        className={`font-medium ${t.program}`}
+                                                        className="font-semibold"
+                                                        style={{
+                                                            color: programColor(
+                                                                project.program,
+                                                            ),
+                                                        }}
                                                     >
                                                         {project.program}
                                                     </span>{' '}
@@ -884,7 +895,10 @@ const LandingPage = () => {
                         <div className="flex items-start justify-between gap-3">
                             <div>
                                 <p
-                                    className={`text-[11px] font-bold uppercase tracking-[0.14em] ${t.modalAccent}`}
+                                    className="text-[11px] font-bold uppercase tracking-[0.14em]"
+                                    style={{
+                                        color: programColor(viewing.program),
+                                    }}
                                 >
                                     {PROGRAM_META[viewing.program].short} ·{' '}
                                     {viewing.province}

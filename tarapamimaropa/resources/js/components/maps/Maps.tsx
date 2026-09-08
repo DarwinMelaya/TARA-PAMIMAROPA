@@ -132,7 +132,7 @@ const resetMarkerElevation = (marker: L.Marker) => {
 };
 
 const dotColorFor = (program: string) =>
-  PIN_COLORS[program]?.soft ?? PIN_COLORS[program]?.fill ?? "#22d3ee";
+  PIN_COLORS[program]?.fill ?? "#64748b";
 
 const createUserLocationIcon = () =>
   L.divIcon({

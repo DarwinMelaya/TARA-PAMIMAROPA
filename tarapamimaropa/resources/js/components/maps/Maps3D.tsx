@@ -277,19 +277,26 @@ const buildTooltipContent = (project: TaraProject) => {
   `;
 };
 
+const cameraAngles = (flat: boolean) =>
+    flat
+        ? { pitch: 0, bearing: 0 }
+        : { pitch: PITCH_3D, bearing: BEARING_3D };
+
 const flyCamera = (
     map: maplibregl.Map,
     options: {
         center: [number, number];
         zoom: number;
         duration?: number;
+        flat?: boolean;
     },
 ) => {
+    const angles = cameraAngles(options.flat ?? false);
     map.easeTo({
         center: options.center,
         zoom: options.zoom,
-        pitch: PITCH_3D,
-        bearing: BEARING_3D,
+        pitch: angles.pitch,
+        bearing: angles.bearing,
         duration: options.duration ?? 900,
         essential: true,
         easing: (t) => 1 - Math.pow(1 - t, 3),
@@ -299,8 +306,12 @@ const flyCamera = (
 type Maps3DProps = {
     projects: TaraProject[];
     selectedId?: string | null;
-    /** Kept for API parity with 2D map; 3D buildings always use OpenFreeMap liberty. */
+    /** Kept for API parity; map always uses OpenFreeMap liberty. */
     baseLayer?: MapBaseLayer;
+    /** Flat top-down (2D toggle). Same liberty tiles / buildings style. */
+    flat?: boolean;
+    /** Dark chrome when true; white/standard liberty when false. */
+    isDark?: boolean;
     userLocation?: UserLocation | null;
     flyToUserToken?: number;
     onViewProject?: (project: TaraProject) => void;
@@ -322,6 +333,8 @@ const PROGRAM_DOT_COLORS: Record<string, string> = {
 const Maps3D = ({
     projects,
     selectedId,
+    flat = false,
+    isDark = true,
     userLocation = null,
     flyToUserToken = 0,
     onViewProject,
@@ -335,6 +348,8 @@ const Maps3D = ({
     >([]);
     const onViewProjectRef = useRef(onViewProject);
     const selectedIdRef = useRef(selectedId);
+    const isDarkRef = useRef(isDark);
+    const flatRef = useRef(flat);
     const readyRef = useRef(false);
     const clickHandlerRef = useRef<((e: maplibregl.MapLayerMouseEvent) => void) | null>(
         null,
@@ -344,6 +359,8 @@ const Maps3D = ({
 
     onViewProjectRef.current = onViewProject;
     selectedIdRef.current = selectedId;
+    isDarkRef.current = isDark;
+    flatRef.current = flat;
 
     const clearMarkers = () => {
         markersRef.current.forEach((marker) => marker.remove());
@@ -517,6 +534,8 @@ const Maps3D = ({
     ) => {
         const activeId = selectedIdRef.current;
 
+        const angles = cameraAngles(flatRef.current);
+
         if (activeId) {
             const hit = positioned.find((p) => p.project.id === activeId);
             if (hit) {
@@ -524,6 +543,7 @@ const Maps3D = ({
                     center: [hit.lng, hit.lat],
                     zoom: 15.2,
                     duration: 1100,
+                    flat: flatRef.current,
                 });
                 return;
             }
@@ -534,6 +554,7 @@ const Maps3D = ({
                 center: [positioned[0].lng, positioned[0].lat],
                 zoom: 14.5,
                 duration: 900,
+                flat: flatRef.current,
             });
             return;
         }
@@ -544,8 +565,8 @@ const Maps3D = ({
             map.fitBounds(bounds, {
                 padding: 80,
                 maxZoom: 14,
-                pitch: PITCH_3D,
-                bearing: BEARING_3D,
+                pitch: angles.pitch,
+                bearing: angles.bearing,
                 duration: 1000,
                 essential: true,
             });
@@ -556,6 +577,7 @@ const Maps3D = ({
             center: MIMAROPA_CENTER,
             zoom: DEFAULT_ZOOM,
             duration: 800,
+            flat: flatRef.current,
         });
     };
 
@@ -573,20 +595,23 @@ const Maps3D = ({
 
         void (async () => {
             let style: string | StyleSpec = LIBERTY_STYLE_URL;
-            try {
-                style = await loadDarkLibertyStyle();
-            } catch {
-                // Fall back to light liberty if dark recolor fetch fails.
+            if (isDarkRef.current) {
+                try {
+                    style = await loadDarkLibertyStyle();
+                } catch {
+                    // Fall back to light liberty if dark recolor fetch fails.
+                }
             }
             if (cancelled || !containerRef.current) return;
 
+            const startAngles = cameraAngles(flatRef.current);
             map = new maplibregl.Map({
                 container,
                 style: style as maplibregl.StyleSpecification | string,
                 center: MIMAROPA_CENTER,
                 zoom: DEFAULT_ZOOM,
-                pitch: PITCH_3D,
-                bearing: BEARING_3D,
+                pitch: startAngles.pitch,
+                bearing: startAngles.bearing,
                 minZoom: 5,
                 maxZoom: 18,
                 maxPitch: 85,
@@ -600,16 +625,22 @@ const Maps3D = ({
             );
             map.addControl(
                 new maplibregl.NavigationControl({
-                    visualizePitch: true,
+                    visualizePitch: !flatRef.current,
                     showCompass: true,
                     showZoom: true,
                 }),
                 'bottom-right',
             );
 
-            map.dragRotate.enable();
-            map.touchZoomRotate.enableRotation();
-            map.touchPitch.enable();
+            if (flatRef.current) {
+                map.dragRotate.disable();
+                map.touchZoomRotate.disableRotation();
+                map.touchPitch.disable();
+            } else {
+                map.dragRotate.enable();
+                map.touchZoomRotate.enableRotation();
+                map.touchPitch.enable();
+            }
             map.keyboard.enable();
             map.scrollZoom.setWheelZoomRate(1 / 420);
             map.scrollZoom.setZoomRate(1 / 120);
@@ -648,6 +679,60 @@ const Maps3D = ({
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once
     }, []);
+
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !readyRef.current) return;
+
+        let cancelled = false;
+
+        void (async () => {
+            let style: string | StyleSpec = LIBERTY_STYLE_URL;
+            if (isDark) {
+                try {
+                    style = await loadDarkLibertyStyle();
+                } catch {
+                    style = LIBERTY_STYLE_URL;
+                }
+            }
+            if (cancelled || !mapRef.current) return;
+
+            map.setStyle(style as maplibregl.StyleSpecification | string);
+            map.once('style.load', () => {
+                if (cancelled || !mapRef.current) return;
+                const { valid, positioned } = paintMarkers(mapRef.current);
+                frameProjects(mapRef.current, positioned, valid);
+            });
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isDark]);
+
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !readyRef.current) return;
+
+        const angles = cameraAngles(flat);
+        if (flat) {
+            map.dragRotate.disable();
+            map.touchZoomRotate.disableRotation();
+            map.touchPitch.disable();
+        } else {
+            map.dragRotate.enable();
+            map.touchZoomRotate.enableRotation();
+            map.touchPitch.enable();
+        }
+
+        map.easeTo({
+            pitch: angles.pitch,
+            bearing: angles.bearing,
+            duration: 700,
+            essential: true,
+        });
+    }, [flat]);
 
     useEffect(() => {
         const map = mapRef.current;
@@ -705,6 +790,7 @@ const Maps3D = ({
             center: [userLocation.lng, userLocation.lat],
             zoom: 15.2,
             duration: 1100,
+            flat: flatRef.current,
         });
     }, [flyToUserToken, userLocation]);
 
@@ -712,11 +798,26 @@ const Maps3D = ({
         <div className="relative h-full w-full">
             <div
                 ref={containerRef}
-                className="project-map-container maplibre-3d h-full w-full"
-                aria-label="TARA PAMIMAROPA 3D buildings project map"
+                className={[
+                    'project-map-container maplibre-3d h-full w-full',
+                    isDark ? 'project-map-container--dark' : 'project-map-container--light',
+                ].join(' ')}
+                aria-label={
+                    flat
+                        ? 'TARA PAMIMAROPA MapLibre project map'
+                        : 'TARA PAMIMAROPA 3D buildings project map'
+                }
             />
-            <div className="pointer-events-none absolute left-3 top-3 z-10 rounded-lg border border-cyan-400/30 bg-slate-950/75 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-200 backdrop-blur">
-                3D buildings · dark chrome · drag rotate
+            <div
+                className={[
+                    'pointer-events-none absolute left-3 top-3 z-10 rounded-lg border px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] backdrop-blur',
+                    isDark
+                        ? 'border-cyan-400/30 bg-slate-950/75 text-cyan-200'
+                        : 'border-slate-300 bg-white/90 text-slate-700 shadow-sm',
+                ].join(' ')}
+            >
+                {flat ? '2D' : '3D'} · MapLibre liberty · {isDark ? 'dark' : 'light'}
+                {flat ? '' : ' · drag rotate'}
             </div>
         </div>
     );

@@ -30,7 +30,6 @@ import AnalyticsChatBot from '@/components/region/dashboard/AnalyticsChatBot';
 import GraphsPanel from '@/components/region/dashboard/GraphsPanel';
 import RegionalDirectorAiAnalytics from '@/components/region/dashboard/RegionalDirectorAiAnalytics';
 import Maps, {
-    type MapBaseLayer,
     type MapViewMode,
     type UserLocation,
 } from '@/components/maps/Maps';
@@ -63,13 +62,6 @@ export type CommandMapWorkspaceProps = {
   /** Public landing: scroll target for “Browse project list”. */
   browseListHref?: string;
 };
-
-const BASE_LAYER_OPTIONS: { id: MapBaseLayer; label: string }[] = [
-  { id: "street", label: "Street" },
-  { id: "satellite", label: "Satellite" },
-  { id: "terrain", label: "Terrain" },
-  { id: "hybrid", label: "Hybrid" },
-];
 
 type StatKey =
   | "total"
@@ -435,12 +427,12 @@ const UI = {
     layerBar: "border-slate-300 bg-white shadow-sm",
     layerIdle: "text-slate-500 hover:text-slate-900",
     overlayDarkish:
-      "bg-[radial-gradient(circle_at_20%_0%,rgba(14,116,144,0.08),transparent_45%),linear-gradient(to_bottom,rgba(248,250,252,0.15),rgba(241,245,249,0.55))]",
+      "bg-[radial-gradient(circle_at_20%_0%,rgba(14,116,144,0.04),transparent_45%),linear-gradient(to_bottom,rgba(255,255,255,0.02),rgba(248,250,252,0.12))]",
     overlay3d:
-      "bg-[radial-gradient(circle_at_20%_0%,rgba(14,116,144,0.06),transparent_42%),linear-gradient(to_bottom,rgba(248,250,252,0.05),rgba(241,245,249,0.35))]",
-    grid: "bg-[linear-gradient(rgba(14,116,144,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(14,116,144,0.05)_1px,transparent_1px)] bg-[size:40px_40px]",
-    fadeTop: "from-slate-100/95 via-slate-100/40",
-    fadeBottom: "from-slate-100/95 via-slate-100/40",
+      "bg-[radial-gradient(circle_at_20%_0%,rgba(14,116,144,0.03),transparent_40%),linear-gradient(to_bottom,transparent,rgba(248,250,252,0.08))]",
+    grid: "bg-[linear-gradient(rgba(14,116,144,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(14,116,144,0.04)_1px,transparent_1px)] bg-[size:40px_40px]",
+    fadeTop: "from-white/70 via-white/20",
+    fadeBottom: "from-white/75 via-white/25",
     mobileSheetBtn: "border-slate-300 bg-white text-slate-700 shadow-sm",
     mobileSheetBtnOn: "border-cyan-500/60 bg-cyan-50 text-cyan-800",
     scrim: "bg-slate-900/45",
@@ -560,8 +552,7 @@ const CommandMapWorkspace = ({
   const [mobileSheet, setMobileSheet] = useState<
     "stats" | "feed" | "ai" | "graphs" | "plan" | null
   >(null);
-  const [baseLayer, setBaseLayer] = useState<MapBaseLayer>("satellite");
-  const [viewMode, setViewMode] = useState<MapViewMode>("2d");
+  const [viewMode, setViewMode] = useState<MapViewMode>("3d");
   const [graphsExpanded, setGraphsExpanded] = useState(false);
   const [feedExpanded, setFeedExpanded] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -805,16 +796,15 @@ const CommandMapWorkspace = ({
         <Maps
           projects={deferredMapProjects}
           selectedId={selectedId}
-          baseLayer={baseLayer}
           viewMode={viewMode}
+          isDark={isDark}
           userLocation={userLocation}
           flyToUserToken={flyToUserToken}
-          perfLite={perfLite && viewMode !== "3d"}
           onViewProject={handleViewProject}
         />
       </div>
 
-      {/* Decorative overlays desktop-only — full-bleed paint over map kills phone GPU */}
+      {/* Soft chrome fades only — keep map readable in light + dark */}
       {!perfLite ? (
         <>
           <div
@@ -823,15 +813,13 @@ const CommandMapWorkspace = ({
               viewMode === "3d" ? ui.overlay3d : ui.overlayDarkish,
             ].join(" ")}
           />
-          {viewMode !== "3d" ? (
+          {viewMode !== "3d" && theme === "dark" ? (
             <div className={`pointer-events-none absolute inset-0 z-10 ${ui.grid}`} />
           ) : null}
         </>
-      ) : (
-        <div className={`pointer-events-none absolute inset-0 z-10 bg-gradient-to-b via-transparent ${theme === "light" ? "from-slate-100/60 to-slate-100/70" : "from-slate-950/50 to-slate-950/70"}`} />
-      )}
-      <div className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-24 bg-gradient-to-b to-transparent lg:h-32 ${ui.fadeTop}`} />
-      <div className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 h-32 bg-gradient-to-t to-transparent lg:h-44 ${ui.fadeBottom}`} />
+      ) : null}
+      <div className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-gradient-to-b to-transparent lg:h-28 ${ui.fadeTop}`} />
+      <div className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 bg-gradient-to-t to-transparent lg:h-36 ${ui.fadeBottom}`} />
 
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 p-3 sm:p-5">
         <div className="pointer-events-auto flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
@@ -871,7 +859,12 @@ const CommandMapWorkspace = ({
               ).map(([label, color]) => (
                 <span
                   key={label}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/25 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white backdrop-blur-sm"
+                  className={[
+                    "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-wide backdrop-blur-sm",
+                    theme === "light"
+                      ? "border-slate-300 bg-white/90 text-slate-800 shadow-sm"
+                      : "border-white/15 bg-black/25 text-white",
+                  ].join(" ")}
                 >
                   <span
                     className="h-2 w-2 rounded-full"
@@ -944,36 +937,10 @@ const CommandMapWorkspace = ({
               <span className="hidden sm:inline">Search</span>
             </button>
             <ThemeToggle compact />
-            <div className={`flex shrink-0 rounded-xl border p-1 ${ui.layerBar}`}>
-              {BASE_LAYER_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setBaseLayer(opt.id)}
-                  className={[
-                    "rounded-lg px-2 py-1.5 text-[10px] font-bold uppercase tracking-wide transition sm:px-2.5",
-                    baseLayer === opt.id
-                      ? "bg-cyan-500/25 text-cyan-800 dark:text-cyan-100"
-                      : ui.layerIdle,
-                  ].join(" ")}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
             <button
               type="button"
               onClick={() => {
-                setViewMode((mode) => {
-                  const next = mode === "2d" ? "3d" : "2d";
-                  if (
-                    next === "3d" &&
-                    (baseLayer === "street" || baseLayer === "terrain")
-                  ) {
-                    setBaseLayer("satellite");
-                  }
-                  return next;
-                });
+                setViewMode((mode) => (mode === "2d" ? "3d" : "2d"));
               }}
               className={[
                 "inline-flex shrink-0 items-center justify-center gap-2",

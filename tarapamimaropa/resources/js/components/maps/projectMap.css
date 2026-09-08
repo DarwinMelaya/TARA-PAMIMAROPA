@@ -3,6 +3,14 @@
   background: #020617;
 }
 
+.project-map-container--light {
+  background: #f8fafc;
+}
+
+.project-map-container--dark {
+  background: #020617;
+}
+
 .project-map-container .leaflet-container {
   height: 100%;
   width: 100%;

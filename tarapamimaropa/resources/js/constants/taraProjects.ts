@@ -218,17 +218,17 @@ export const PROGRAM_META: Record<
         accent: 'text-amber-300',
     },
     STARBOOKS: {
-        short: 'STAR',
+        short: 'SB',
         pinClass: 'project-pin--starbooks',
         accent: 'text-emerald-300',
     },
     Community: {
-        short: 'COMM',
+        short: 'HUB',
         pinClass: 'project-pin--hub',
         accent: 'text-cyan-300',
     },
     Water: {
-        short: 'H2O',
+        short: 'WATER',
         pinClass: 'project-pin--water',
         accent: 'text-blue-300',
     },

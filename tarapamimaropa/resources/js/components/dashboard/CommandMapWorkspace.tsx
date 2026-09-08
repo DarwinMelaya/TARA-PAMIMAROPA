@@ -410,8 +410,6 @@ const printReport = (projects: TaraProject[], filters: ReportFilters) => {
 };
 
 const PERF_LITE_MQ = "(max-width: 1023px), (pointer: coarse)";
-/** Auto light-mode overlays when portfolio is this big. */
-const HEAVY_DATASET = 120;
 const FEED_PAGE_SIZE = 40;
 
 const readPerfLite = () =>
@@ -592,8 +590,8 @@ const CommandMapWorkspace = ({
     return [...labels].sort((a, b) => a.localeCompare(b));
   }, [projects]);
 
-  const heavyDataset = projects.length >= HEAVY_DATASET;
-  const perfLite = devicePerfLite || heavyDataset;
+  // Device perf only — never force cyan dots just because many projects.
+  const perfLite = devicePerfLite;
 
   useEffect(() => {
     const mq = window.matchMedia(PERF_LITE_MQ);

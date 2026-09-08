@@ -225,9 +225,13 @@ class Project extends Model
     /**
      * @return Collection<int, array<string, mixed>>
      */
-    public static function dashboardCollection(): Collection
+    public static function dashboardCollection(?string $province = null): Collection
     {
         return static::query()
+            ->when(
+                filled($province),
+                fn ($query) => $query->where('province', $province),
+            )
             ->orderBy('province')
             ->orderBy('name')
             ->get()

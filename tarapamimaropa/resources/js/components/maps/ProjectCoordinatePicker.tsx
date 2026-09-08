@@ -65,16 +65,16 @@ const BASE_LAYER_OPTIONS: { id: MapBaseLayer; label: string }[] = [
 const pinIcon = L.divIcon({
     className: 'project-pin-leaflet-icon',
     html: `
-      <div class="project-pin project-pin--hub project-pin--active" style="color:#22d3ee">
+      <div class="project-pin project-pin--hub project-pin--active" style="--pin:#be185d;--pin-soft:#f472b6">
         <div class="project-pin__pulse"></div>
         <div class="project-pin__core" title="Selected pin">
           <span class="project-pin__glyph">PIN</span>
         </div>
-        <div class="project-pin__point"></div>
+        <div class="project-pin__point" aria-hidden="true"></div>
       </div>
     `,
-    iconSize: [52, 58],
-    iconAnchor: [26, 30],
+    iconSize: [54, 58],
+    iconAnchor: [27, 56],
 });
 
 const formatCoord = (value: number) => value.toFixed(6);

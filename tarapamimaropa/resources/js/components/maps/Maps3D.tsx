@@ -383,7 +383,7 @@ const Maps3D = ({
         );
         const positioned = layoutProjectPositions(valid);
         positionedRef.current = positioned;
-        const heavy = valid.length >= HEAVY_MARKER_COUNT;
+        const heavy = false; // always use callout pins (same as 2D)
 
         if (heavy) {
             const features: GeoJSON.Feature[] = positioned.map(

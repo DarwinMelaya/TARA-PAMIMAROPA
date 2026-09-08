@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./projectMap.css";
@@ -7,7 +7,7 @@ import {
   STATUS_META,
   type TaraProject,
 } from "../../constants/taraProjects";
-import { buildProjectPinHtml } from "./projectMapPins";
+import { createLeafletPinIcon, PIN_COLORS } from "./projectMapPins";
 import Maps3D from "./Maps3D";
 import type { MapBaseLayer, MapViewMode, UserLocation } from "./mapTypes";
 
@@ -15,8 +15,9 @@ export type { MapBaseLayer, MapViewMode, UserLocation };
 
 const MIMAROPA_CENTER: L.LatLngExpression = [12.0, 121.0];
 const DEFAULT_ZOOM = 7;
-/** Above this count, prefer canvas dots over rich HTML pins. */
-const HEAVY_MARKER_COUNT = 80;
+/** Below this zoom → canvas dots (fast). At/above → SVG callout pins. */
+const DETAIL_ZOOM = 11;
+const VIEWPORT_PAD_RATIO = 0.15;
 
 const BASE_LAYERS: Record<
   MapBaseLayer,
@@ -45,17 +46,6 @@ const BASE_LAYERS: Record<
   },
 };
 
-const PROGRAM_DOT_COLORS: Record<string, string> = {
-  SETUP: "#22d3ee",
-  CEST: "#a78bfa",
-  GIA: "#fbbf24",
-  STARBOOKS: "#34d399",
-  Community: "#67e8f9",
-  Water: "#38bdf8",
-  Energy: "#facc15",
-};
-
-
 const escapeHtml = (value: unknown) =>
   String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -72,6 +62,8 @@ type PositionedProject = {
 type MarkerEntry = PositionedProject & {
   marker: L.Layer;
 };
+
+type PaintMode = "overview" | "detail";
 
 const layoutProjectPositions = (
   projects: TaraProject[],
@@ -117,14 +109,6 @@ const layoutProjectPositions = (
   return laidOut;
 };
 
-const createProjectPinIcon = (project: TaraProject, isActive: boolean) =>
-  L.divIcon({
-    className: "project-pin-leaflet-icon",
-    html: buildProjectPinHtml(project, isActive),
-    iconSize: [52, 58],
-    iconAnchor: [26, 30],
-  });
-
 const buildTooltipContent = (project: TaraProject) => {
   const status = STATUS_META[project.status];
   const program = PROGRAM_META[project.program];
@@ -139,16 +123,6 @@ const buildTooltipContent = (project: TaraProject) => {
   `;
 };
 
-const setPinState = (
-  marker: L.Marker,
-  { active, hover }: { active?: boolean; hover?: boolean },
-) => {
-  const pin = marker.getElement()?.querySelector(".project-pin");
-  if (!pin) return;
-  pin.classList.toggle("project-pin--active", !!active);
-  pin.classList.toggle("project-pin--hover", !!hover);
-};
-
 const elevateMarker = (marker: L.Marker, offset = 800) => {
   marker.setZIndexOffset?.(offset);
 };
@@ -157,17 +131,8 @@ const resetMarkerElevation = (marker: L.Marker) => {
   marker.setZIndexOffset?.(0);
 };
 
-type MapsProps = {
-  projects: TaraProject[];
-  selectedId?: string | null;
-  baseLayer?: MapBaseLayer;
-  viewMode?: MapViewMode;
-  userLocation?: UserLocation | null;
-  flyToUserToken?: number;
-  /** Skip fly/zoom anim + lighter tiles — phone / coarse pointer */
-  perfLite?: boolean;
-  onViewProject?: (project: TaraProject) => void;
-};
+const dotColorFor = (program: string) =>
+  PIN_COLORS[program]?.soft ?? PIN_COLORS[program]?.fill ?? "#22d3ee";
 
 const createUserLocationIcon = () =>
   L.divIcon({
@@ -181,6 +146,30 @@ const createUserLocationIcon = () =>
     iconSize: [28, 28],
     iconAnchor: [14, 14],
   });
+
+const paddedViewport = (map: L.Map) => {
+  const bounds = map.getBounds();
+  const latPad =
+    (bounds.getNorth() - bounds.getSouth()) * VIEWPORT_PAD_RATIO;
+  const lngPad =
+    (bounds.getEast() - bounds.getWest()) * VIEWPORT_PAD_RATIO;
+  return L.latLngBounds(
+    [bounds.getSouth() - latPad, bounds.getWest() - lngPad],
+    [bounds.getNorth() + latPad, bounds.getEast() + lngPad],
+  );
+};
+
+type MapsProps = {
+  projects: TaraProject[];
+  selectedId?: string | null;
+  baseLayer?: MapBaseLayer;
+  viewMode?: MapViewMode;
+  userLocation?: UserLocation | null;
+  flyToUserToken?: number;
+  /** Skip fly/zoom anim + tooltips — phone / coarse pointer */
+  perfLite?: boolean;
+  onViewProject?: (project: TaraProject) => void;
+};
 
 const Maps2D = ({
   projects,
@@ -199,10 +188,14 @@ const Maps2D = ({
   const layerGroupRef = useRef<L.LayerGroup | null>(null);
   const userMarkerRef = useRef<L.Marker | null>(null);
   const userAccuracyRef = useRef<L.Circle | null>(null);
+  const positionedRef = useRef<PositionedProject[]>([]);
+  const modeRef = useRef<PaintMode>("overview");
   const onViewProjectRef = useRef(onViewProject);
   const selectedIdRef = useRef(selectedId);
   const perfLiteRef = useRef(perfLite);
   const fittedProjectsKeyRef = useRef<string>("");
+  const paintRef = useRef<() => void>(() => {});
+  const [overviewHint, setOverviewHint] = useState(true);
 
   onViewProjectRef.current = onViewProject;
   selectedIdRef.current = selectedId;
@@ -229,92 +222,32 @@ const Maps2D = ({
     map.flyTo(latlng, zoomLevel, { duration });
   };
 
-  useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
-
-    const map = L.map(containerRef.current, {
-      center: MIMAROPA_CENTER,
-      zoom: DEFAULT_ZOOM,
-      zoomControl: false,
-      tapTolerance: 18,
-      preferCanvas: true,
-      fadeAnimation: !perfLite,
-      zoomAnimation: !perfLite,
-      markerZoomAnimation: !perfLite,
-      inertiaDeceleration: perfLite ? 4000 : 3000,
-    });
-
-    L.control.zoom({ position: "bottomright" }).addTo(map);
-    canvasRendererRef.current = L.canvas({ padding: 0.5 });
-    layerGroupRef.current = L.layerGroup().addTo(map);
-
-    const initial = BASE_LAYERS[baseLayer];
-    tileRef.current = L.tileLayer(initial.url, {
-      attribution: initial.attribution,
-      subdomains: "abcd",
-      maxZoom: initial.maxZoom ?? 19,
-      updateWhenIdle: true,
-      keepBuffer: perfLite ? 1 : 2,
-    }).addTo(map);
-
-    mapRef.current = map;
-
-    return () => {
-      clearMarkers();
-      map.remove();
-      mapRef.current = null;
-      tileRef.current = null;
-      layerGroupRef.current = null;
-      canvasRendererRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- init once
-  }, []);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    if (tileRef.current) {
-      map.removeLayer(tileRef.current);
-    }
-
-    const next = BASE_LAYERS[baseLayer];
-    tileRef.current = L.tileLayer(next.url, {
-      attribution: next.attribution,
-      subdomains: "abcd",
-      maxZoom: next.maxZoom ?? 19,
-      updateWhenIdle: true,
-      keepBuffer: perfLiteRef.current ? 1 : 2,
-    }).addTo(map);
-  }, [baseLayer]);
-
-  // Rebuild markers when project set changes.
-  useEffect(() => {
+  const paintMarkers = () => {
     const map = mapRef.current;
     const group = layerGroupRef.current;
-    const renderer = canvasRendererRef.current;
     if (!map || !group) return;
 
     clearMarkers();
 
-    const valid = (projects ?? []).filter(
-      (p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude),
-    );
-    const heavy = valid.length >= HEAVY_MARKER_COUNT || perfLiteRef.current;
+    const positioned = positionedRef.current;
+    const activeId = selectedIdRef.current;
+    const lite = perfLiteRef.current;
+    const zoom = map.getZoom();
+    const mode: PaintMode = zoom < DETAIL_ZOOM ? "overview" : "detail";
+    modeRef.current = mode;
+    setOverviewHint(mode === "overview" && positioned.length > 0);
 
-    if (heavy) {
-      const positioned = layoutProjectPositions(valid);
-      const activeId = selectedIdRef.current;
-
+    if (mode === "overview") {
+      const renderer = canvasRendererRef.current;
       positioned.forEach(({ project, lat, lng }) => {
         const isActive = activeId === project.id;
-        const color = PROGRAM_DOT_COLORS[project.program] ?? "#22d3ee";
+        const color = dotColorFor(project.program);
         const marker = L.circleMarker([lat, lng], {
-          radius: isActive ? 8 : 5,
+          radius: isActive ? 7 : 4,
           color: isActive ? "#fff" : color,
           weight: isActive ? 2 : 1,
           fillColor: color,
-          fillOpacity: isActive ? 0.95 : 0.75,
+          fillOpacity: isActive ? 0.95 : 0.7,
           renderer: renderer ?? undefined,
         }).addTo(group);
 
@@ -325,78 +258,152 @@ const Maps2D = ({
 
         markersRef.current.push({ marker, project, lat, lng });
       });
-    } else {
-      const positioned = layoutProjectPositions(valid);
-      const activeId = selectedIdRef.current;
-
-      positioned.forEach(({ project, lat, lng }) => {
-        const isActive = activeId === project.id;
-        const marker = L.marker([lat, lng], {
-          icon: createProjectPinIcon(project, isActive),
-          riseOnHover: !perfLiteRef.current,
-          riseOffset: 250,
-        }).addTo(group);
-
-        if (!perfLiteRef.current) {
-          marker.bindTooltip(buildTooltipContent(project), {
-            direction: "top",
-            offset: [0, -22],
-            opacity: 1,
-            className: "project-map-tooltip",
-          });
-
-          marker.on("mouseover", () => {
-            const isPinActive = selectedIdRef.current === project.id;
-            setPinState(marker, { active: isPinActive, hover: true });
-            elevateMarker(marker, isPinActive ? 1000 : 800);
-            marker.openTooltip();
-          });
-
-          marker.on("mouseout", () => {
-            const isPinActive = selectedIdRef.current === project.id;
-            setPinState(marker, { active: isPinActive, hover: false });
-            if (!isPinActive) resetMarkerElevation(marker);
-          });
-        }
-
-        marker.on("click", (e) => {
-          L.DomEvent.stopPropagation(e);
-          onViewProjectRef.current?.(project);
-        });
-
-        markersRef.current.push({ marker, project, lat, lng });
-      });
+      return;
     }
 
-    // Fit only when the project set changes — never on zoom (would fight user).
+    // Detail: labeled SVG pins for viewport only (keeps zoom-in smooth).
+    const view = paddedViewport(map);
+    const inView = positioned.filter(({ lat, lng }) =>
+      view.contains(L.latLng(lat, lng)),
+    );
+
+    inView.forEach(({ project, lat, lng }) => {
+      const isActive = activeId === project.id;
+      const marker = L.marker([lat, lng], {
+        icon: createLeafletPinIcon(project, isActive),
+        riseOnHover: !lite,
+        riseOffset: 250,
+        keyboard: false,
+      }).addTo(group);
+
+      if (!lite) {
+        marker.bindTooltip(buildTooltipContent(project), {
+          direction: "top",
+          offset: [0, -22],
+          opacity: 1,
+          className: "project-map-tooltip",
+        });
+      }
+
+      marker.on("click", (e) => {
+        L.DomEvent.stopPropagation(e);
+        onViewProjectRef.current?.(project);
+      });
+
+      markersRef.current.push({ marker, project, lat, lng });
+    });
+  };
+
+  paintRef.current = paintMarkers;
+
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+
+    const map = L.map(containerRef.current, {
+      center: MIMAROPA_CENTER,
+      zoom: DEFAULT_ZOOM,
+      zoomControl: false,
+      tapTolerance: 18,
+      fadeAnimation: !perfLite,
+      zoomAnimation: !perfLite,
+      markerZoomAnimation: !perfLite,
+      inertiaDeceleration: perfLite ? 4000 : 3000,
+    });
+
+    mapRef.current = map;
+    layerGroupRef.current = L.layerGroup().addTo(map);
+    canvasRendererRef.current = L.canvas({ padding: 0.5 });
+
+    const initial = BASE_LAYERS[baseLayer];
+    tileRef.current = L.tileLayer(initial.url, {
+      attribution: initial.attribution,
+      subdomains: "abcd",
+      maxZoom: initial.maxZoom ?? 19,
+      updateWhenIdle: true,
+      keepBuffer: perfLite ? 1 : 2,
+    }).addTo(map);
+
+    let moveTimer: number | null = null;
+    const schedulePaint = () => {
+      if (moveTimer != null) window.clearTimeout(moveTimer);
+      moveTimer = window.setTimeout(() => {
+        paintRef.current();
+      }, 80);
+    };
+
+    map.on("zoomend", schedulePaint);
+    map.on("moveend", () => {
+      // Viewport pin refresh only needed in detail mode.
+      if (modeRef.current === "detail") schedulePaint();
+    });
+
+    return () => {
+      if (moveTimer != null) window.clearTimeout(moveTimer);
+      map.off("zoomend", schedulePaint);
+      map.off("moveend");
+      clearMarkers();
+      map.remove();
+      mapRef.current = null;
+      layerGroupRef.current = null;
+      tileRef.current = null;
+      canvasRendererRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- map once
+  }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !tileRef.current) return;
+
+    map.removeLayer(tileRef.current);
+    const next = BASE_LAYERS[baseLayer];
+    tileRef.current = L.tileLayer(next.url, {
+      attribution: next.attribution,
+      subdomains: "abcd",
+      maxZoom: next.maxZoom ?? 19,
+      updateWhenIdle: true,
+      keepBuffer: perfLiteRef.current ? 1 : 2,
+    }).addTo(map);
+  }, [baseLayer]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const valid = (projects ?? []).filter(
+      (p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude),
+    );
+    positionedRef.current = layoutProjectPositions(valid);
+    paintMarkers();
+
     const projectsKey = `${valid.length}|${valid[0]?.id ?? ""}|${valid[valid.length - 1]?.id ?? ""}`;
     if (fittedProjectsKeyRef.current !== projectsKey) {
       fittedProjectsKeyRef.current = projectsKey;
+      const positioned = positionedRef.current;
 
-      if (valid.length === 1 && markersRef.current[0]) {
-        map.setView(
-          [markersRef.current[0].lat, markersRef.current[0].lng],
-          11,
-          { animate: !perfLiteRef.current },
-        );
-      } else if (valid.length > 1 && markersRef.current.length > 0) {
+      if (valid.length === 1 && positioned[0]) {
+        map.setView([positioned[0].lat, positioned[0].lng], 12, {
+          animate: !perfLiteRef.current,
+        });
+      } else if (valid.length > 1 && positioned.length > 0) {
         const bounds = L.latLngBounds(
-          markersRef.current.map((p) => [p.lat, p.lng] as [number, number]),
+          positioned.map((p) => [p.lat, p.lng] as [number, number]),
         );
         map.fitBounds(bounds, {
           padding: [64, 64],
           maxZoom: 10,
           animate: !perfLiteRef.current,
         });
-      } else if (valid.length === 0) {
+      } else {
         map.setView(MIMAROPA_CENTER, DEFAULT_ZOOM, {
           animate: !perfLiteRef.current,
         });
       }
+      // fitBounds may change zoom — repaint after settle
+      window.setTimeout(() => paintRef.current(), 120);
     }
   }, [projects]);
 
-  // Selection: update pin/dot state + pan — no full rebuild for rich pins.
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -404,24 +411,31 @@ const Maps2D = ({
     markersRef.current.forEach(({ marker, project }) => {
       const active = selectedId === project.id;
       if (marker instanceof L.Marker) {
-        setPinState(marker, { active, hover: false });
+        marker.setIcon(createLeafletPinIcon(project, active));
         if (active) elevateMarker(marker, 1000);
         else resetMarkerElevation(marker);
       } else if (marker instanceof L.CircleMarker) {
-        const color = PROGRAM_DOT_COLORS[project.program] ?? "#22d3ee";
+        const color = dotColorFor(project.program);
         marker.setStyle({
-          radius: active ? 8 : 5,
+          radius: active ? 7 : 4,
           color: active ? "#fff" : color,
           weight: active ? 2 : 1,
-          fillOpacity: active ? 0.95 : 0.75,
+          fillOpacity: active ? 0.95 : 0.7,
         });
       }
     });
 
     if (!selectedId) return;
-    const entry = markersRef.current.find((m) => m.project.id === selectedId);
+    const entry =
+      markersRef.current.find((m) => m.project.id === selectedId) ??
+      positionedRef.current.find((m) => m.project.id === selectedId);
     if (!entry) return;
-    goTo(map, [entry.lat, entry.lng], Math.max(map.getZoom(), 11), 0.6);
+    goTo(
+      map,
+      [entry.lat, entry.lng],
+      Math.max(map.getZoom(), DETAIL_ZOOM),
+      0.6,
+    );
   }, [selectedId]);
 
   useEffect(() => {
@@ -474,11 +488,18 @@ const Maps2D = ({
   }, [flyToUserToken, userLocation]);
 
   return (
-    <div
-      ref={containerRef}
-      className="project-map-container h-full w-full"
-      aria-label="TARA PAMIMAROPA GIS project map"
-    />
+    <div className="relative h-full w-full">
+      <div
+        ref={containerRef}
+        className="project-map-container h-full w-full"
+        aria-label="TARA PAMIMAROPA GIS project map"
+      />
+      {overviewHint ? (
+        <p className="pointer-events-none absolute bottom-3 left-1/2 z-[450] -translate-x-1/2 rounded-full border border-slate-600/80 bg-slate-950/85 px-3 py-1.5 text-[11px] font-medium text-slate-200 shadow-lg backdrop-blur-md">
+          Zoom in for labeled pins · overview stays light
+        </p>
+      ) : null}
+    </div>
   );
 };
 

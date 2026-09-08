@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AnalyticsChatController;
+use App\Http\Controllers\Psto\DashboardController as PstoDashboardController;
 use App\Http\Controllers\Psto\ProgramController as PstoProgramController;
 use App\Http\Controllers\Psto\ProjectController as PstoProjectController;
 use App\Http\Controllers\Region\AnalyticsPlanningController;
@@ -48,7 +49,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->prefix('psto')
         ->name('psto.')
         ->group(function () {
-            Route::inertia('/', 'psto/PstoDashboard')->name('dashboard');
+            Route::get('/', [PstoDashboardController::class, 'index'])->name('dashboard');
             Route::get('/programs', [PstoProgramController::class, 'index'])->name('programs');
             Route::post('/programs/import', [PstoProgramController::class, 'import'])->name('programs.import');
             Route::get('/programs/export', [PstoProgramController::class, 'export'])->name('programs.export');

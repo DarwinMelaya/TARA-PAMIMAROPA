@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import {
-    HiArrowRightOnRectangle,
     HiChevronLeft,
     HiChevronRight,
     HiMagnifyingGlass,
@@ -362,7 +361,6 @@ const LandingPage = () => {
                 <CommandMapWorkspace
                     projects={projects}
                     variant="public"
-                    loginHref="/login"
                     pageTitle="TARA PAMIMAROPA"
                     browseListHref="#project-results"
                 />
@@ -864,16 +862,6 @@ const LandingPage = () => {
                             <br />
                             Republic of the Philippines
                         </p>
-                        <Link
-                            href="/login"
-                            className="mt-3 inline-flex items-center gap-2 text-[12px] font-semibold text-white transition duration-[180ms] hover:text-amber-200"
-                        >
-                            <HiArrowRightOnRectangle
-                                className="h-4 w-4"
-                                aria-hidden
-                            />
-                            Staff login
-                        </Link>
                     </div>
                 </div>
                 <div

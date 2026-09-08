@@ -2,7 +2,6 @@ import { Head, Link } from '@inertiajs/react';
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import {
     HiAcademicCap,
-    HiArrowRightOnRectangle,
     HiArrowTopRightOnSquare,
     HiBanknotes,
     HiBuildingOffice2,
@@ -60,7 +59,6 @@ export type CommandMapWorkspaceProps = {
   projects: TaraProject[];
   variant?: CommandMapVariant;
   programsHref?: string;
-  loginHref?: string;
   pageTitle?: string;
   /** Public landing: scroll target for “Browse project list”. */
   browseListHref?: string;
@@ -544,7 +542,6 @@ const CommandMapWorkspace = ({
   projects,
   variant = "region",
   programsHref,
-  loginHref = "/login",
   pageTitle = "TARA PAMIMAROPA",
   browseListHref,
 }: CommandMapWorkspaceProps) => {
@@ -1014,25 +1011,27 @@ const CommandMapWorkspace = ({
               <HiChartBar className="h-4 w-4" aria-hidden />
               <span className="hidden sm:inline">Graphs</span>
             </button>
-            <button
-              type="button"
-              onClick={toggleChat}
-              className={[
-                "inline-flex shrink-0 items-center justify-center gap-2",
-                ui.chromeBtn,
-                chatOpen || mobileSheet === "ai"
-                  ? theme === "light"
-                    ? "border-violet-500/50 bg-violet-50 text-violet-800"
-                    : "border-violet-400/60 bg-violet-500/25 text-violet-100"
-                  : theme === "light"
-                    ? "text-violet-800"
-                    : "text-violet-100",
-              ].join(" ")}
-              aria-pressed={chatOpen || mobileSheet === "ai"}
-            >
-              <HiSparkles className="h-4 w-4" aria-hidden />
-              <span className="hidden sm:inline">AI chat</span>
-            </button>
+            {!isPublic ? (
+              <button
+                type="button"
+                onClick={toggleChat}
+                className={[
+                  "inline-flex shrink-0 items-center justify-center gap-2",
+                  ui.chromeBtn,
+                  chatOpen || mobileSheet === "ai"
+                    ? theme === "light"
+                      ? "border-violet-500/50 bg-violet-50 text-violet-800"
+                      : "border-violet-400/60 bg-violet-500/25 text-violet-100"
+                    : theme === "light"
+                      ? "text-violet-800"
+                      : "text-violet-100",
+                ].join(" ")}
+                aria-pressed={chatOpen || mobileSheet === "ai"}
+              >
+                <HiSparkles className="h-4 w-4" aria-hidden />
+                <span className="hidden sm:inline">AI chat</span>
+              </button>
+            ) : null}
             {!isPublic ? (
               <button
                 type="button"
@@ -1071,21 +1070,7 @@ const CommandMapWorkspace = ({
               <HiDocumentArrowDown className="h-4 w-4" aria-hidden />
               <span className="hidden sm:inline">Report</span>
             </button>
-            {isPublic ? (
-              <Link
-                href={loginHref}
-                className={[
-                  "inline-flex shrink-0 items-center justify-center gap-2",
-                  ui.chromeBtn,
-                  theme === "light"
-                    ? "border-blue-500/40 bg-blue-50 text-blue-900 sm:px-4"
-                    : "border-blue-500/30 bg-blue-950 text-blue-100 sm:px-4 lg:bg-blue-950/80",
-                ].join(" ")}
-              >
-                <HiArrowRightOnRectangle className="h-4 w-4" aria-hidden />
-                <span className="hidden sm:inline">Staff login</span>
-              </Link>
-            ) : programsHref ? (
+            {!isPublic && programsHref ? (
               <Link
                 href={programsHref}
                 className={[
@@ -1126,7 +1111,7 @@ const CommandMapWorkspace = ({
           </div>
         ) : null}
 
-        {!perfLite ? (
+        {!perfLite && !isPublic ? (
           <div className={`pointer-events-auto mt-3 hidden max-w-3xl items-start gap-2 rounded-xl border p-3 lg:flex ${ui.insight}`}>
             <HiLightBulb className="mt-0.5 h-5 w-5 shrink-0 text-violet-500 dark:text-violet-300" aria-hidden />
             <div className="min-w-0 flex-1">
@@ -1159,19 +1144,17 @@ const CommandMapWorkspace = ({
             >
               Open chat
             </button>
-            {!isPublic ? (
-              <button
-                type="button"
-                onClick={togglePlanning}
-                className={`shrink-0 rounded-lg border px-2 py-1 text-[10px] font-semibold ${
-                  theme === "light"
-                    ? "border-cyan-400/50 bg-cyan-50 text-cyan-900"
-                    : "border-cyan-400/40 bg-cyan-500/20 text-cyan-100"
-                }`}
-              >
-                RD Planning
-              </button>
-            ) : null}
+            <button
+              type="button"
+              onClick={togglePlanning}
+              className={`shrink-0 rounded-lg border px-2 py-1 text-[10px] font-semibold ${
+                theme === "light"
+                  ? "border-cyan-400/50 bg-cyan-50 text-cyan-900"
+                  : "border-cyan-400/40 bg-cyan-500/20 text-cyan-100"
+              }`}
+            >
+              RD Planning
+            </button>
           </div>
         ) : null}
       </header>
@@ -1277,7 +1260,7 @@ const CommandMapWorkspace = ({
       <div className="pointer-events-auto absolute inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-25 flex snap-x justify-start gap-2 overflow-x-auto px-3 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:justify-center lg:hidden">
         {(
           (isPublic
-            ? (["stats", "graphs", "feed", "ai"] as const)
+            ? (["stats", "graphs", "feed"] as const)
             : (["stats", "graphs", "feed", "plan", "ai"] as const)
           )
         ).map((sheet) => (
@@ -1444,7 +1427,7 @@ const CommandMapWorkspace = ({
           ].join(" ")}
         />
 
-        {mobileSheet === "ai" ? (
+        {!isPublic && mobileSheet === "ai" ? (
           <div className="pointer-events-auto block w-full lg:hidden">
             <AnalyticsChatBot
               open
@@ -1454,7 +1437,7 @@ const CommandMapWorkspace = ({
               }}
               projects={filteredProjects}
               variant="sheet"
-              audience={isPublic ? "general" : "regional_director"}
+              audience="regional_director"
               seedPrompt={chatSeedPrompt}
               onSeedPromptConsumed={() => setChatSeedPrompt(null)}
             />
@@ -1870,15 +1853,15 @@ const CommandMapWorkspace = ({
         </div>
       ) : null}
 
-      {/* Desktop AI chat + RD planning docks */}
-      {chatOpen ? (
+      {/* Desktop AI chat + RD planning docks — region only */}
+      {!isPublic && chatOpen ? (
         <div className="pointer-events-none absolute bottom-5 right-5 z-30 hidden lg:block">
           <AnalyticsChatBot
             open={chatOpen}
             onClose={() => setChatOpen(false)}
             projects={filteredProjects}
             variant="dock"
-            audience={isPublic ? "general" : "regional_director"}
+            audience="regional_director"
             seedPrompt={chatSeedPrompt}
             onSeedPromptConsumed={() => setChatSeedPrompt(null)}
           />

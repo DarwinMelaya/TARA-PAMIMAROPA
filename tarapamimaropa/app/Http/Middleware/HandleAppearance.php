@@ -16,7 +16,16 @@ class HandleAppearance
      */
     public function handle(Request $request, Closure $next): Response
     {
-        View::share('appearance', $request->cookie('appearance') ?? 'system');
+        // Map cookie → allowlisted literal only (never share raw cookie into Blade).
+        // Default light until product wants system/dark-first again.
+        $appearance = match ($request->cookie('appearance')) {
+            'light' => 'light',
+            'dark' => 'dark',
+            'system' => 'system',
+            default => 'light',
+        };
+
+        View::share('appearance', $appearance);
 
         return $next($request);
     }

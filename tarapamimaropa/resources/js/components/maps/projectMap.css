@@ -258,6 +258,12 @@
   margin-top: 8px;
 }
 
+/* Hide provider watermark / logo from map chrome (UI only). */
+.project-map-container .maplibregl-ctrl-attrib,
+.project-map-container .maplibregl-ctrl-logo {
+  display: none !important;
+}
+
 .maplibregl-popup.project-maplibre-popup .maplibregl-popup-content {
   padding: 0;
   background: transparent;

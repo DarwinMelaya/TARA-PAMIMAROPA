@@ -1,0 +1,1757 @@
+{
+  "generated_at": "2026-09-10T07:31:18+00:00",
+  "stats": {
+    "routes": 23,
+    "files": 83,
+    "by_type": {
+      "Other": 65,
+      "Controller": 14,
+      "Model": 1,
+      "Service": 3
+    },
+    "graph": {
+      "nodes": 103,
+      "edges": 117,
+      "by_type": {
+        "Route": 18,
+        "Controller": 15,
+        "Other": 60,
+        "Model": 2,
+        "Service": 6,
+        "Database": 1,
+        "External": 1
+      }
+    },
+    "findings": {
+      "critical": 0,
+      "high": 0,
+      "medium": 1,
+      "low": 0,
+      "info": 0
+    },
+    "project_root": "C:\\laragon\\www\\tarapamimaropa\\tarapamimaropa"
+  },
+  "findings": [
+    {
+      "id": "RAT-001",
+      "title": "Unvalidated appearance cookie reflected to Blade",
+      "description": "appearance cookie not whitelisted before View::share \u2014 XSS prep / cache split.",
+      "severity": "medium",
+      "confidence": "medium",
+      "entry": "app\\Http\\Middleware\\HandleAppearance.php",
+      "source": "$request->cookie('appearance')",
+      "sink": "View::share",
+      "flow": [
+        "app\\Http\\Middleware\\HandleAppearance.php",
+        "cookie appearance",
+        "Blade"
+      ],
+      "file": "app\\Http\\Middleware\\HandleAppearance.php",
+      "line": 27,
+      "recommendations": [
+        "Whitelist: in_array($cookie, ['light','dark','system'], true) ? $cookie : 'system'",
+        "Same for sidebar_state"
+      ],
+      "category": "security",
+      "why": "File app\\Http\\Middleware\\HandleAppearance.php:27 View::share appearance without whitelist. Blade escaped today but future unescaped echo would reflect 4KB attacker string (rat-audit.txt RAT-001 hardening, rat-miss-finding.txt AF-05)."
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "route:GET:/",
+        "type": "Route",
+        "name": "GET /",
+        "file": "routes\\web.php",
+        "line": 15,
+        "meta": {
+          "action": "HomeController@index"
+        }
+      },
+      {
+        "id": "controller:HomeController",
+        "type": "Controller",
+        "name": "HomeController",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "route:POST:/analytics-chat",
+        "type": "Route",
+        "name": "POST /analytics-chat",
+        "file": "routes\\web.php",
+        "line": 16,
+        "meta": {
+          "action": "AnalyticsChatController@store"
+        }
+      },
+      {
+        "id": "controller:AnalyticsChatController",
+        "type": "Controller",
+        "name": "AnalyticsChatController",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "route:GET:/users",
+        "type": "Route",
+        "name": "GET /users",
+        "file": "routes\\web.php",
+        "line": 29,
+        "meta": {
+          "action": "UserController@index"
+        }
+      },
+      {
+        "id": "controller:UserController",
+        "type": "Controller",
+        "name": "UserController",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "route:POST:/users",
+        "type": "Route",
+        "name": "POST /users",
+        "file": "routes\\web.php",
+        "line": 30,
+        "meta": {
+          "action": "UserController@store"
+        }
+      },
+      {
+        "id": "route:PUT:/users/{user}",
+        "type": "Route",
+        "name": "PUT /users/{user}",
+        "file": "routes\\web.php",
+        "line": 31,
+        "meta": {
+          "action": "UserController@update"
+        }
+      },
+      {
+        "id": "controller:DashboardController",
+        "type": "Controller",
+        "name": "DashboardController",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "route:POST:/analytics-planning-brief",
+        "type": "Route",
+        "name": "POST /analytics-planning-brief",
+        "file": "routes\\web.php",
+        "line": 39,
+        "meta": {
+          "action": "AnalyticsPlanningController@store"
+        }
+      },
+      {
+        "id": "controller:AnalyticsPlanningController",
+        "type": "Controller",
+        "name": "AnalyticsPlanningController",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "route:GET:/programs",
+        "type": "Route",
+        "name": "GET /programs",
+        "file": "routes\\web.php",
+        "line": 42,
+        "meta": {
+          "action": "ProgramController@index"
+        }
+      },
+      {
+        "id": "controller:ProgramController",
+        "type": "Controller",
+        "name": "ProgramController",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "route:GET:/programs/summary-graphs",
+        "type": "Route",
+        "name": "GET /programs/summary-graphs",
+        "file": "routes\\web.php",
+        "line": 43,
+        "meta": {
+          "action": "ProgramController@summaryGraphs"
+        }
+      },
+      {
+        "id": "route:POST:/programs/import",
+        "type": "Route",
+        "name": "POST /programs/import",
+        "file": "routes\\web.php",
+        "line": 44,
+        "meta": {
+          "action": "ProgramController@import"
+        }
+      },
+      {
+        "id": "route:GET:/programs/export-template",
+        "type": "Route",
+        "name": "GET /programs/export-template",
+        "file": "routes\\web.php",
+        "line": 45,
+        "meta": {
+          "action": "ProgramController@exportTemplate"
+        }
+      },
+      {
+        "id": "controller:PstoDashboardController",
+        "type": "Controller",
+        "name": "PstoDashboardController",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "controller:PstoProgramController",
+        "type": "Controller",
+        "name": "PstoProgramController",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "route:GET:/programs/export",
+        "type": "Route",
+        "name": "GET /programs/export",
+        "file": "routes\\web.php",
+        "line": 55,
+        "meta": {
+          "action": "PstoProgramController@export"
+        }
+      },
+      {
+        "id": "route:POST:/projects",
+        "type": "Route",
+        "name": "POST /projects",
+        "file": "routes\\web.php",
+        "line": 57,
+        "meta": {
+          "action": "PstoProjectController@store"
+        }
+      },
+      {
+        "id": "controller:PstoProjectController",
+        "type": "Controller",
+        "name": "PstoProjectController",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "route:PUT:/projects/{project}",
+        "type": "Route",
+        "name": "PUT /projects/{project}",
+        "file": "routes\\web.php",
+        "line": 58,
+        "meta": {
+          "action": "PstoProjectController@update"
+        }
+      },
+      {
+        "id": "route:GET:settings/profile",
+        "type": "Route",
+        "name": "GET settings/profile",
+        "file": "routes\\settings.php",
+        "line": 10,
+        "meta": {
+          "action": "ProfileController@edit"
+        }
+      },
+      {
+        "id": "controller:ProfileController",
+        "type": "Controller",
+        "name": "ProfileController",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "route:PATCH:settings/profile",
+        "type": "Route",
+        "name": "PATCH settings/profile",
+        "file": "routes\\settings.php",
+        "line": 11,
+        "meta": {
+          "action": "ProfileController@update"
+        }
+      },
+      {
+        "id": "route:DELETE:settings/profile",
+        "type": "Route",
+        "name": "DELETE settings/profile",
+        "file": "routes\\settings.php",
+        "line": 15,
+        "meta": {
+          "action": "ProfileController@destroy"
+        }
+      },
+      {
+        "id": "route:GET:settings/security",
+        "type": "Route",
+        "name": "GET settings/security",
+        "file": "routes\\settings.php",
+        "line": 17,
+        "meta": {
+          "action": "SecurityController@edit"
+        }
+      },
+      {
+        "id": "controller:SecurityController",
+        "type": "Controller",
+        "name": "SecurityController",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "route:PUT:settings/password",
+        "type": "Route",
+        "name": "PUT settings/password",
+        "file": "routes\\settings.php",
+        "line": 20,
+        "meta": {
+          "action": "SecurityController@update"
+        }
+      },
+      {
+        "id": "other:CreateNewUser",
+        "type": "Other",
+        "name": "CreateNewUser",
+        "file": "app\\Actions\\Fortify\\CreateNewUser.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "model:User",
+        "type": "Model",
+        "name": "User",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "other:ResetUserPassword",
+        "type": "Other",
+        "name": "ResetUserPassword",
+        "file": "app\\Actions\\Fortify\\ResetUserPassword.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:PasswordValidationRules",
+        "type": "Other",
+        "name": "PasswordValidationRules",
+        "file": "app\\Concerns\\PasswordValidationRules.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:ProfileValidationRules",
+        "type": "Other",
+        "name": "ProfileValidationRules",
+        "file": "app\\Concerns\\ProfileValidationRules.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:ProvinceValidationRules",
+        "type": "Other",
+        "name": "ProvinceValidationRules",
+        "file": "app\\Concerns\\ProvinceValidationRules.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:Province",
+        "type": "Other",
+        "name": "Province",
+        "file": "app\\Enums\\Province.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:UserRole",
+        "type": "Other",
+        "name": "UserRole",
+        "file": "app\\Enums\\UserRole.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "controller:Controller",
+        "type": "Controller",
+        "name": "Controller",
+        "file": "app\\Http\\Controllers\\Controller.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "controller:ProjectController",
+        "type": "Controller",
+        "name": "ProjectController",
+        "file": "app\\Http\\Controllers\\psto\\ProjectController.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:EnsureUserHasRole",
+        "type": "Other",
+        "name": "EnsureUserHasRole",
+        "file": "app\\Http\\Middleware\\EnsureUserHasRole.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:HandleAppearance",
+        "type": "Other",
+        "name": "HandleAppearance",
+        "file": "app\\Http\\Middleware\\HandleAppearance.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:HandleInertiaRequests",
+        "type": "Other",
+        "name": "HandleInertiaRequests",
+        "file": "app\\Http\\Middleware\\HandleInertiaRequests.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:AnalyticsChatRequest",
+        "type": "Other",
+        "name": "AnalyticsChatRequest",
+        "file": "app\\Http\\Requests\\AnalyticsChatRequest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:ImportProjectsRequest",
+        "type": "Other",
+        "name": "ImportProjectsRequest",
+        "file": "app\\Http\\Requests\\Psto\\ImportProjectsRequest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:StoreProjectRequest",
+        "type": "Other",
+        "name": "StoreProjectRequest",
+        "file": "app\\Http\\Requests\\Psto\\StoreProjectRequest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:UpdateProjectRequest",
+        "type": "Other",
+        "name": "UpdateProjectRequest",
+        "file": "app\\Http\\Requests\\Psto\\UpdateProjectRequest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:PasswordUpdateRequest",
+        "type": "Other",
+        "name": "PasswordUpdateRequest",
+        "file": "app\\Http\\Requests\\Settings\\PasswordUpdateRequest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:ProfileDeleteRequest",
+        "type": "Other",
+        "name": "ProfileDeleteRequest",
+        "file": "app\\Http\\Requests\\Settings\\ProfileDeleteRequest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:ProfileUpdateRequest",
+        "type": "Other",
+        "name": "ProfileUpdateRequest",
+        "file": "app\\Http\\Requests\\Settings\\ProfileUpdateRequest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:TwoFactorAuthenticationRequest",
+        "type": "Other",
+        "name": "TwoFactorAuthenticationRequest",
+        "file": "app\\Http\\Requests\\Settings\\TwoFactorAuthenticationRequest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:StoreUserRequest",
+        "type": "Other",
+        "name": "StoreUserRequest",
+        "file": "app\\Http\\Requests\\SuperAdmin\\StoreUserRequest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:UpdateUserRequest",
+        "type": "Other",
+        "name": "UpdateUserRequest",
+        "file": "app\\Http\\Requests\\SuperAdmin\\UpdateUserRequest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:LoginResponse",
+        "type": "Other",
+        "name": "LoginResponse",
+        "file": "app\\Http\\Responses\\LoginResponse.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:RegisterResponse",
+        "type": "Other",
+        "name": "RegisterResponse",
+        "file": "app\\Http\\Responses\\RegisterResponse.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "model:Project",
+        "type": "Model",
+        "name": "Project",
+        "file": "app\\Models\\Project.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:User",
+        "type": "Other",
+        "name": "User",
+        "file": "app\\Models\\User.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "service:AppServiceProvider",
+        "type": "Service",
+        "name": "AppServiceProvider",
+        "file": "app\\Providers\\AppServiceProvider.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "db:DB",
+        "type": "Database",
+        "name": "DB",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "service:FortifyServiceProvider",
+        "type": "Service",
+        "name": "FortifyServiceProvider",
+        "file": "app\\Providers\\FortifyServiceProvider.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "str:Str",
+        "type": "Service",
+        "name": "Str",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "service:GeminiAnalyticsChatService",
+        "type": "Service",
+        "name": "GeminiAnalyticsChatService",
+        "file": "app\\Services\\GeminiAnalyticsChatService.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "http:Http",
+        "type": "External",
+        "name": "Http",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "other:ProjectExcelExporter",
+        "type": "Other",
+        "name": "ProjectExcelExporter",
+        "file": "app\\Services\\ProjectExcelExporter.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:ProjectExcelImporter",
+        "type": "Other",
+        "name": "ProjectExcelImporter",
+        "file": "app\\Services\\ProjectExcelImporter.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:app",
+        "type": "Other",
+        "name": "app",
+        "file": "bootstrap\\app.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:packages",
+        "type": "Other",
+        "name": "packages",
+        "file": "bootstrap\\cache\\packages.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:services",
+        "type": "Other",
+        "name": "services",
+        "file": "bootstrap\\cache\\services.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:providers",
+        "type": "Other",
+        "name": "providers",
+        "file": "bootstrap\\providers.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:auth",
+        "type": "Other",
+        "name": "auth",
+        "file": "config\\auth.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:cache",
+        "type": "Other",
+        "name": "cache",
+        "file": "config\\cache.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:database",
+        "type": "Other",
+        "name": "database",
+        "file": "config\\database.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:filesystems",
+        "type": "Other",
+        "name": "filesystems",
+        "file": "config\\filesystems.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:fortify",
+        "type": "Other",
+        "name": "fortify",
+        "file": "config\\fortify.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:inertia",
+        "type": "Other",
+        "name": "inertia",
+        "file": "config\\inertia.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:logging",
+        "type": "Other",
+        "name": "logging",
+        "file": "config\\logging.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:mail",
+        "type": "Other",
+        "name": "mail",
+        "file": "config\\mail.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:queue",
+        "type": "Other",
+        "name": "queue",
+        "file": "config\\queue.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:session",
+        "type": "Other",
+        "name": "session",
+        "file": "config\\session.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:UserFactory",
+        "type": "Other",
+        "name": "UserFactory",
+        "file": "database\\factories\\UserFactory.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:0001_01_01_000000_create_users_table",
+        "type": "Other",
+        "name": "0001_01_01_000000_create_users_table",
+        "file": "database\\migrations\\0001_01_01_000000_create_users_table.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "schema:Schema",
+        "type": "Service",
+        "name": "Schema",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "other:0001_01_01_000001_create_cache_table",
+        "type": "Other",
+        "name": "0001_01_01_000001_create_cache_table",
+        "file": "database\\migrations\\0001_01_01_000001_create_cache_table.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:0001_01_01_000002_create_jobs_table",
+        "type": "Other",
+        "name": "0001_01_01_000002_create_jobs_table",
+        "file": "database\\migrations\\0001_01_01_000002_create_jobs_table.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_05_010900_add_role_to_users_table",
+        "type": "Other",
+        "name": "2026_09_05_010900_add_role_to_users_table",
+        "file": "database\\migrations\\2026_09_05_010900_add_role_to_users_table.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_05_023139_create_projects_table",
+        "type": "Other",
+        "name": "2026_09_05_023139_create_projects_table",
+        "file": "database\\migrations\\2026_09_05_023139_create_projects_table.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_05_025200_add_province_to_users_table",
+        "type": "Other",
+        "name": "2026_09_05_025200_add_province_to_users_table",
+        "file": "database\\migrations\\2026_09_05_025200_add_province_to_users_table.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:2026_09_05_052200_add_coordinates_to_projects_table",
+        "type": "Other",
+        "name": "2026_09_05_052200_add_coordinates_to_projects_table",
+        "file": "database\\migrations\\2026_09_05_052200_add_coordinates_to_projects_table.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:DatabaseSeeder",
+        "type": "Other",
+        "name": "DatabaseSeeder",
+        "file": "database\\seeders\\DatabaseSeeder.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:ProjectSeeder",
+        "type": "Other",
+        "name": "ProjectSeeder",
+        "file": "database\\seeders\\ProjectSeeder.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:app.blade",
+        "type": "Other",
+        "name": "app.blade",
+        "file": "resources\\views\\app.blade.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:console",
+        "type": "Other",
+        "name": "console",
+        "file": "routes\\console.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "controller:settings",
+        "type": "Controller",
+        "name": "settings",
+        "file": "routes\\settings.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "route:Route",
+        "type": "Service",
+        "name": "Route",
+        "file": "",
+        "line": 0,
+        "meta": {}
+      },
+      {
+        "id": "controller:web",
+        "type": "Controller",
+        "name": "web",
+        "file": "routes\\web.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:AuthenticationTest",
+        "type": "Other",
+        "name": "AuthenticationTest",
+        "file": "tests\\Feature\\Auth\\AuthenticationTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:PasswordResetTest",
+        "type": "Other",
+        "name": "PasswordResetTest",
+        "file": "tests\\Feature\\Auth\\PasswordResetTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:DashboardTest",
+        "type": "Other",
+        "name": "DashboardTest",
+        "file": "tests\\Feature\\DashboardTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:ExampleTest",
+        "type": "Other",
+        "name": "ExampleTest",
+        "file": "tests\\Feature\\ExampleTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:ProjectImportTest",
+        "type": "Other",
+        "name": "ProjectImportTest",
+        "file": "tests\\Feature\\Region\\ProjectImportTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:ProfileUpdateTest",
+        "type": "Other",
+        "name": "ProfileUpdateTest",
+        "file": "tests\\Feature\\Settings\\ProfileUpdateTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:SecurityTest",
+        "type": "Other",
+        "name": "SecurityTest",
+        "file": "tests\\Feature\\Settings\\SecurityTest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:Pest",
+        "type": "Other",
+        "name": "Pest",
+        "file": "tests\\Pest.php",
+        "line": 1,
+        "meta": {}
+      },
+      {
+        "id": "other:TestCase",
+        "type": "Other",
+        "name": "TestCase",
+        "file": "tests\\TestCase.php",
+        "line": 1,
+        "meta": {}
+      }
+    ],
+    "edges": [
+      {
+        "from": "route:GET:/",
+        "to": "controller:HomeController",
+        "kind": "CALLS",
+        "label": "HomeController@index",
+        "meta": {}
+      },
+      {
+        "from": "route:POST:/analytics-chat",
+        "to": "controller:AnalyticsChatController",
+        "kind": "CALLS",
+        "label": "AnalyticsChatController@store",
+        "meta": {}
+      },
+      {
+        "from": "route:GET:/users",
+        "to": "controller:UserController",
+        "kind": "CALLS",
+        "label": "UserController@index",
+        "meta": {}
+      },
+      {
+        "from": "route:POST:/users",
+        "to": "controller:UserController",
+        "kind": "CALLS",
+        "label": "UserController@store",
+        "meta": {}
+      },
+      {
+        "from": "route:PUT:/users/{user}",
+        "to": "controller:UserController",
+        "kind": "CALLS",
+        "label": "UserController@update",
+        "meta": {}
+      },
+      {
+        "from": "route:GET:/",
+        "to": "controller:DashboardController",
+        "kind": "CALLS",
+        "label": "DashboardController@index",
+        "meta": {}
+      },
+      {
+        "from": "route:POST:/analytics-planning-brief",
+        "to": "controller:AnalyticsPlanningController",
+        "kind": "CALLS",
+        "label": "AnalyticsPlanningController@store",
+        "meta": {}
+      },
+      {
+        "from": "route:GET:/programs",
+        "to": "controller:ProgramController",
+        "kind": "CALLS",
+        "label": "ProgramController@index",
+        "meta": {}
+      },
+      {
+        "from": "route:GET:/programs/summary-graphs",
+        "to": "controller:ProgramController",
+        "kind": "CALLS",
+        "label": "ProgramController@summaryGraphs",
+        "meta": {}
+      },
+      {
+        "from": "route:POST:/programs/import",
+        "to": "controller:ProgramController",
+        "kind": "CALLS",
+        "label": "ProgramController@import",
+        "meta": {}
+      },
+      {
+        "from": "route:GET:/programs/export-template",
+        "to": "controller:ProgramController",
+        "kind": "CALLS",
+        "label": "ProgramController@exportTemplate",
+        "meta": {}
+      },
+      {
+        "from": "route:GET:/",
+        "to": "controller:PstoDashboardController",
+        "kind": "CALLS",
+        "label": "PstoDashboardController@index",
+        "meta": {}
+      },
+      {
+        "from": "route:GET:/programs",
+        "to": "controller:PstoProgramController",
+        "kind": "CALLS",
+        "label": "PstoProgramController@index",
+        "meta": {}
+      },
+      {
+        "from": "route:POST:/programs/import",
+        "to": "controller:PstoProgramController",
+        "kind": "CALLS",
+        "label": "PstoProgramController@import",
+        "meta": {}
+      },
+      {
+        "from": "route:GET:/programs/export",
+        "to": "controller:PstoProgramController",
+        "kind": "CALLS",
+        "label": "PstoProgramController@export",
+        "meta": {}
+      },
+      {
+        "from": "route:GET:/programs/export-template",
+        "to": "controller:PstoProgramController",
+        "kind": "CALLS",
+        "label": "PstoProgramController@exportTemplate",
+        "meta": {}
+      },
+      {
+        "from": "route:POST:/projects",
+        "to": "controller:PstoProjectController",
+        "kind": "CALLS",
+        "label": "PstoProjectController@store",
+        "meta": {}
+      },
+      {
+        "from": "route:PUT:/projects/{project}",
+        "to": "controller:PstoProjectController",
+        "kind": "CALLS",
+        "label": "PstoProjectController@update",
+        "meta": {}
+      },
+      {
+        "from": "route:GET:settings/profile",
+        "to": "controller:ProfileController",
+        "kind": "CALLS",
+        "label": "ProfileController@edit",
+        "meta": {}
+      },
+      {
+        "from": "route:PATCH:settings/profile",
+        "to": "controller:ProfileController",
+        "kind": "CALLS",
+        "label": "ProfileController@update",
+        "meta": {}
+      },
+      {
+        "from": "route:DELETE:settings/profile",
+        "to": "controller:ProfileController",
+        "kind": "CALLS",
+        "label": "ProfileController@destroy",
+        "meta": {}
+      },
+      {
+        "from": "route:GET:settings/security",
+        "to": "controller:SecurityController",
+        "kind": "CALLS",
+        "label": "SecurityController@edit",
+        "meta": {}
+      },
+      {
+        "from": "route:PUT:settings/password",
+        "to": "controller:SecurityController",
+        "kind": "CALLS",
+        "label": "SecurityController@update",
+        "meta": {}
+      },
+      {
+        "from": "other:CreateNewUser",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:ProfileValidationRules",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:ProfileValidationRules",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "controller:UserController",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "controller:UserController",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "service:AppServiceProvider",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "service:FortifyServiceProvider",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "service:FortifyServiceProvider",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "service:GeminiAnalyticsChatService",
+        "to": "http:Http",
+        "kind": "DEPENDS_ON",
+        "label": "Http::",
+        "meta": {}
+      },
+      {
+        "from": "other:ProjectExcelImporter",
+        "to": "db:DB",
+        "kind": "DEPENDS_ON",
+        "label": "DB::",
+        "meta": {}
+      },
+      {
+        "from": "other:database",
+        "to": "str:Str",
+        "kind": "DEPENDS_ON",
+        "label": "Str::",
+        "meta": {}
+      },
+      {
+        "from": "other:0001_01_01_000000_create_users_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:0001_01_01_000000_create_users_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:0001_01_01_000000_create_users_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:0001_01_01_000000_create_users_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:0001_01_01_000000_create_users_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:0001_01_01_000000_create_users_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:0001_01_01_000001_create_cache_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:0001_01_01_000001_create_cache_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:0001_01_01_000001_create_cache_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:0001_01_01_000001_create_cache_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:0001_01_01_000002_create_jobs_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:0001_01_01_000002_create_jobs_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:0001_01_01_000002_create_jobs_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:0001_01_01_000002_create_jobs_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:0001_01_01_000002_create_jobs_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:0001_01_01_000002_create_jobs_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_05_010900_add_role_to_users_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_05_010900_add_role_to_users_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_05_010900_add_role_to_users_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_05_010900_add_role_to_users_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_05_023139_create_projects_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_05_023139_create_projects_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_05_025200_add_province_to_users_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_05_025200_add_province_to_users_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_05_052200_add_coordinates_to_projects_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "other:2026_09_05_052200_add_coordinates_to_projects_table",
+        "to": "schema:Schema",
+        "kind": "DEPENDS_ON",
+        "label": "Schema::",
+        "meta": {}
+      },
+      {
+        "from": "controller:settings",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:settings",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:settings",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:settings",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:settings",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:settings",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:settings",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:settings",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:settings",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "controller:web",
+        "to": "route:Route",
+        "kind": "DEPENDS_ON",
+        "label": "Route::",
+        "meta": {}
+      },
+      {
+        "from": "other:AuthenticationTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:AuthenticationTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:AuthenticationTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:AuthenticationTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:AuthenticationTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:AuthenticationTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:AuthenticationTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:PasswordResetTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:PasswordResetTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:PasswordResetTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:PasswordResetTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:DashboardTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:DashboardTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:ProjectImportTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:ProjectImportTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:ProfileUpdateTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:ProfileUpdateTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:ProfileUpdateTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:ProfileUpdateTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:ProfileUpdateTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:SecurityTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:SecurityTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:SecurityTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      },
+      {
+        "from": "other:SecurityTest",
+        "to": "model:User",
+        "kind": "WRITES",
+        "label": "User",
+        "meta": {}
+      }
+    ],
+    "stats": {
+      "nodes": 103,
+      "edges": 117,
+      "by_type": {
+        "Route": 18,
+        "Controller": 15,
+        "Other": 60,
+        "Model": 2,
+        "Service": 6,
+        "Database": 1,
+        "External": 1
+      }
+    }
+  }
+}

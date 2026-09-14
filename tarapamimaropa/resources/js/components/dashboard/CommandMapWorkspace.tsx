@@ -417,7 +417,8 @@ const UI = {
       "border-cyan-600/35 bg-white text-cyan-800 shadow-sm lg:bg-white/95",
     title:
       "bg-gradient-to-r from-slate-900 via-cyan-800 to-blue-700 bg-clip-text text-transparent",
-    subtitle: "text-cyan-800/80",
+    subtitle:
+      "rounded-lg bg-white/90 px-2 py-1 font-medium text-slate-800 shadow-sm backdrop-blur-sm",
     meta: "text-slate-500",
     select:
       "cursor-pointer appearance-none rounded-xl border bg-white py-2 pl-8 pr-8 text-sm font-semibold text-slate-900 outline-none transition shadow-sm",
@@ -820,25 +821,25 @@ const CommandMapWorkspace = ({
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 p-3 sm:p-5">
         <div className="pointer-events-auto flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
           <div className="min-w-0 max-w-2xl">
-            <div className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] sm:px-3 sm:py-1.5 sm:text-[11px] ${ui.badge}`}>
-              <HiMap className="h-3.5 w-3.5" aria-hidden />
-              {!perfLite ? (
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-60" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400" />
-                </span>
-              ) : (
-                <span className="inline-flex h-2 w-2 rounded-full bg-cyan-400" />
-              )}
-              TARA · {isPublic ? "Public portfolio" : "STI Command Map"}
-            </div>
-            <h1 className={`mt-2 text-xl font-bold tracking-tight sm:mt-3 sm:text-3xl ${ui.title}`}>
+            {!isPublic ? (
+              <div className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] sm:px-3 sm:py-1.5 sm:text-[11px] ${ui.badge}`}>
+                <HiMap className="h-3.5 w-3.5" aria-hidden />
+                {!perfLite ? (
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-60" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400" />
+                  </span>
+                ) : (
+                  <span className="inline-flex h-2 w-2 rounded-full bg-cyan-400" />
+                )}
+                TARA · STI Command Map
+              </div>
+            ) : null}
+            <h1 className={`text-xl font-bold tracking-tight sm:text-3xl ${ui.title} ${isPublic ? "" : "mt-2 sm:mt-3"}`}>
               TARA PAMIMAROPA
             </h1>
             <p className={`mt-1 max-w-xl text-xs sm:text-sm ${ui.subtitle}`}>
-              {isPublic
-                ? "Open map of DOST-MIMAROPA projects, funding, and results across the region."
-                : "Tracking of Accomplishments and Results of Activities and Programs across MIMAROPA"}
+              Tracking of Accomplishments and Results of Activities and Programs across MIMAROPA
             </p>
             <p className={`mt-1 hidden text-xs sm:block ${ui.meta}`}>
               {stats.municipalities} municipalities · {stats.barangays} barangays

@@ -275,7 +275,7 @@ const buildTooltipContent = (project: TaraProject) => {
       <strong>◈ ${escapeHtml(project.name)}</strong>
       <span>${escapeHtml(project.program)} · ${escapeHtml(status.label)} · ${project.progress}%</span>
       <p>${escapeHtml(project.municipality)}, ${escapeHtml(project.province)}</p>
-      <em>MapLibre · Click for project intel · ${escapeHtml(program.short)}</em>
+      <em>Click for project intel · ${escapeHtml(program.short)}</em>
     </div>
   `;
 };
@@ -688,10 +688,6 @@ const Maps3D = ({
             });
 
             map.addControl(
-                new maplibregl.AttributionControl({ compact: true }),
-                'top-right',
-            );
-            map.addControl(
                 new maplibregl.NavigationControl({
                     visualizePitch: !flatRef.current,
                     showCompass: true,
@@ -904,17 +900,6 @@ const Maps3D = ({
                         : 'TARA PAMIMAROPA 3D buildings project map'
                 }
             />
-            <div
-                className={[
-                    'pointer-events-none absolute left-3 top-3 z-10 rounded-lg border px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] backdrop-blur',
-                    isDark
-                        ? 'border-cyan-400/30 bg-slate-950/75 text-cyan-200'
-                        : 'border-slate-300 bg-white/90 text-slate-700 shadow-sm',
-                ].join(' ')}
-            >
-                {flat ? '2D' : '3D'} · MapLibre liberty · {isDark ? 'dark' : 'light'}
-                {flat ? '' : ' · drag rotate'}
-            </div>
             {overviewHint ? (
                 <p
                     className={[

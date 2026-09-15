@@ -11,6 +11,7 @@ import {
 } from '../../constants/taraProjects';
 import { buildProjectPinHtml } from './projectMapPins';
 import type { MapBaseLayer, UserLocation } from './mapTypes';
+import mimaropaProvinces from './mimaropaProvinces.json';
 
 setWorkerUrl(maplibreWorkerUrl);
 
@@ -326,6 +327,235 @@ const flyCamera = (
     });
 };
 
+const MIMAROPA_SOURCE = 'mimaropa-provinces';
+const MIMAROPA_LABEL_SOURCE = 'mimaropa-province-labels';
+const MIMAROPA_FILL = 'mimaropa-provinces-fill';
+const MIMAROPA_LINE_CASING = 'mimaropa-provinces-line-casing';
+const MIMAROPA_LINE = 'mimaropa-provinces-line';
+const MIMAROPA_LABEL = 'mimaropa-provinces-label';
+
+/** One label point per province (MultiPolygon would stamp name on every island). */
+const MIMAROPA_LABEL_POINTS: GeoJSON.FeatureCollection = {
+    type: 'FeatureCollection',
+    features: [
+        {
+            type: 'Feature',
+            properties: { name: 'Occidental Mindoro' },
+            geometry: { type: 'Point', coordinates: [120.92, 12.85] },
+        },
+        {
+            type: 'Feature',
+            properties: { name: 'Oriental Mindoro' },
+            geometry: { type: 'Point', coordinates: [121.25, 13.0] },
+        },
+        {
+            type: 'Feature',
+            properties: { name: 'Marinduque' },
+            geometry: { type: 'Point', coordinates: [121.95, 13.38] },
+        },
+        {
+            type: 'Feature',
+            properties: { name: 'Romblon' },
+            geometry: { type: 'Point', coordinates: [122.27, 12.55] },
+        },
+        {
+            type: 'Feature',
+            properties: { name: 'Palawan' },
+            geometry: { type: 'Point', coordinates: [118.75, 9.75] },
+        },
+    ],
+};
+
+const mimaropaLayerIds = [
+    MIMAROPA_FILL,
+    MIMAROPA_LINE_CASING,
+    MIMAROPA_LINE,
+    MIMAROPA_LABEL,
+] as const;
+
+/** Keep outlines above basemap, under project dots/pins. */
+const stackMimaropaOutlines = (map: maplibregl.Map) => {
+    const before =
+        (map.getLayer('projects-dots-halo') && 'projects-dots-halo') ||
+        (map.getLayer('projects-dots-circle') && 'projects-dots-circle') ||
+        undefined;
+
+    for (const id of mimaropaLayerIds) {
+        if (!map.getLayer(id)) continue;
+        try {
+            if (before) map.moveLayer(id, before);
+            else map.moveLayer(id);
+        } catch {
+            // Layer order best-effort.
+        }
+    }
+};
+
+/** Province outlines so MIMAROPA is readable at overview zoom. */
+const ensureMimaropaOutlines = (map: maplibregl.Map, isDark: boolean) => {
+    if (!map.isStyleLoaded()) return;
+
+    const fillColor = isDark ? '#22d3ee' : '#0038a8';
+    const lineColor = isDark ? '#a5f3fc' : '#002d87';
+    const casingColor = isDark ? '#083344' : '#ffffff';
+    const labelColor = isDark ? '#ecfeff' : '#0f172a';
+    const labelHalo = isDark ? '#020617' : '#ffffff';
+    const fillOpacity = isDark ? 0.16 : 0.08;
+
+    const addOrUpdate = (run: () => void) => {
+        try {
+            run();
+        } catch {
+            // One layer failure must not block the rest.
+        }
+    };
+
+    addOrUpdate(() => {
+        if (!map.getSource(MIMAROPA_SOURCE)) {
+            map.addSource(MIMAROPA_SOURCE, {
+                type: 'geojson',
+                data: mimaropaProvinces as GeoJSON.FeatureCollection,
+            });
+        }
+    });
+
+    addOrUpdate(() => {
+        if (!map.getSource(MIMAROPA_LABEL_SOURCE)) {
+            map.addSource(MIMAROPA_LABEL_SOURCE, {
+                type: 'geojson',
+                data: MIMAROPA_LABEL_POINTS,
+            });
+        }
+    });
+
+    addOrUpdate(() => {
+        if (!map.getLayer(MIMAROPA_FILL)) {
+            map.addLayer({
+                id: MIMAROPA_FILL,
+                type: 'fill',
+                source: MIMAROPA_SOURCE,
+                paint: {
+                    'fill-color': fillColor,
+                    'fill-opacity': fillOpacity,
+                },
+            });
+        } else {
+            map.setPaintProperty(MIMAROPA_FILL, 'fill-color', fillColor);
+            map.setPaintProperty(MIMAROPA_FILL, 'fill-opacity', fillOpacity);
+        }
+    });
+
+    addOrUpdate(() => {
+        // Recreate line layers if a prior invalid paint blocked them.
+        if (map.getLayer(MIMAROPA_LINE_CASING)) {
+            map.removeLayer(MIMAROPA_LINE_CASING);
+        }
+        map.addLayer({
+            id: MIMAROPA_LINE_CASING,
+            type: 'line',
+            source: MIMAROPA_SOURCE,
+            layout: {
+                'line-join': 'round',
+                'line-cap': 'round',
+            },
+            paint: {
+                'line-color': casingColor,
+                'line-width': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    5,
+                    4.5,
+                    8,
+                    7,
+                    12,
+                    9,
+                ],
+                'line-opacity': isDark ? 0.95 : 0.85,
+            },
+        });
+    });
+
+    addOrUpdate(() => {
+        if (map.getLayer(MIMAROPA_LINE)) {
+            map.removeLayer(MIMAROPA_LINE);
+        }
+        map.addLayer({
+            id: MIMAROPA_LINE,
+            type: 'line',
+            source: MIMAROPA_SOURCE,
+            layout: {
+                'line-join': 'round',
+                'line-cap': 'round',
+            },
+            paint: {
+                'line-color': lineColor,
+                'line-width': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    5,
+                    isDark ? 2.4 : 1.8,
+                    8,
+                    isDark ? 3.4 : 2.8,
+                    12,
+                    isDark ? 4.2 : 3.4,
+                ],
+                'line-opacity': 1,
+            },
+        });
+    });
+
+    addOrUpdate(() => {
+        if (map.getLayer(MIMAROPA_LABEL)) {
+            map.removeLayer(MIMAROPA_LABEL);
+        }
+        map.addLayer({
+            id: MIMAROPA_LABEL,
+            type: 'symbol',
+            source: MIMAROPA_LABEL_SOURCE,
+            layout: {
+                'text-field': ['get', 'name'],
+                'text-size': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    5,
+                    11,
+                    8,
+                    13,
+                    11,
+                    15,
+                ],
+                'text-transform': 'uppercase',
+                'text-letter-spacing': 0.04,
+                'text-max-width': 10,
+                'text-allow-overlap': false,
+                'text-ignore-placement': false,
+                'symbol-placement': 'point',
+            },
+            paint: {
+                'text-color': labelColor,
+                'text-halo-color': labelHalo,
+                'text-halo-width': isDark ? 2 : 1.4,
+                'text-opacity': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    5,
+                    0.95,
+                    10,
+                    0.65,
+                    13,
+                    0,
+                ],
+            },
+        });
+    });
+
+    stackMimaropaOutlines(map);
+};
+
 type Maps3DProps = {
     projects: TaraProject[];
     selectedId?: string | null;
@@ -627,6 +857,8 @@ const Maps3D = ({
     };
 
     const paintMarkers = (map: maplibregl.Map) => {
+        ensureMimaropaOutlines(map, isDarkRef.current);
+
         const { valid, positioned } = getPositioned();
 
         const nextMode: 'overview' | 'detail' =
@@ -645,6 +877,8 @@ const Maps3D = ({
         } else {
             paintDetailPins(map, positioned);
         }
+
+        stackMimaropaOutlines(map);
 
         return { valid, positioned };
     };
@@ -779,8 +1013,15 @@ const Maps3D = ({
                 readyRef.current = true;
                 resizeMap();
                 requestAnimationFrame(resizeMap);
-                const { valid, positioned } = paintMarkers(map);
-                frameProjects(map, positioned, valid);
+                const paint = () => {
+                    if (cancelled || !map) return;
+                    ensureMimaropaOutlines(map, isDarkRef.current);
+                    const { valid, positioned } = paintMarkers(map);
+                    frameProjects(map, positioned, valid);
+                };
+                paint();
+                // Dark custom style sometimes finishes glyphs one tick later.
+                map.once('idle', paint);
             });
 
             const schedulePaint = () => {
@@ -854,8 +1095,14 @@ const Maps3D = ({
             map.setStyle(style as maplibregl.StyleSpecification | string);
             map.once('style.load', () => {
                 if (cancelled || !mapRef.current) return;
-                const { valid, positioned } = paintMarkers(mapRef.current);
-                frameProjects(mapRef.current, positioned, valid);
+                const paint = () => {
+                    if (cancelled || !mapRef.current) return;
+                    ensureMimaropaOutlines(mapRef.current, isDark);
+                    const { valid, positioned } = paintMarkers(mapRef.current);
+                    frameProjects(mapRef.current, positioned, valid);
+                };
+                paint();
+                mapRef.current.once('idle', paint);
             });
         })();
 

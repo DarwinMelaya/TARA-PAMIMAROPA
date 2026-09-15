@@ -47,7 +47,7 @@ const SuperAdminUsers = ({ users, roles, provinces }: Props) => {
             <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                        <h1 className="text-xl font-semibold tracking-tight">
+                        <h1 className="text-2xl font-semibold tracking-tight">
                             Users
                         </h1>
                         <p className="text-muted-foreground mt-1 text-sm">
@@ -61,7 +61,7 @@ const SuperAdminUsers = ({ users, roles, provinces }: Props) => {
                     </Button>
                 </div>
 
-                <div className="border-border bg-card overflow-hidden rounded-xl border shadow-xs">
+                <div className="border-border bg-card overflow-hidden rounded-2xl border shadow-xs">
                     <div className="border-border flex items-center justify-between border-b px-4 py-3">
                         <p className="text-sm font-medium">
                             All users{' '}

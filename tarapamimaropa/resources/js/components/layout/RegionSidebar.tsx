@@ -1,18 +1,5 @@
-import { Link } from '@inertiajs/react';
 import { FolderKanban, LayoutGrid, MapPinned } from 'lucide-react';
-import AppearanceToggle from '@/components/appearance-toggle';
-import AppLogo from '@/components/app-logo';
-import { NavMain } from '@/components/nav-main';
-import { NavUser } from '@/components/nav-user';
-import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-} from '@/components/ui/sidebar';
+import CommandSidebar from '@/components/layout/CommandSidebar';
 import { dashboard, programs } from '@/routes/region';
 import type { NavItem } from '@/types';
 
@@ -31,32 +18,12 @@ const mainNavItems: NavItem[] = [
 
 const RegionSidebar = () => {
     return (
-        <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
-                                <AppLogo />
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-                <div className="text-muted-foreground flex items-center gap-2 px-2 text-[11px] font-semibold uppercase tracking-wide">
-                    <MapPinned className="size-3.5" aria-hidden />
-                    Regional Office
-                </div>
-            </SidebarHeader>
-
-            <SidebarContent>
-                <NavMain items={mainNavItems} />
-            </SidebarContent>
-
-            <SidebarFooter>
-                <AppearanceToggle />
-                <NavUser />
-            </SidebarFooter>
-        </Sidebar>
+        <CommandSidebar
+            homeHref={dashboard()}
+            roleLabel="Regional Office"
+            roleIcon={MapPinned}
+            items={mainNavItems}
+        />
     );
 };
 

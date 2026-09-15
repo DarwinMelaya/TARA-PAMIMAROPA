@@ -452,7 +452,7 @@ const ProgramsWorkspace = ({
   return (
     <>
     <Head title={pageTitle} />
-    <section className={`min-h-screen px-4 py-5 pb-[calc(5rem+env(safe-area-inset-bottom))] transition-colors duration-[180ms] sm:px-6 sm:py-7 lg:pb-7 ${ui.page}`}>
+    <section className={`min-h-full px-4 py-5 pb-[calc(5rem+env(safe-area-inset-bottom))] transition-colors duration-[180ms] sm:px-6 sm:py-7 lg:pb-7 ${ui.page}`}>
       <div className="mx-auto max-w-6xl">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">

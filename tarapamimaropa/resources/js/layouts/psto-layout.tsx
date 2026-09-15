@@ -7,7 +7,10 @@ export default function PstoLayout({ children }: PropsWithChildren) {
     return (
         <AppShell variant="sidebar">
             <PstoSidebar />
-            <AppContent variant="sidebar" className="min-w-0 overflow-x-clip">
+            <AppContent
+                variant="sidebar"
+                className="min-w-0 overflow-x-clip md:overflow-hidden"
+            >
                 {children}
             </AppContent>
         </AppShell>

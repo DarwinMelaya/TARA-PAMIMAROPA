@@ -20,6 +20,7 @@ export default function AppearanceToggle() {
                 <SidebarMenuButton
                     type="button"
                     tooltip={isDark ? 'Light mode' : 'Dark mode'}
+                    className="h-11 rounded-2xl px-3.5"
                     onClick={() =>
                         updateAppearance(isDark ? 'light' : 'dark')
                     }

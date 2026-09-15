@@ -26,6 +26,7 @@ type MapsProps = {
 /**
  * Project map shell. Always MapLibre + OpenFreeMap liberty (same as Maps3D).
  * `viewMode="2d"` = flat camera; `"3d"` = pitched buildings.
+ * Pin positions resolve via Province + City in Maps3D.
  */
 const Maps = memo(function Maps({
   viewMode = "3d",

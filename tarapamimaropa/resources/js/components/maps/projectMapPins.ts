@@ -124,7 +124,7 @@ export const buildProjectPinHtml = (
       style="--pin:${colors.fill};--pin-soft:${colors.soft}"
     >
       <div class="project-pin__pulse"></div>
-      <div class="project-pin__core" title="${escapeHtml(project.name)}">
+      <div class="project-pin__core" title="${escapeHtml(project.name)} · ${escapeHtml(project.municipality ?? '')}, ${escapeHtml(project.province)}">
         <span class="project-pin__glyph">${escapeHtml(glyph)}</span>
       </div>
       <div class="project-pin__point" aria-hidden="true"></div>

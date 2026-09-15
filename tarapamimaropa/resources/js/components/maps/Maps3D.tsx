@@ -12,6 +12,10 @@ import {
 import { buildProjectPinHtml } from './projectMapPins';
 import type { MapBaseLayer, UserLocation } from './mapTypes';
 import mimaropaProvinces from './mimaropaProvinces.json';
+import {
+    placeKey,
+    resolveProjectMapCoords,
+} from './mimaropaPlaceCoords';
 
 setWorkerUrl(maplibreWorkerUrl);
 
@@ -231,39 +235,64 @@ const escapeHtml = (value: unknown) =>
         .replace(/"/g, '&quot;');
 
 const layoutProjectPositions = (projects: TaraProject[]) => {
-    const groups = new Map<string, TaraProject[]>();
+    // Group by Province + City so pins sit on the right place, not random lat clumps.
+    const groups = new Map<
+        string,
+        { project: TaraProject; lat: number; lng: number }[]
+    >();
 
     projects.forEach((project) => {
-        const key = `${Number(project.latitude).toFixed(4)},${Number(project.longitude).toFixed(4)}`;
+        const coords = resolveProjectMapCoords(project);
+        const key = placeKey(project.province, project.municipality || '');
         if (!groups.has(key)) groups.set(key, []);
-        groups.get(key)!.push(project);
+        groups.get(key)!.push({
+            project,
+            lat: coords.lat,
+            lng: coords.lng,
+        });
     });
 
     const laidOut: { project: TaraProject; lat: number; lng: number }[] = [];
 
+    const hashAngle = (id: string) => {
+        let h = 2166136261;
+        for (let i = 0; i < id.length; i += 1) {
+            h ^= id.charCodeAt(i);
+            h = Math.imul(h, 16777619);
+        }
+        return ((h >>> 0) % 360) * (Math.PI / 180);
+    };
+
     groups.forEach((group) => {
         if (group.length === 1) {
-            laidOut.push({
-                project: group[0],
-                lat: group[0].latitude,
-                lng: group[0].longitude,
-            });
+            laidOut.push(group[0]);
             return;
         }
 
-        const angleStep = (2 * Math.PI) / group.length;
-        const offsetMeters = 32;
-        const baseLat = group[0].latitude;
-        const latOffset = offsetMeters / 111_320;
-        const lngOffsetBase =
-            offsetMeters / (111_320 * Math.cos((baseLat * Math.PI) / 180));
+        // Spiral scatter around city — visible even at province zoom (not 48m clump).
+        const baseLat = group[0].lat;
+        const baseLng = group[0].lng;
+        const metersPerDegLat = 111_320;
+        const metersPerDegLng =
+            111_320 * Math.max(0.2, Math.cos((baseLat * Math.PI) / 180));
+        const ringCapacity = 8;
+        const ringGapMeters = Math.max(
+            450,
+            Math.min(2800, 320 + Math.sqrt(group.length) * 220),
+        );
 
-        group.forEach((project, index) => {
-            const angle = angleStep * index;
+        group.forEach((row, index) => {
+            const ring = Math.floor(index / ringCapacity) + 1;
+            const slot = index % ringCapacity;
+            const angle =
+                (slot / ringCapacity) * Math.PI * 2 +
+                ring * 0.4 +
+                hashAngle(row.project.id) * 0.15;
+            const meters = ring * ringGapMeters;
             laidOut.push({
-                project,
-                lat: baseLat + latOffset * Math.sin(angle),
-                lng: project.longitude + lngOffsetBase * Math.cos(angle),
+                project: row.project,
+                lat: baseLat + (meters * Math.sin(angle)) / metersPerDegLat,
+                lng: baseLng + (meters * Math.cos(angle)) / metersPerDegLng,
             });
         });
     });

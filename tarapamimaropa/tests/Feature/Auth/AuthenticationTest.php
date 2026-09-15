@@ -19,7 +19,7 @@ test('users can authenticate using the login screen', function () {
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('psto.dashboard', absolute: false));
 });
 
 test('super admin users are redirected to the super admin dashboard', function () {

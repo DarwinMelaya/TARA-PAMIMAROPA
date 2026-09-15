@@ -59,7 +59,7 @@ class User extends Authenticatable
             UserRole::SuperAdmin => 'superadmin.dashboard',
             UserRole::RegionalOffice => 'region.dashboard',
             UserRole::Psto => 'psto.dashboard',
-            default => 'dashboard',
+            default => 'home',
         };
     }
 }

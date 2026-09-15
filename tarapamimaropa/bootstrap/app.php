@@ -22,6 +22,17 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => EnsureUserHasRole::class,
         ]);
 
+        // Already logged in + visit /login → role home (not skeleton /dashboard).
+        $middleware->redirectUsersTo(function (Request $request): string {
+            $user = $request->user();
+
+            return $user
+                ? route($user->homeRouteName(), absolute: false)
+                : '/';
+        });
+
+        $middleware->redirectGuestsTo(fn () => route('login'));
+
         $middleware->web(append: [
             HandleAppearance::class,
             HandleInertiaRequests::class,

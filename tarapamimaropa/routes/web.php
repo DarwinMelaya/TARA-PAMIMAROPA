@@ -22,7 +22,10 @@ Route::post('/analytics-chat', [AnalyticsChatController::class, 'store'])
     ->name('analytics-chat');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    // Legacy /dashboard → bounce each role to its real home (avoids skeleton page).
+    Route::get('/dashboard', function (\Illuminate\Http\Request $request) {
+        return redirect()->route($request->user()->homeRouteName());
+    })->name('dashboard');
 
     Route::middleware(['role:super_admin'])
         ->prefix('superadmin')

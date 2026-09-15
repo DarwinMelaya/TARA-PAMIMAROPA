@@ -26,10 +26,15 @@ import {
     type Province,
     type TaraProject,
 } from '@/constants/taraProjects';
+import {
+    useDashboardProjectStream,
+    type ProjectStreamMeta,
+} from '@/hooks/use-dashboard-project-stream';
 import { useTheme, type ThemeMode } from '@/theme/ThemeProvider';
 
 type PageProps = {
     projects?: TaraProject[];
+    projectStream?: ProjectStreamMeta | null;
 };
 
 const UI = {
@@ -264,8 +269,12 @@ const downloadFilteredCsv = (projects: TaraProject[], scope: ExportScope) => {
 const LandingPage = () => {
     const { theme, isDark } = useTheme();
     const t = UI[theme];
-    const { projects: serverProjects = [] } = usePage<PageProps>().props;
-    const projects = serverProjects;
+    const { projects: serverProjects = [], projectStream = null } =
+        usePage<PageProps>().props;
+    const { projects } = useDashboardProjectStream(
+        serverProjects,
+        projectStream,
+    );
 
     const [query, setQuery] = useState('');
     const [provinceFilter, setProvinceFilter] = useState<Province | 'all'>(

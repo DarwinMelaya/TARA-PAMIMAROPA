@@ -11,8 +11,9 @@ class DashboardController extends Controller
 {
     public function index(): Response
     {
-        return Inertia::render('region/RegionDashboard', [
-            'projects' => Project::dashboardCollection(),
-        ]);
+        $payload = Project::dashboardInertiaPayload();
+        $payload['projectStream']['url'] = route('projects.dashboard-stream');
+
+        return Inertia::render('region/RegionDashboard', $payload);
     }
 }

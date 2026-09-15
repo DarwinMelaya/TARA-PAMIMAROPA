@@ -7,15 +7,25 @@ import {
   projectStatusLabel,
   type TaraProject,
 } from '@/constants/taraProjects';
+import {
+  useDashboardProjectStream,
+  type ProjectStreamMeta,
+} from '@/hooks/use-dashboard-project-stream';
 import { useTheme } from '@/theme/ThemeProvider';
 
 type PageProps = {
   projects?: TaraProject[];
+  projectStream?: ProjectStreamMeta | null;
   lockedProvince?: string | null;
 };
 
 const PstoDashboard = () => {
-  const { projects = [], lockedProvince = null } = usePage<PageProps>().props;
+  const {
+    projects: seed = [],
+    projectStream = null,
+    lockedProvince = null,
+  } = usePage<PageProps>().props;
+  const { projects } = useDashboardProjectStream(seed, projectStream);
   const { isDark, theme } = useTheme();
   const deferredProjects = useDeferredValue(projects);
   const [selectedId, setSelectedId] = useState<string | null>(null);

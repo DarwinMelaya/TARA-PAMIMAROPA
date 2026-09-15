@@ -230,14 +230,21 @@ PROMPT;
      */
     private function loadProjects(?string $provinceScope): Collection
     {
-        return Project::query()
+        $items = [];
+
+        // lazyById — Medium pattern: never Project::get() on huge tables.
+        Project::query()
             ->when(
                 filled($provinceScope),
                 fn ($query) => $query->where('province', $provinceScope),
             )
-            ->orderBy('province')
-            ->orderBy('name')
-            ->get();
+            ->orderBy('id')
+            ->lazyById(Project::DASHBOARD_PAGE_SIZE)
+            ->each(function (Project $project) use (&$items): void {
+                $items[] = $project;
+            });
+
+        return collect($items);
     }
 
     /**

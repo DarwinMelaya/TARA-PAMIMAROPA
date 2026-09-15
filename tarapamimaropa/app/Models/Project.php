@@ -3,8 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 /**
  * @property int $id
@@ -49,6 +52,12 @@ use Illuminate\Support\Collection;
 ])]
 class Project extends Model
 {
+    /** Cursor / lazy chunk size — Medium-style large-table batching. */
+    public const DASHBOARD_PAGE_SIZE = 1000;
+
+    /** Seconds to cache each cursor page. */
+    public const DASHBOARD_CACHE_TTL = 600;
+
     /**
      * @return array<string, string>
      */
@@ -64,6 +73,66 @@ class Project extends Model
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // Invalidate versioned dashboard/stream caches on any write.
+        static::saved(fn () => static::bumpDashboardCache());
+        static::deleted(fn () => static::bumpDashboardCache());
+    }
+
+    public static function dashboardCacheVersionKey(): string
+    {
+        return 'projects.dashboard.cache_version';
+    }
+
+    public static function bumpDashboardCache(): void
+    {
+        Cache::forever(static::dashboardCacheVersionKey(), (string) Str::uuid());
+    }
+
+    public static function dashboardCacheVersion(): string
+    {
+        return (string) Cache::get(static::dashboardCacheVersionKey(), '0');
+    }
+
+    /**
+     * Slim column set for map/dashboard reads (never SELECT *).
+     *
+     * @return list<string>
+     */
+    public static function dashboardColumns(): array
+    {
+        return [
+            'id',
+            'code',
+            'name',
+            'type',
+            'year_approved',
+            'beneficiary',
+            'collaborators',
+            'sector',
+            'province',
+            'city',
+            'status',
+            'project_cost',
+            'latitude',
+            'longitude',
+        ];
+    }
+
+    /**
+     * Base query for large-table dashboard/map reads.
+     */
+    public static function dashboardBaseQuery(?string $province = null): Builder
+    {
+        return static::query()
+            ->select(static::dashboardColumns())
+            ->when(
+                filled($province),
+                fn (Builder $query) => $query->where('province', $province),
+            );
     }
 
     /**
@@ -121,16 +190,21 @@ class Project extends Model
      */
     public static function taraCollection(?string $province = null): Collection
     {
-        return static::query()
+        $rows = [];
+
+        // lazyById: never hydrate millions of models in one get().
+        static::query()
             ->when(
                 filled($province),
-                fn ($query) => $query->where('province', $province),
+                fn (Builder $query) => $query->where('province', $province),
             )
-            ->orderBy('province')
-            ->orderBy('name')
-            ->get()
-            ->map(fn (self $project): array => $project->toTaraArray())
-            ->values();
+            ->orderBy('id')
+            ->lazyById(static::DASHBOARD_PAGE_SIZE)
+            ->each(function (self $project) use (&$rows): void {
+                $rows[] = $project->toTaraArray();
+            });
+
+        return collect($rows)->values();
     }
 
     /**
@@ -186,57 +260,125 @@ class Project extends Model
 
     /**
      * Slim payload for command-map / graphs / chat (less Inertia JSON).
+     * Avoids buildDescription() — description not used on dashboards.
      *
      * @return array<string, mixed>
      */
     public function toDashboardArray(): array
     {
-        $full = $this->toTaraArray();
+        $year = $this->year_approved ?? (int) now()->format('Y');
+        $status = self::mapStatus($this->status);
+        $program = self::mapProgram($this->type);
+        $coords = $this->resolveCoordinates();
 
         return [
-            'id' => $full['id'],
-            'code' => $full['code'],
-            'name' => $full['name'],
-            'beneficiary' => $full['beneficiary'],
-            'program' => $full['program'],
-            'type' => $full['type'],
-            'sector' => $full['sector'],
-            'province' => $full['province'],
-            'municipality' => $full['municipality'],
-            'barangay' => $full['barangay'],
-            'partner_agency' => $full['partner_agency'],
-            'status' => $full['status'],
-            'status_label' => $full['status_label'],
-            'progress' => $full['progress'],
-            'budget' => $full['budget'],
-            'funding_source' => $full['funding_source'],
-            'beneficiaries' => $full['beneficiaries'],
-            'start_date' => $full['start_date'],
-            'end_date' => $full['end_date'],
-            'year_approved' => $full['year_approved'],
-            'latitude' => $full['latitude'],
-            'longitude' => $full['longitude'],
-            'has_coordinates' => $full['has_coordinates'],
+            'id' => (string) ($this->code ?: 'project-'.$this->id),
+            'db_id' => $this->id,
+            'code' => $this->code,
+            'name' => $this->name,
+            'beneficiary' => $this->beneficiary ?? '',
+            'program' => $program,
+            'type' => $this->type ?: $program,
+            'sector' => $this->sector ?: 'Others',
+            'province' => $this->province ?: 'Palawan',
+            'municipality' => $this->city ?: '',
+            'barangay' => '',
+            'partner_agency' => $this->collaborators ?: 'DOST-MIMAROPA',
+            'status' => $status,
+            'status_label' => $this->status ?: 'Unknown',
+            'progress' => match ($status) {
+                'completed' => 100,
+                'cancelled' => 0,
+                'ongoing' => 50,
+                default => 10,
+            },
+            'budget' => (float) ($this->project_cost ?? 0),
+            'funding_source' => $this->type ?: 'DOST',
+            'beneficiaries' => 0,
+            'start_date' => sprintf('%04d-01-01', $year),
+            'end_date' => sprintf('%04d-12-31', $year + 1),
+            'year_approved' => $year,
+            'latitude' => $coords['latitude'],
+            'longitude' => $coords['longitude'],
+            'has_coordinates' => $coords['has_coordinates'],
             'description' => '',
             'latest_accomplishment' => '',
         ];
     }
 
     /**
+     * Full dashboard dump via lazyById + versioned cache (compat / exports).
+     * Prefer dashboardInertiaPayload() + cursor stream for UI (no giant Inertia JSON).
+     *
      * @return Collection<int, array<string, mixed>>
      */
     public static function dashboardCollection(?string $province = null): Collection
     {
-        return static::query()
-            ->when(
-                filled($province),
-                fn ($query) => $query->where('province', $province),
-            )
-            ->orderBy('province')
-            ->orderBy('name')
-            ->get()
-            ->map(fn (self $project): array => $project->toDashboardArray())
-            ->values();
+        $version = static::dashboardCacheVersion();
+        $key = 'projects.dashboard.full.'.$version.'.'.md5($province ?? 'all');
+
+        /** @var list<array<string, mixed>> $rows */
+        $rows = Cache::remember($key, static::DASHBOARD_CACHE_TTL, function () use ($province): array {
+            $built = [];
+
+            static::dashboardBaseQuery($province)
+                ->orderBy('id')
+                ->lazyById(static::DASHBOARD_PAGE_SIZE)
+                ->each(function (self $project) use (&$built): void {
+                    $built[] = $project->toDashboardArray();
+                });
+
+            return $built;
+        });
+
+        return collect($rows)->values();
+    }
+
+    /**
+     * First cursor page for Inertia + meta so the client can stream the rest.
+     *
+     * @return array{projects: list<array<string, mixed>>, projectStream: array{next_cursor: string|null, per_page: int, province: string|null}}
+     */
+    public static function dashboardInertiaPayload(?string $province = null, ?int $perPage = null): array
+    {
+        $perPage = max(100, min(2000, $perPage ?? static::DASHBOARD_PAGE_SIZE));
+        $page = static::dashboardCursorPage($province, null, $perPage);
+
+        return [
+            'projects' => $page['data'],
+            'projectStream' => [
+                'next_cursor' => $page['next_cursor'],
+                'per_page' => $perPage,
+                'province' => $province,
+            ],
+        ];
+    }
+
+    /**
+     * One cursor page — cached, indexed order by id (Medium: cursor pagination).
+     *
+     * @return array{data: list<array<string, mixed>>, next_cursor: string|null}
+     */
+    public static function dashboardCursorPage(?string $province, ?string $cursor, int $perPage = self::DASHBOARD_PAGE_SIZE): array
+    {
+        $perPage = max(100, min(2000, $perPage));
+        $version = static::dashboardCacheVersion();
+        $key = 'projects.dashboard.page.'.$version.'.'.md5(($province ?? 'all').'|'.($cursor ?? '').'|'.$perPage);
+
+        /** @var array{data: list<array<string, mixed>>, next_cursor: string|null} */
+        return Cache::remember($key, static::DASHBOARD_CACHE_TTL, function () use ($province, $cursor, $perPage): array {
+            $paginator = static::dashboardBaseQuery($province)
+                ->orderBy('id')
+                ->cursorPaginate($perPage, static::dashboardColumns(), 'cursor', $cursor);
+
+            return [
+                'data' => $paginator->getCollection()
+                    ->map(fn (self $project): array => $project->toDashboardArray())
+                    ->values()
+                    ->all(),
+                'next_cursor' => $paginator->nextCursor()?->encode(),
+            ];
+        });
     }
 
     public static function mapStatus(?string $raw): string

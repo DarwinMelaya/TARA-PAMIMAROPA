@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AnalyticsChatController;
+use App\Http\Controllers\ProjectDashboardStreamController;
 use App\Http\Controllers\Psto\DashboardController as PstoDashboardController;
 use App\Http\Controllers\Psto\ProgramController as PstoProgramController;
 use App\Http\Controllers\Psto\ProjectController as PstoProjectController;
@@ -13,6 +14,9 @@ use Illuminate\Support\Facades\Route;
 
 // Public Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/projects/dashboard-stream', ProjectDashboardStreamController::class)
+    ->middleware('throttle:120,1')
+    ->name('projects.dashboard-stream');
 Route::post('/analytics-chat', [AnalyticsChatController::class, 'store'])
     ->middleware('throttle:30,1')
     ->name('analytics-chat');

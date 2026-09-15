@@ -1,3 +1,4 @@
+import { memo } from "react";
 import Maps3D from "./Maps3D";
 import type { MapBaseLayer, MapViewMode, UserLocation } from "./mapTypes";
 import {
@@ -26,13 +27,13 @@ type MapsProps = {
  * Project map shell. Always MapLibre + OpenFreeMap liberty (same as Maps3D).
  * `viewMode="2d"` = flat camera; `"3d"` = pitched buildings.
  */
-const Maps = ({
+const Maps = memo(function Maps({
   viewMode = "3d",
   projects,
   isDark: isDarkProp,
   perfLite: _perfLite,
   ...props
-}: MapsProps) => {
+}: MapsProps) {
   const { isDark: themeDark } = useTheme();
   const isDark = isDarkProp ?? themeDark;
 
@@ -44,6 +45,6 @@ const Maps = ({
       {...props}
     />
   );
-};
+});
 
 export default Maps;

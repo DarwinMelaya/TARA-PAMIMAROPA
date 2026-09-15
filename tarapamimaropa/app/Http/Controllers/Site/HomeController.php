@@ -11,8 +11,9 @@ class HomeController extends Controller
 {
     public function index(): Response
     {
-        return Inertia::render('public/LandingPage', [
-            'projects' => Project::dashboardCollection(),
-        ]);
+        $payload = Project::dashboardInertiaPayload();
+        $payload['projectStream']['url'] = route('projects.dashboard-stream');
+
+        return Inertia::render('public/LandingPage', $payload);
     }
 }

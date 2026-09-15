@@ -25,6 +25,10 @@ const BEARING_3D = -22;
 /** Below → glowing GPU dots. At/above → labeled callout pins (viewport only). */
 const DETAIL_ZOOM = 8.5;
 const VIEWPORT_PAD_RATIO = 0.15;
+/** Cap DOM pins so zoom stays smooth with huge datasets (GPU dots still show all). */
+const MAX_DETAIL_MARKERS = 120;
+/** Debounce paint after zoom/pan — avoid tearing layers mid-gesture. */
+const PAINT_DEBOUNCE_MS = 140;
 
 /** Dark chrome close to 2D CARTO dark / LandingPage slate. */
 const DARK = {
@@ -310,6 +314,7 @@ const flyCamera = (
     },
 ) => {
     const angles = cameraAngles(options.flat ?? false);
+    map.stop();
     map.easeTo({
         center: options.center,
         zoom: options.zoom,
@@ -355,9 +360,15 @@ const Maps3D = ({
     const selectedIdRef = useRef(selectedId);
     const isDarkRef = useRef(isDark);
     const flatRef = useRef(flat);
+    const projectsRef = useRef(projects);
     const readyRef = useRef(false);
     const modeRef = useRef<'overview' | 'detail'>('overview');
     const paintRef = useRef<() => void>(() => {});
+    const layoutCacheRef = useRef<{
+        source: TaraProject[] | null;
+        positioned: { project: TaraProject; lat: number; lng: number }[];
+        valid: TaraProject[];
+    } | null>(null);
     const clickHandlerRef = useRef<((e: maplibregl.MapLayerMouseEvent) => void) | null>(
         null,
     );
@@ -369,6 +380,7 @@ const Maps3D = ({
     selectedIdRef.current = selectedId;
     isDarkRef.current = isDark;
     flatRef.current = flat;
+    projectsRef.current = projects;
 
     const clearMarkers = () => {
         markersRef.current.forEach((marker) => marker.remove());
@@ -406,7 +418,6 @@ const Maps3D = ({
         positioned: { project: TaraProject; lat: number; lng: number }[],
     ) => {
         clearMarkers();
-        clearDotLayer(map);
 
         const features: GeoJSON.Feature[] = positioned.map(
             ({ project, lat, lng }) => ({
@@ -425,12 +436,28 @@ const Maps3D = ({
             }),
         );
 
+        const collection: GeoJSON.FeatureCollection = {
+            type: 'FeatureCollection',
+            features,
+        };
+
+        const existing = map.getSource('projects-dots') as
+            | maplibregl.GeoJSONSource
+            | undefined;
+
+        // Reuse GPU source — setData only. No layer tear-down on every zoom.
+        if (existing) {
+            existing.setData(collection);
+            return;
+        }
+
         map.addSource('projects-dots', {
             type: 'geojson',
-            data: {
-                type: 'FeatureCollection',
-                features,
-            },
+            data: collection,
+            // Keep individual dots (same look); MapLibre indexes for fast setData.
+            buffer: 0,
+            tolerance: 0.75,
+            maxzoom: 14,
         });
 
         // Soft glow halo — constellation look when zoomed out
@@ -525,7 +552,23 @@ const Maps3D = ({
             view.contains([lng, lat]),
         );
 
-        inView.forEach(({ project, lat, lng }) => {
+        const center = map.getCenter();
+        const selectedId = selectedIdRef.current;
+
+        // Prefer selected + nearest-to-center; hard cap DOM markers.
+        const ranked = inView
+            .map((row) => {
+                const dLat = row.lat - center.lat;
+                const dLng = row.lng - center.lng;
+                const dist = dLat * dLat + dLng * dLng;
+                const boost = row.project.id === selectedId ? -1 : 0;
+                return { row, score: boost + dist };
+            })
+            .sort((a, b) => a.score - b.score)
+            .slice(0, MAX_DETAIL_MARKERS)
+            .map(({ row }) => row);
+
+        ranked.forEach(({ project, lat, lng }) => {
             const isActive = selectedIdRef.current === project.id;
             const el = document.createElement('div');
             el.className = 'project-pin-leaflet-icon';
@@ -565,19 +608,39 @@ const Maps3D = ({
         });
     };
 
-    const paintMarkers = (map: maplibregl.Map) => {
-        const valid = (projects ?? []).filter(
+    const getPositioned = () => {
+        const list = projectsRef.current ?? [];
+        const cached = layoutCacheRef.current;
+        if (cached && cached.source === list) {
+            positionedRef.current = cached.positioned;
+            return cached;
+        }
+
+        const valid = list.filter(
             (p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude),
         );
         const positioned = layoutProjectPositions(valid);
         positionedRef.current = positioned;
+        const next = { source: list, positioned, valid };
+        layoutCacheRef.current = next;
+        return next;
+    };
 
-        const mode: 'overview' | 'detail' =
+    const paintMarkers = (map: maplibregl.Map) => {
+        const { valid, positioned } = getPositioned();
+
+        const nextMode: 'overview' | 'detail' =
             map.getZoom() < DETAIL_ZOOM ? 'overview' : 'detail';
-        modeRef.current = mode;
-        setOverviewHint(mode === 'overview' && positioned.length > 0);
+        const prevMode = modeRef.current;
+        modeRef.current = nextMode;
 
-        if (mode === 'overview') {
+        const showHint = nextMode === 'overview' && positioned.length > 0;
+        setOverviewHint((prev) => (prev === showHint ? prev : showHint));
+
+        if (nextMode === 'overview') {
+            if (prevMode === 'detail') {
+                clearMarkers();
+            }
             paintOverviewDots(map, positioned);
         } else {
             paintDetailPins(map, positioned);
@@ -632,8 +695,9 @@ const Maps3D = ({
                 maxZoom: 14,
                 pitch: angles.pitch,
                 bearing: angles.bearing,
-                duration: 1000,
+                duration: 1200,
                 essential: true,
+                easing: (t) => 1 - Math.pow(1 - t, 3),
             });
             return;
         }
@@ -706,8 +770,9 @@ const Maps3D = ({
                 map.touchPitch.enable();
             }
             map.keyboard.enable();
-            map.scrollZoom.setWheelZoomRate(1 / 420);
-            map.scrollZoom.setZoomRate(1 / 120);
+            // Finer wheel steps = smoother zoom feel (look unchanged).
+            map.scrollZoom.setWheelZoomRate(1 / 560);
+            map.scrollZoom.setZoomRate(1 / 140);
 
             map.on('load', () => {
                 if (cancelled || !map) return;
@@ -721,8 +786,13 @@ const Maps3D = ({
             const schedulePaint = () => {
                 if (moveTimer != null) window.clearTimeout(moveTimer);
                 moveTimer = window.setTimeout(() => {
+                    // Skip while gesture still running — paint after settle.
+                    if (map?.isMoving()) {
+                        schedulePaint();
+                        return;
+                    }
                     paintRef.current();
-                }, 90);
+                }, PAINT_DEBOUNCE_MS);
             };
             onZoomEnd = () => {
                 schedulePaint();

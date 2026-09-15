@@ -14,11 +14,18 @@ class DashboardController extends Controller
     {
         $province = $request->user()?->province?->value;
 
-        return Inertia::render('psto/PstoDashboard', [
-            'projects' => filled($province)
-                ? Project::dashboardCollection($province)
-                : collect(),
-            'lockedProvince' => $province,
-        ]);
+        if (! filled($province)) {
+            return Inertia::render('psto/PstoDashboard', [
+                'projects' => [],
+                'projectStream' => null,
+                'lockedProvince' => null,
+            ]);
+        }
+
+        $payload = Project::dashboardInertiaPayload($province);
+        $payload['projectStream']['url'] = route('projects.dashboard-stream');
+        $payload['lockedProvince'] = $province;
+
+        return Inertia::render('psto/PstoDashboard', $payload);
     }
 }

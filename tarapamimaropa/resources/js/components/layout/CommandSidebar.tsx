@@ -1,9 +1,8 @@
 import { Link } from '@inertiajs/react';
-import type { LucideIcon } from 'lucide-react';
-import { UserRound } from 'lucide-react';
 import type { ReactNode } from 'react';
 import AppearanceToggle from '@/components/appearance-toggle';
 import AppLogo from '@/components/app-logo';
+import { useCommandNav } from '@/components/layout/command-nav';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -16,40 +15,21 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { edit as editProfile } from '@/routes/profile';
-import type { NavItem } from '@/types';
 
 type CommandSidebarProps = {
-    homeHref: NavItem['href'];
-    roleLabel: string;
-    roleIcon?: LucideIcon;
-    items: NavItem[];
     footer?: ReactNode;
 };
 
 /**
- * Shared app sidebar chrome — desktop inset sidebar + mobile bottom nav.
- * Colors stay on existing tokens — layout/shape only.
+ * Shared app sidebar chrome — desktop inset + mobile bottom nav.
+ * Nav items come from auth role so Profile/settings keep the same buttons.
  */
-const CommandSidebar = ({
-    homeHref,
-    roleLabel,
-    roleIcon: RoleIcon,
-    items,
-    footer,
-}: CommandSidebarProps) => {
-    const mobileItems: NavItem[] = [
-        ...items,
-        {
-            title: 'Profile',
-            href: editProfile(),
-            icon: UserRound,
-        },
-    ];
+const CommandSidebar = ({ footer }: CommandSidebarProps) => {
+    const { homeHref, roleLabel, roleIcon: RoleIcon, items, mobileItems } =
+        useCommandNav();
 
     return (
         <>
-            {/* Desktop / tablet sidebar */}
             <div className="hidden md:contents">
                 <Sidebar collapsible="icon" variant="inset">
                     <SidebarHeader className="gap-4 px-3 pt-4">
@@ -67,12 +47,10 @@ const CommandSidebar = ({
                             </SidebarMenuItem>
                         </SidebarMenu>
                         <div className="text-sidebar-foreground/50 flex items-center gap-2 px-2 text-[10px] font-semibold tracking-[0.16em] uppercase group-data-[collapsible=icon]:hidden">
-                            {RoleIcon ? (
-                                <RoleIcon
-                                    className="size-3.5 shrink-0 opacity-80"
-                                    aria-hidden
-                                />
-                            ) : null}
+                            <RoleIcon
+                                className="size-3.5 shrink-0 opacity-80"
+                                aria-hidden
+                            />
                             {roleLabel}
                         </div>
                     </SidebarHeader>
@@ -88,7 +66,6 @@ const CommandSidebar = ({
                 </Sidebar>
             </div>
 
-            {/* Mobile: floating curved bottom nav */}
             <MobileBottomNav items={mobileItems} />
         </>
     );

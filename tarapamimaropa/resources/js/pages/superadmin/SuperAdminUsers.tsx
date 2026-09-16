@@ -44,7 +44,7 @@ const SuperAdminUsers = ({ users, roles, provinces }: Props) => {
     return (
         <>
             <Head title="Users" />
-            <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
+            <div className="flex h-full flex-1 flex-col gap-6 p-4 pb-[calc(6.25rem+env(safe-area-inset-bottom))] md:p-6 md:pb-6">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                         <h1 className="text-2xl font-semibold tracking-tight">

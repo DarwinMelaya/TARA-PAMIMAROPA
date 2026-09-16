@@ -788,7 +788,7 @@ const CommandMapWorkspace = ({
   return (
     <>
     <Head title={pageTitle} />
-    <section className={`relative z-30 min-h-[32rem] w-full overflow-hidden pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0 ${isPublic ? "h-svh rounded-none" : "h-[calc(100svh-1.5rem)] rounded-[inherit] md:h-[calc(100svh-1.5rem)]"} ${ui.page}`}>
+    <section className={`relative z-30 min-h-[32rem] w-full overflow-hidden pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:pb-0 ${isPublic ? "h-svh rounded-none" : "h-[calc(100svh-1.5rem)] rounded-[inherit] md:h-[calc(100svh-1.5rem)] max-md:h-svh max-md:rounded-none"} ${ui.page}`}>
       <div className="pointer-events-auto absolute inset-0 z-[5]">
         <Maps
           projects={deferredMapProjects}

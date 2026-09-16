@@ -18,7 +18,6 @@ import {
     HiCube,
     HiPaperAirplane,
     HiPauseCircle,
-    HiPrinter,
     HiSignal,
     HiSparkles,
     HiSquares2X2,
@@ -51,6 +50,7 @@ import {
     type TaraProgram,
     type TaraProject,
 } from '@/constants/taraProjects';
+import { downloadProjectPdfReport } from '@/lib/project-print-report';
 export type CommandMapVariant = "public" | "region";
 
 export type CommandMapWorkspaceProps = {
@@ -299,102 +299,10 @@ const countBy = <T extends string>(
 };
 
 const printReport = (projects: TaraProject[], filters: ReportFilters) => {
-  const stamp = new Date();
-  const s = summarizeProjects(projects);
-  const esc = (v: string | number) =>
-    String(v ?? "").replace(
-      /[&<>]/g,
-      (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c] as string,
-    );
-
-  const byStatus = countBy(projects, (p) => projectStatusLabel(p));
-  const byProgram = countBy(projects, (p) => p.program);
-  const byProvince = countBy(projects, (p) => p.province);
-
-  const chip = (rows: { key: string; count: number }[]) =>
-    rows
-      .map(
-        (r) =>
-          `<span class="chip"><b>${esc(r.key)}</b> ${r.count}</span>`,
-      )
-      .join("");
-
-  const tableRows = projects
-    .map(
-      (p) => `<tr>
-        <td>${esc(p.name)}</td>
-        <td>${esc(p.program)}</td>
-        <td>${esc(p.province)}<br><span class="muted">${esc(p.municipality)}, ${esc(p.barangay)}</span></td>
-        <td>${esc(projectStatusLabel(p))}</td>
-        <td class="num">${p.progress}%</td>
-        <td class="num">${esc(formatPeso(p.budget))}</td>
-        <td class="num">${esc(formatCompact(p.beneficiaries))}</td>
-        <td>${esc(p.end_date)}</td>
-      </tr>`,
-    )
-    .join("");
-
-  const html = `<!doctype html><html><head><meta charset="utf-8" />
-    <title>TARA PAMIMAROPA Report</title>
-    <style>
-      * { box-sizing: border-box; }
-      body { font-family: "Segoe UI", Arial, sans-serif; color: #0f172a; margin: 32px; }
-      h1 { margin: 0 0 2px; font-size: 22px; }
-      .sub { color: #475569; font-size: 12px; margin-bottom: 2px; }
-      .scope { color: #0369a1; font-size: 12px; font-weight: 600; margin: 6px 0 18px; }
-      .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
-      .card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; }
-      .card .label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #64748b; }
-      .card .value { font-size: 18px; font-weight: 700; margin-top: 2px; }
-      .section-title { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: #334155; margin: 16px 0 6px; }
-      .chip { display: inline-block; border: 1px solid #e2e8f0; border-radius: 999px; padding: 3px 10px; margin: 0 6px 6px 0; font-size: 11px; }
-      table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11px; }
-      th, td { border-bottom: 1px solid #e2e8f0; padding: 6px 8px; text-align: left; vertical-align: top; }
-      th { background: #f1f5f9; text-transform: uppercase; font-size: 10px; letter-spacing: .05em; color: #475569; }
-      td.num { text-align: right; white-space: nowrap; }
-      .muted { color: #94a3b8; font-size: 10px; }
-      .foot { margin-top: 20px; font-size: 10px; color: #94a3b8; }
-      @media print { body { margin: 12mm; } .cards { grid-template-columns: repeat(4, 1fr); } }
-    </style></head><body>
-    <h1>TARA PAMIMAROPA — Project Report</h1>
-    <div class="sub">Tracking of Accomplishments and Results of Activities and Programs · MIMAROPA</div>
-    <div class="sub">Generated ${esc(stamp.toLocaleString("en-PH"))}</div>
-    <div class="scope">Scope: ${esc(describeFilters(filters))}</div>
-
-    <div class="cards">
-      <div class="card"><div class="label">Total projects</div><div class="value">${s.total}</div></div>
-      <div class="card"><div class="label">Active</div><div class="value">${s.active}</div></div>
-      <div class="card"><div class="label">Completed</div><div class="value">${s.completed}</div></div>
-      <div class="card"><div class="label">Delayed / On hold</div><div class="value">${s.delayed} / ${s.onHold}</div></div>
-      <div class="card"><div class="label">Beneficiaries</div><div class="value">${esc(formatCompact(s.beneficiaries))}</div></div>
-      <div class="card"><div class="label">Funding released</div><div class="value">${esc(formatPeso(s.funding))}</div></div>
-      <div class="card"><div class="label">Funding utilized</div><div class="value">${esc(formatPeso(s.utilized))}</div></div>
-      <div class="card"><div class="label">Municipalities</div><div class="value">${s.municipalities}</div></div>
-    </div>
-
-    <div class="section-title">By status</div><div>${chip(byStatus)}</div>
-    <div class="section-title">By program</div><div>${chip(byProgram)}</div>
-    <div class="section-title">By province</div><div>${chip(byProvince)}</div>
-
-    <div class="section-title">Project detail (${projects.length})</div>
-    <table>
-      <thead><tr>
-        <th>Project</th><th>Program</th><th>Location</th><th>Status</th>
-        <th>Progress</th><th>Budget</th><th>Beneficiaries</th><th>End</th>
-      </tr></thead>
-      <tbody>${tableRows || `<tr><td colspan="8" class="muted">No projects match the current filters.</td></tr>`}</tbody>
-    </table>
-
-    <div class="foot">DOST-MIMAROPA · TARA PAMIMAROPA command map export.</div>
-  </body></html>`;
-
-  const win = window.open("", "_blank", "noopener,noreferrer,width=1024,height=768");
-  if (!win) return false;
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
-  win.focus();
-  setTimeout(() => win.print(), 400);
+  downloadProjectPdfReport(projects, {
+    label: describeFilters(filters),
+    fileStem: `tara-report-${new Date().toISOString().slice(0, 10)}`,
+  });
   return true;
 };
 
@@ -679,14 +587,14 @@ const CommandMapWorkspace = ({
   };
 
   const handlePrintReport = () => {
-    const ok = printReport(filteredProjects, reportFilters);
-    if (!ok) {
+    try {
+      printReport(filteredProjects, reportFilters);
+      setReportError("");
+    } catch {
       setReportError(
-        "Popup blocked. Allow popups for this site to open the printable report.",
+        "Could not generate the PDF. Try again or export CSV instead.",
       );
-      return;
     }
-    setReportError("");
   };
 
   const hasFilters =
@@ -1761,8 +1669,8 @@ const CommandMapWorkspace = ({
                     : "border-amber-500/40 bg-amber-500/15 text-amber-100 hover:bg-amber-500/25"
                 }`}
               >
-                <HiPrinter className="h-5 w-5" aria-hidden />
-                Printable report (PDF)
+                <HiDocumentArrowDown className="h-5 w-5" aria-hidden />
+                Download PDF report
               </button>
               <button
                 type="button"

@@ -7,6 +7,7 @@ import {
     HiMapPin,
     HiArrowDownTray,
     HiArrowTopRightOnSquare,
+    HiDocumentText,
     HiPaperAirplane,
     HiXMark,
 } from 'react-icons/hi2';
@@ -30,6 +31,7 @@ import {
     useDashboardProjectStream,
     type ProjectStreamMeta,
 } from '@/hooks/use-dashboard-project-stream';
+import { downloadProjectPdfReport } from '@/lib/project-print-report';
 import { useTheme, type ThemeMode } from '@/theme/ThemeProvider';
 
 type PageProps = {
@@ -266,6 +268,19 @@ const downloadFilteredCsv = (projects: TaraProject[], scope: ExportScope) => {
     URL.revokeObjectURL(url);
 };
 
+/** PDF download for currently filtered rows (no popup). */
+const downloadFilteredPdf = (
+    projects: TaraProject[],
+    scope: ExportScope,
+): void => {
+    const provinceSlug =
+        scope.province === 'all' ? 'mimaropa' : slugPart(scope.province);
+    downloadProjectPdfReport(projects, {
+        label: describeExportScope(scope),
+        fileStem: `tara-${provinceSlug}-${new Date().toISOString().slice(0, 10)}`,
+    });
+};
+
 const LandingPage = () => {
     const { theme, isDark } = useTheme();
     const t = UI[theme];
@@ -287,6 +302,7 @@ const LandingPage = () => {
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
     const [locating, setLocating] = useState(false);
+    const [exportError, setExportError] = useState('');
 
     const statusMode = isDark ? 'dark' : 'light';
 
@@ -428,13 +444,49 @@ const LandingPage = () => {
                                 <button
                                     type="button"
                                     disabled={sorted.length === 0}
-                                    onClick={() =>
+                                    onClick={() => {
+                                        setExportError('');
+                                        try {
+                                            downloadFilteredPdf(sorted, {
+                                                province: provinceFilter,
+                                                status: statusFilter,
+                                                search: query,
+                                            });
+                                        } catch {
+                                            setExportError(
+                                                'Could not generate the PDF. Try again or use Export CSV.',
+                                            );
+                                        }
+                                    }}
+                                    className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-amber-500 bg-amber-50 px-3 py-1.5 text-[12px] font-semibold text-amber-950 shadow-sm transition duration-[180ms] hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-amber-500/50 dark:bg-amber-500/15 dark:text-amber-100 dark:hover:bg-amber-500/25"
+                                    title={
+                                        sorted.length === 0
+                                            ? 'No rows to export'
+                                            : `Download PDF for ${sorted.length} project${sorted.length === 1 ? '' : 's'}`
+                                    }
+                                >
+                                    <HiDocumentText
+                                        className="h-4 w-4"
+                                        aria-hidden
+                                    />
+                                    Export PDF
+                                    {sorted.length > 0 ? (
+                                        <span className="rounded bg-black/10 px-1.5 py-0.5 text-[10px] tabular-nums dark:bg-white/15">
+                                            {sorted.length}
+                                        </span>
+                                    ) : null}
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={sorted.length === 0}
+                                    onClick={() => {
+                                        setExportError('');
                                         downloadFilteredCsv(sorted, {
                                             province: provinceFilter,
                                             status: statusFilter,
                                             search: query,
-                                        })
-                                    }
+                                        });
+                                    }}
                                     className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[#0038a8] bg-[#0038a8] px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm transition duration-[180ms] hover:bg-[#002d87] disabled:cursor-not-allowed disabled:opacity-40"
                                     title={
                                         sorted.length === 0
@@ -478,6 +530,12 @@ const LandingPage = () => {
                                 </label>
                             </div>
                         </div>
+
+                        {exportError ? (
+                            <p className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-800 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300">
+                                {exportError}
+                            </p>
+                        ) : null}
 
                         <div className="flex flex-col gap-2.5 border-t border-dashed border-slate-200/80 pt-3 dark:border-slate-700/80">
                             <div className="relative max-w-md">

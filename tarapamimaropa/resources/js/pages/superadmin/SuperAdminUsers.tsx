@@ -112,7 +112,7 @@ const SuperAdminUsers = ({ users, roles, provinces }: Props) => {
                                                 </td>
                                                 <td className="text-muted-foreground px-4 py-3">
                                                     {user.email}
-                                                </td>
+                                                </td>222
                                                 <td className="px-4 py-3">
                                                     <span className="bg-muted inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold">
                                                         {user.role_label}

@@ -33,6 +33,8 @@
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "concurrently": "^10.0.3",
+        "jspdf": "^4.2.1",
+        "jspdf-autotable": "^5.0.8",
         "laravel-vite-plugin": "^3.0.0",
         "leaflet": "^1.9.4",
         "lucide-react": "^0.475.0",
@@ -51,6 +53,7 @@
     "devDependencies": {
         "@laravel/vite-plugin-wayfinder": "^0.1.3",
         "@rolldown/plugin-babel": "^0.2.3",
+        "@types/jspdf": "^1.3.3",
         "@types/leaflet": "^1.9.22",
         "@types/node": "^22.13.5",
         "babel-plugin-react-compiler": "^1.0.0",

@@ -905,48 +905,6 @@ const CommandMapWorkspace = ({
               <HiChartBar className="h-4 w-4" aria-hidden />
               <span className="hidden sm:inline">Graphs</span>
             </button>
-            {!isPublic ? (
-              <button
-                type="button"
-                onClick={toggleChat}
-                className={[
-                  "inline-flex shrink-0 items-center justify-center gap-2",
-                  ui.chromeBtn,
-                  chatOpen || mobileSheet === "ai"
-                    ? theme === "light"
-                      ? "border-violet-500/50 bg-violet-50 text-violet-800"
-                      : "border-violet-400/60 bg-violet-500/25 text-violet-100"
-                    : theme === "light"
-                      ? "text-violet-800"
-                      : "text-violet-100",
-                ].join(" ")}
-                aria-pressed={chatOpen || mobileSheet === "ai"}
-              >
-                <HiSparkles className="h-4 w-4" aria-hidden />
-                <span className="hidden sm:inline">AI chat</span>
-              </button>
-            ) : null}
-            {!isPublic ? (
-              <button
-                type="button"
-                onClick={togglePlanning}
-                className={[
-                  "inline-flex shrink-0 items-center justify-center gap-2",
-                  ui.chromeBtn,
-                  planningOpen || mobileSheet === "plan"
-                    ? theme === "light"
-                      ? "border-cyan-500/50 bg-cyan-50 text-cyan-900"
-                      : "border-cyan-400/60 bg-cyan-500/25 text-cyan-50"
-                    : theme === "light"
-                      ? "border-cyan-400/40 bg-cyan-50/80 text-cyan-900"
-                      : "border-cyan-400/40 bg-cyan-500/15 text-cyan-100",
-                ].join(" ")}
-                aria-pressed={planningOpen || mobileSheet === "plan"}
-              >
-                <HiLightBulb className="h-4 w-4" aria-hidden />
-                <span className="hidden sm:inline">AI Planning</span>
-              </button>
-            ) : null}
             <button
               type="button"
               onClick={() => {
@@ -995,6 +953,48 @@ const CommandMapWorkspace = ({
                 <span className="hidden sm:inline">Browse list</span>
                 <span className="sm:hidden">List</span>
               </a>
+            ) : null}
+            {!isPublic ? (
+              <div className="ml-auto flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <button
+                  type="button"
+                  onClick={toggleChat}
+                  className={[
+                    "inline-flex shrink-0 items-center justify-center gap-2",
+                    ui.chromeBtn,
+                    chatOpen || mobileSheet === "ai"
+                      ? theme === "light"
+                        ? "border-violet-500/50 bg-violet-50 text-violet-800"
+                        : "border-violet-400/60 bg-violet-500/25 text-violet-100"
+                      : theme === "light"
+                        ? "text-violet-800"
+                        : "text-violet-100",
+                  ].join(" ")}
+                  aria-pressed={chatOpen || mobileSheet === "ai"}
+                >
+                  <HiSparkles className="h-4 w-4" aria-hidden />
+                  <span className="hidden sm:inline">AI chat</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={togglePlanning}
+                  className={[
+                    "inline-flex shrink-0 items-center justify-center gap-2",
+                    ui.chromeBtn,
+                    planningOpen || mobileSheet === "plan"
+                      ? theme === "light"
+                        ? "border-cyan-500/50 bg-cyan-50 text-cyan-900"
+                        : "border-cyan-400/60 bg-cyan-500/25 text-cyan-50"
+                      : theme === "light"
+                        ? "border-cyan-400/40 bg-cyan-50/80 text-cyan-900"
+                        : "border-cyan-400/40 bg-cyan-500/15 text-cyan-100",
+                  ].join(" ")}
+                  aria-pressed={planningOpen || mobileSheet === "plan"}
+                >
+                  <HiLightBulb className="h-4 w-4" aria-hidden />
+                  <span className="hidden sm:inline">AI Planning</span>
+                </button>
+              </div>
             ) : null}
           </div>
         </div>

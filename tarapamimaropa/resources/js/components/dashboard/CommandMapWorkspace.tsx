@@ -462,7 +462,7 @@ const CommandMapWorkspace = ({
   >(null);
   const [viewMode, setViewMode] = useState<MapViewMode>("3d");
   const [graphsExpanded, setGraphsExpanded] = useState(false);
-  const [feedExpanded, setFeedExpanded] = useState(true);
+  const [feedExpanded, setFeedExpanded] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [planningOpen, setPlanningOpen] = useState(false);
@@ -727,7 +727,14 @@ const CommandMapWorkspace = ({
       <div className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 bg-gradient-to-t to-transparent lg:h-36 ${ui.fadeBottom}`} />
 
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 p-3 sm:p-5">
-        <div className="pointer-events-auto flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+        <div
+          className={[
+            "pointer-events-auto",
+            isPublic
+              ? "flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3"
+              : "flex items-start justify-between gap-2 sm:gap-3",
+          ].join(" ")}
+        >
           <div className="min-w-0 max-w-2xl">
             {!isPublic ? (
               <div className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] sm:px-3 sm:py-1.5 sm:text-[11px] ${ui.badge}`}>
@@ -782,185 +789,347 @@ const CommandMapWorkspace = ({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-            <div className="relative shrink-0">
-              <HiMapPin
-                className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-300"
-                aria-hidden
-              />
-              <select
-                value={provinceFilter}
-                onChange={(e) =>
-                  setProvinceFilter(e.target.value as Province | "all")
-                }
-                aria-label="Filter by province"
-                className={[
-                  ui.select,
-                  provinceFilter !== "all" ? ui.selectActive : ui.selectIdle,
-                ].join(" ")}
-              >
-                <option value="all">All provinces</option>
-                {PROVINCES.map((province) => (
-                  <option key={province} value={province}>
-                    {province}
-                  </option>
-                ))}
-              </select>
-              <svg
-                className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                  clipRule="evenodd"
+          {isPublic ? (
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <div className="relative shrink-0">
+                <HiMapPin
+                  className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-300"
+                  aria-hidden
                 />
-              </svg>
-            </div>
-            <button
-              type="button"
-              onClick={() =>
-                setSearchOpen((v) => {
-                  if (!v) setSearchDraft(search);
-                  return !v;
-                })
-              }
-              className={[
-                "inline-flex shrink-0 items-center justify-center gap-2",
-                ui.chromeBtn,
-                searchOpen
-                  ? theme === "light"
-                    ? "border-cyan-500/60 bg-cyan-50 text-cyan-800"
-                    : "border-cyan-400/60 bg-cyan-500/20 text-cyan-100"
-                  : "",
-              ].join(" ")}
-              aria-pressed={searchOpen}
-            >
-              <HiMagnifyingGlass className="h-4 w-4" aria-hidden />
-              <span className="hidden sm:inline">Search</span>
-            </button>
-            <ThemeToggle compact />
-            <button
-              type="button"
-              onClick={() => {
-                setViewMode((mode) => (mode === "2d" ? "3d" : "2d"));
-              }}
-              className={[
-                "inline-flex shrink-0 items-center justify-center gap-2",
-                ui.chromeBtn,
-                viewMode === "3d"
-                  ? theme === "light"
-                    ? "border-fuchsia-400/50 bg-fuchsia-50 text-fuchsia-800"
-                    : "border-fuchsia-400/50 bg-fuchsia-500/20 text-fuchsia-100 lg:shadow-[0_0_18px_rgba(217,70,239,0.25)]"
-                  : "",
-              ].join(" ")}
-              aria-pressed={viewMode === "3d"}
-            >
-              <HiCube className="h-4 w-4" aria-hidden />
-              <span className="hidden sm:inline">
-                {viewMode === "3d" ? "3D on" : "3D"}
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={handleLocateMe}
-              disabled={locateLoading}
-              className={[
-                "inline-flex shrink-0 items-center justify-center gap-2",
-                ui.chromeBtn,
-                theme === "light" ? "text-emerald-800 disabled:opacity-50" : "text-emerald-100 disabled:opacity-50",
-              ].join(" ")}
-            >
-              <HiMapPin
-                className={`h-4 w-4 ${locateLoading ? "animate-pulse" : ""}`}
-                aria-hidden
-              />
-              <span className="hidden sm:inline">
-                {locateLoading ? "Locating…" : "My location"}
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setGraphsExpanded((open) => !open);
-                if (typeof window !== "undefined" && window.innerWidth < 1024) {
-                  setMobileSheet((sheet) =>
-                    sheet === "graphs" ? null : "graphs",
-                  );
+                <select
+                  value={provinceFilter}
+                  onChange={(e) =>
+                    setProvinceFilter(e.target.value as Province | "all")
+                  }
+                  aria-label="Filter by province"
+                  className={[
+                    ui.select,
+                    provinceFilter !== "all" ? ui.selectActive : ui.selectIdle,
+                  ].join(" ")}
+                >
+                  <option value="all">All provinces</option>
+                  {PROVINCES.map((province) => (
+                    <option key={province} value={province}>
+                      {province}
+                    </option>
+                  ))}
+                </select>
+                <svg
+                  className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setSearchOpen((v) => {
+                    if (!v) setSearchDraft(search);
+                    return !v;
+                  })
                 }
-              }}
-              className={[
-                "inline-flex shrink-0 items-center justify-center gap-2",
-                ui.chromeBtn,
-                graphsExpanded || mobileSheet === "graphs"
-                  ? theme === "light"
-                    ? "border-teal-500/50 bg-teal-50 text-teal-800"
-                    : "border-teal-400/50 bg-teal-500/20 text-teal-100"
-                  : "",
-              ].join(" ")}
-              aria-pressed={graphsExpanded || mobileSheet === "graphs"}
-            >
-              <HiChartBar className="h-4 w-4" aria-hidden />
-              <span className="hidden sm:inline">Graphs</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setReportError("");
-                setReportOpen(true);
-              }}
-              className={[
-                "inline-flex shrink-0 items-center justify-center gap-2",
-                ui.chromeBtn,
-                theme === "light"
-                  ? "border-amber-500/40 bg-amber-50 text-amber-800"
-                  : "border-amber-500/40 bg-amber-500/15 text-amber-100",
-              ].join(" ")}
-            >
-              <HiDocumentArrowDown className="h-4 w-4" aria-hidden />
-              <span className="hidden sm:inline">Report</span>
-            </button>
-            {!isPublic && programsHref ? (
-              <Link
-                href={programsHref}
+                className={[
+                  "inline-flex shrink-0 items-center justify-center gap-2",
+                  ui.chromeBtn,
+                  searchOpen
+                    ? theme === "light"
+                      ? "border-cyan-500/60 bg-cyan-50 text-cyan-800"
+                      : "border-cyan-400/60 bg-cyan-500/20 text-cyan-100"
+                    : "",
+                ].join(" ")}
+                aria-pressed={searchOpen}
+              >
+                <HiMagnifyingGlass className="h-4 w-4" aria-hidden />
+                <span className="hidden sm:inline">Search</span>
+              </button>
+              <ThemeToggle compact />
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode((mode) => (mode === "2d" ? "3d" : "2d"));
+                }}
+                className={[
+                  "inline-flex shrink-0 items-center justify-center gap-2",
+                  ui.chromeBtn,
+                  viewMode === "3d"
+                    ? theme === "light"
+                      ? "border-fuchsia-400/50 bg-fuchsia-50 text-fuchsia-800"
+                      : "border-fuchsia-400/50 bg-fuchsia-500/20 text-fuchsia-100 lg:shadow-[0_0_18px_rgba(217,70,239,0.25)]"
+                    : "",
+                ].join(" ")}
+                aria-pressed={viewMode === "3d"}
+              >
+                <HiCube className="h-4 w-4" aria-hidden />
+                <span className="hidden sm:inline">
+                  {viewMode === "3d" ? "3D on" : "3D"}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={handleLocateMe}
+                disabled={locateLoading}
                 className={[
                   "inline-flex shrink-0 items-center justify-center gap-2",
                   ui.chromeBtn,
                   theme === "light"
-                    ? "border-blue-500/40 bg-blue-50 text-blue-900 sm:px-4"
-                    : "border-blue-500/30 bg-blue-950 text-blue-100 sm:px-4 lg:bg-blue-950/80",
+                    ? "text-emerald-800 disabled:opacity-50"
+                    : "text-emerald-100 disabled:opacity-50",
                 ].join(" ")}
               >
-                <HiBuildingOffice2 className="h-4 w-4 sm:hidden" aria-hidden />
-                <span className="hidden sm:inline">Programs</span>
-              </Link>
-            ) : null}
-            {isPublic && browseListHref ? (
-              <a
-                href={browseListHref}
-                onClick={(e) => {
-                  const id = browseListHref.replace(/^#/, "");
-                  const el = document.getElementById(id);
-                  if (!el) return;
-                  e.preventDefault();
-                  el.scrollIntoView({ behavior: "smooth", block: "start" });
+                <HiMapPin
+                  className={`h-4 w-4 ${locateLoading ? "animate-pulse" : ""}`}
+                  aria-hidden
+                />
+                <span className="hidden sm:inline">
+                  {locateLoading ? "Locating…" : "My location"}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setGraphsExpanded((open) => !open);
+                  if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                    setMobileSheet((sheet) =>
+                      sheet === "graphs" ? null : "graphs",
+                    );
+                  }
                 }}
-                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[#002d87] bg-[#0038a8] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#002d87] sm:px-4"
+                className={[
+                  "inline-flex shrink-0 items-center justify-center gap-2",
+                  ui.chromeBtn,
+                  graphsExpanded || mobileSheet === "graphs"
+                    ? theme === "light"
+                      ? "border-teal-500/50 bg-teal-50 text-teal-800"
+                      : "border-teal-400/50 bg-teal-500/20 text-teal-100"
+                    : "",
+                ].join(" ")}
+                aria-pressed={graphsExpanded || mobileSheet === "graphs"}
               >
-                <HiChevronDown className="h-4 w-4" aria-hidden />
-                <span className="hidden sm:inline">Browse list</span>
-                <span className="sm:hidden">List</span>
-              </a>
-            ) : null}
-            {!isPublic ? (
-              <div className="ml-auto flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <HiChartBar className="h-4 w-4" aria-hidden />
+                <span className="hidden sm:inline">Graphs</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setReportError("");
+                  setReportOpen(true);
+                }}
+                className={[
+                  "inline-flex shrink-0 items-center justify-center gap-2",
+                  ui.chromeBtn,
+                  theme === "light"
+                    ? "border-amber-500/40 bg-amber-50 text-amber-800"
+                    : "border-amber-500/40 bg-amber-500/15 text-amber-100",
+                ].join(" ")}
+              >
+                <HiDocumentArrowDown className="h-4 w-4" aria-hidden />
+                <span className="hidden sm:inline">Report</span>
+              </button>
+              {browseListHref ? (
+                <a
+                  href={browseListHref}
+                  onClick={(e) => {
+                    const id = browseListHref.replace(/^#/, "");
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    e.preventDefault();
+                    el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[#002d87] bg-[#0038a8] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#002d87] sm:px-4"
+                >
+                  <HiChevronDown className="h-4 w-4" aria-hidden />
+                  <span className="hidden sm:inline">Browse list</span>
+                  <span className="sm:hidden">List</span>
+                </a>
+              ) : null}
+            </div>
+          ) : (
+            <aside
+              className={[
+                "flex max-h-[min(72svh,40rem)] w-[11.25rem] shrink-0 flex-col gap-2 overflow-y-auto overscroll-contain rounded-2xl border p-2 sm:w-[12.5rem] sm:p-2.5",
+                ui.panel,
+              ].join(" ")}
+              aria-label="Map controls"
+            >
+              <div className="relative w-full">
+                <HiMapPin
+                  className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-cyan-400"
+                  aria-hidden
+                />
+                <select
+                  value={provinceFilter}
+                  onChange={(e) =>
+                    setProvinceFilter(e.target.value as Province | "all")
+                  }
+                  aria-label="Filter by province"
+                  className={[
+                    ui.select,
+                    "w-full py-1.5 pl-7 pr-7 text-xs",
+                    provinceFilter !== "all" ? ui.selectActive : ui.selectIdle,
+                  ].join(" ")}
+                >
+                  <option value="all">All provinces</option>
+                  {PROVINCES.map((province) => (
+                    <option key={province} value={province}>
+                      {province}
+                    </option>
+                  ))}
+                </select>
+                <svg
+                  className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+
+              <div className="grid grid-cols-4 gap-1">
+                <button
+                  type="button"
+                  title="Search"
+                  onClick={() =>
+                    setSearchOpen((v) => {
+                      if (!v) setSearchDraft(search);
+                      return !v;
+                    })
+                  }
+                  className={[
+                    "inline-flex h-9 items-center justify-center rounded-lg border text-sm transition",
+                    ui.chromeBtn,
+                    "px-0 py-0",
+                    searchOpen
+                      ? theme === "light"
+                        ? "border-cyan-500/60 bg-cyan-50 text-cyan-800"
+                        : "border-cyan-400/60 bg-cyan-500/20 text-cyan-100"
+                      : "",
+                  ].join(" ")}
+                  aria-label="Search"
+                  aria-pressed={searchOpen}
+                >
+                  <HiMagnifyingGlass className="h-4 w-4" aria-hidden />
+                </button>
+                <ThemeToggle
+                  compact
+                  className="h-9 min-h-0 w-full px-0 py-0"
+                />
+                <button
+                  type="button"
+                  title={viewMode === "3d" ? "3D on" : "3D"}
+                  onClick={() => {
+                    setViewMode((mode) => (mode === "2d" ? "3d" : "2d"));
+                  }}
+                  className={[
+                    "inline-flex h-9 items-center justify-center rounded-lg border text-sm transition",
+                    ui.chromeBtn,
+                    "px-0 py-0",
+                    viewMode === "3d"
+                      ? theme === "light"
+                        ? "border-fuchsia-400/50 bg-fuchsia-50 text-fuchsia-800"
+                        : "border-fuchsia-400/50 bg-fuchsia-500/20 text-fuchsia-100"
+                      : "",
+                  ].join(" ")}
+                  aria-label={viewMode === "3d" ? "3D on" : "Switch to 3D"}
+                  aria-pressed={viewMode === "3d"}
+                >
+                  <HiCube className="h-4 w-4" aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  title={locateLoading ? "Locating…" : "My location"}
+                  onClick={handleLocateMe}
+                  disabled={locateLoading}
+                  className={[
+                    "inline-flex h-9 items-center justify-center rounded-lg border text-sm transition disabled:opacity-50",
+                    ui.chromeBtn,
+                    "px-0 py-0",
+                    theme === "light" ? "text-emerald-700" : "text-emerald-200",
+                  ].join(" ")}
+                  aria-label="My location"
+                >
+                  <HiMapPin
+                    className={`h-4 w-4 ${locateLoading ? "animate-pulse" : ""}`}
+                    aria-hidden
+                  />
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGraphsExpanded((open) => !open);
+                    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                      setMobileSheet((sheet) =>
+                        sheet === "graphs" ? null : "graphs",
+                      );
+                    }
+                  }}
+                  className={[
+                    "inline-flex h-9 w-full items-center justify-start gap-2 px-2.5 text-xs",
+                    ui.chromeBtn,
+                    graphsExpanded || mobileSheet === "graphs"
+                      ? theme === "light"
+                        ? "border-teal-500/50 bg-teal-50 text-teal-800"
+                        : "border-teal-400/50 bg-teal-500/20 text-teal-100"
+                      : "",
+                  ].join(" ")}
+                  aria-pressed={graphsExpanded || mobileSheet === "graphs"}
+                >
+                  <HiChartBar className="h-4 w-4 shrink-0" aria-hidden />
+                  Graphs
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReportError("");
+                    setReportOpen(true);
+                  }}
+                  className={[
+                    "inline-flex h-9 w-full items-center justify-start gap-2 px-2.5 text-xs",
+                    ui.chromeBtn,
+                  ].join(" ")}
+                >
+                  <HiDocumentArrowDown className="h-4 w-4 shrink-0" aria-hidden />
+                  Report
+                </button>
+                {programsHref ? (
+                  <Link
+                    href={programsHref}
+                    className={[
+                      "inline-flex h-9 w-full items-center justify-start gap-2 px-2.5 text-xs",
+                      ui.chromeBtn,
+                    ].join(" ")}
+                  >
+                    <HiBuildingOffice2 className="h-4 w-4 shrink-0" aria-hidden />
+                    Programs
+                  </Link>
+                ) : null}
+              </div>
+
+              <div
+                className={[
+                  "flex flex-col gap-1 border-t pt-2",
+                  theme === "light" ? "border-slate-200" : "border-slate-700/80",
+                ].join(" ")}
+              >
                 <button
                   type="button"
                   onClick={toggleChat}
                   className={[
-                    "inline-flex shrink-0 items-center justify-center gap-2",
+                    "inline-flex h-9 w-full items-center justify-start gap-2 px-2.5 text-xs",
                     ui.chromeBtn,
                     chatOpen || mobileSheet === "ai"
                       ? theme === "light"
@@ -968,35 +1137,35 @@ const CommandMapWorkspace = ({
                         : "border-violet-400/60 bg-violet-500/25 text-violet-100"
                       : theme === "light"
                         ? "text-violet-800"
-                        : "text-violet-100",
+                        : "text-violet-200",
                   ].join(" ")}
                   aria-pressed={chatOpen || mobileSheet === "ai"}
                 >
-                  <HiSparkles className="h-4 w-4" aria-hidden />
-                  <span className="hidden sm:inline">AI chat</span>
+                  <HiSparkles className="h-4 w-4 shrink-0" aria-hidden />
+                  AI chat
                 </button>
                 <button
                   type="button"
                   onClick={togglePlanning}
                   className={[
-                    "inline-flex shrink-0 items-center justify-center gap-2",
+                    "inline-flex h-9 w-full items-center justify-start gap-2 px-2.5 text-xs",
                     ui.chromeBtn,
                     planningOpen || mobileSheet === "plan"
                       ? theme === "light"
                         ? "border-cyan-500/50 bg-cyan-50 text-cyan-900"
                         : "border-cyan-400/60 bg-cyan-500/25 text-cyan-50"
                       : theme === "light"
-                        ? "border-cyan-400/40 bg-cyan-50/80 text-cyan-900"
-                        : "border-cyan-400/40 bg-cyan-500/15 text-cyan-100",
+                        ? "text-cyan-900"
+                        : "text-cyan-100",
                   ].join(" ")}
                   aria-pressed={planningOpen || mobileSheet === "plan"}
                 >
-                  <HiLightBulb className="h-4 w-4" aria-hidden />
-                  <span className="hidden sm:inline">AI Planning</span>
+                  <HiLightBulb className="h-4 w-4 shrink-0" aria-hidden />
+                  AI Planning
                 </button>
               </div>
-            ) : null}
-          </div>
+            </aside>
+          )}
         </div>
 
         {locateError ? (
@@ -1330,13 +1499,13 @@ const CommandMapWorkspace = ({
               <button
                 type="button"
                 onClick={() => setFeedExpanded((v) => !v)}
-                className={`rounded-lg px-2 py-1 text-[10px] font-semibold transition ${ui.mutedBtn}`}
+                className={`hidden rounded-lg px-2 py-1 text-[10px] font-semibold transition lg:inline-flex ${ui.mutedBtn}`}
                 aria-expanded={feedExpanded}
               >
                 {feedExpanded ? "Collapse" : "Expand"}
               </button>
             </div>
-            {feedExpanded ? (
+            {feedExpanded || mobileSheet === "feed" ? (
               <div className="mt-2 flex flex-wrap gap-1">
                 <button
                   type="button"
@@ -1367,7 +1536,7 @@ const CommandMapWorkspace = ({
             ) : null}
           </div>
 
-          {feedExpanded ? (
+          {feedExpanded || mobileSheet === "feed" ? (
           <ul className="flex-1 overflow-y-auto overscroll-contain p-2 sm:p-3 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]">
             {filteredProjects.length === 0 ? (
               <li className="flex flex-col items-center px-4 py-10 text-center">

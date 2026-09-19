@@ -39,12 +39,14 @@ const Maps = memo(function Maps({
   const isDark = isDarkProp ?? themeDark;
 
   return (
-    <Maps3D
-      projects={projects}
-      isDark={isDark}
-      flat={viewMode === "2d"}
-      {...props}
-    />
+    <div className="relative h-full min-h-0 w-full">
+      <Maps3D
+        projects={projects}
+        isDark={isDark}
+        flat={viewMode === "2d"}
+        {...props}
+      />
+    </div>
   );
 });
 

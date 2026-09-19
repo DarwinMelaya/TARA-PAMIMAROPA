@@ -13,7 +13,6 @@ import {
     HiChevronDown,
     HiLightBulb,
     HiMagnifyingGlass,
-    HiMap,
     HiMapPin,
     HiCube,
     HiPaperAirplane,
@@ -463,6 +462,7 @@ const CommandMapWorkspace = ({
   const [viewMode, setViewMode] = useState<MapViewMode>("3d");
   const [graphsExpanded, setGraphsExpanded] = useState(false);
   const [feedExpanded, setFeedExpanded] = useState(false);
+  const [statsExpanded, setStatsExpanded] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [planningOpen, setPlanningOpen] = useState(false);
@@ -696,7 +696,7 @@ const CommandMapWorkspace = ({
   return (
     <>
     <Head title={pageTitle} />
-    <section className={`relative z-30 min-h-[32rem] w-full overflow-hidden pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:pb-0 ${isPublic ? "h-svh rounded-none" : "h-[calc(100svh-1.5rem)] rounded-[inherit] md:h-[calc(100svh-1.5rem)] max-md:h-svh max-md:rounded-none"} ${ui.page}`}>
+    <section className={`relative z-30 min-h-[32rem] w-full flex-1 overflow-hidden pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:pb-0 ${isPublic ? "h-svh rounded-none" : "h-full max-md:h-svh max-md:rounded-none md:h-[calc(100svh-1.5rem)] rounded-[inherit]"} ${ui.page}`}>
       <div className="pointer-events-auto absolute inset-0 z-[5]">
         <Maps
           projects={deferredMapProjects}
@@ -729,68 +729,62 @@ const CommandMapWorkspace = ({
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 p-3 sm:p-5">
         <div
           className={[
-            "pointer-events-auto",
             isPublic
               ? "flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3"
               : "flex items-start justify-between gap-2 sm:gap-3",
           ].join(" ")}
         >
-          <div className="min-w-0 max-w-2xl">
-            {!isPublic ? (
-              <div className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] sm:px-3 sm:py-1.5 sm:text-[11px] ${ui.badge}`}>
-                <HiMap className="h-3.5 w-3.5" aria-hidden />
-                {!perfLite ? (
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-60" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400" />
-                  </span>
-                ) : (
-                  <span className="inline-flex h-2 w-2 rounded-full bg-cyan-400" />
-                )}
-                TARA · STI Command Map
-              </div>
-            ) : null}
-            <h1 className={`text-xl font-bold tracking-tight sm:text-3xl ${ui.title} ${isPublic ? "" : "mt-2 sm:mt-3"}`}>
+          {/* Title is visual only — never steal map drag/pan hits */}
+          <div className="pointer-events-none min-w-0 max-w-xl lg:max-w-2xl">
+            <h1 className={`text-xl font-bold tracking-tight sm:text-3xl ${ui.title}`}>
               TARA PAMIMAROPA
             </h1>
-            <p className={`mt-1 max-w-xl text-xs sm:text-sm ${ui.subtitle}`}>
-              Tracking of Accomplishments and Results of Activities and Programs across MIMAROPA
-            </p>
-            <p className={`mt-1 hidden text-xs sm:block ${ui.meta}`}>
-              {stats.municipalities} municipalities · {stats.barangays} barangays
-              · {stats.partners} partners · {filteredProjects.length} on map
-            </p>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {(
-                [
-                  ["SETUP", "#16823c"],
-                  ["CEST", "#c9440b"],
-                  ["GIA", "#1d51db"],
-                  ["SSCP", "#7f23d0"],
-                ] as const
-              ).map(([label, color]) => (
-                <span
-                  key={label}
-                  className={[
-                    "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-wide backdrop-blur-sm",
-                    theme === "light"
-                      ? "border-slate-300 bg-white/90 text-slate-800 shadow-sm"
-                      : "border-white/15 bg-black/25 text-white",
-                  ].join(" ")}
-                >
-                  <span
-                    className="h-2 w-2 rounded-full"
-                    style={{ backgroundColor: color }}
-                    aria-hidden
-                  />
-                  {label}
-                </span>
-              ))}
-            </div>
+            {isPublic ? (
+              <>
+                <p className={`mt-1 max-w-xl text-xs sm:text-sm ${ui.subtitle}`}>
+                  Tracking of Accomplishments and Results of Activities and Programs across MIMAROPA
+                </p>
+                <p className={`mt-1 hidden text-xs sm:block ${ui.meta}`}>
+                  {stats.municipalities} municipalities · {stats.barangays} barangays
+                  · {stats.partners} partners · {filteredProjects.length} on map
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {(
+                    [
+                      ["SETUP", "#16823c"],
+                      ["CEST", "#c9440b"],
+                      ["GIA", "#1d51db"],
+                      ["SSCP", "#7f23d0"],
+                    ] as const
+                  ).map(([label, color]) => (
+                    <span
+                      key={label}
+                      className={[
+                        "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-wide backdrop-blur-sm",
+                        theme === "light"
+                          ? "border-slate-300 bg-white/90 text-slate-800 shadow-sm"
+                          : "border-white/15 bg-black/25 text-white",
+                      ].join(" ")}
+                    >
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: color }}
+                        aria-hidden
+                      />
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className={`mt-1 hidden text-xs sm:block ${ui.meta}`}>
+                {filteredProjects.length} projects on map
+              </p>
+            )}
           </div>
 
           {isPublic ? (
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <div className="pointer-events-auto flex flex-wrap items-center gap-1.5 sm:gap-2">
               <div className="relative shrink-0">
                 <HiMapPin
                   className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-300"
@@ -953,7 +947,7 @@ const CommandMapWorkspace = ({
           ) : (
             <aside
               className={[
-                "flex max-h-[min(72svh,40rem)] w-[11.25rem] shrink-0 flex-col gap-2 overflow-y-auto overscroll-contain rounded-2xl border p-2 sm:w-[12.5rem] sm:p-2.5",
+                "pointer-events-auto flex max-h-[min(72svh,40rem)] w-[11.25rem] shrink-0 flex-col gap-2 overflow-y-auto overscroll-contain rounded-2xl border p-2 sm:w-[12.5rem] sm:p-2.5",
                 ui.panel,
               ].join(" ")}
               aria-label="Map controls"
@@ -1320,17 +1314,44 @@ const CommandMapWorkspace = ({
       >
         <div
           className={[
-            "pointer-events-auto flex w-full shrink-0 flex-col overflow-hidden rounded-2xl border p-3",
+            "pointer-events-auto flex w-full shrink-0 flex-col overflow-hidden rounded-2xl border transition-all duration-300",
             ui.panel,
             mobileSheet === "stats"
               ? "max-h-[min(55vh,420px)] overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]"
               : "hidden",
-            "lg:flex lg:max-h-[min(520px,62vh)] lg:max-w-[min(340px,calc(100%-2rem))] lg:overflow-y-auto",
+            "lg:flex lg:max-w-[min(340px,calc(100%-2rem))]",
+            statsExpanded
+              ? "lg:max-h-[min(520px,62vh)] lg:overflow-y-auto"
+              : "lg:max-h-14",
           ].join(" ")}
         >
-          <p className={`mb-2.5 text-[11px] font-bold uppercase tracking-[0.18em] ${ui.panelLabel}`}>
-            Regional overview
-          </p>
+          <div
+            className={[
+              "flex items-center justify-between gap-2",
+              statsExpanded || mobileSheet === "stats" ? "px-3 pt-3 sm:px-3" : "px-3 py-3",
+            ].join(" ")}
+          >
+            <button
+              type="button"
+              onClick={() => setStatsExpanded((v) => !v)}
+              className="flex min-w-0 flex-1 items-center gap-2 text-left"
+            >
+              <p className={`text-[11px] font-bold uppercase tracking-[0.18em] ${ui.panelLabel}`}>
+                Regional overview
+              </p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatsExpanded((v) => !v)}
+              className={`hidden rounded-lg px-2 py-1 text-[10px] font-semibold transition lg:inline-flex ${ui.mutedBtn}`}
+              aria-expanded={statsExpanded}
+            >
+              {statsExpanded ? "Collapse" : "Expand"}
+            </button>
+          </div>
+
+          {statsExpanded || mobileSheet === "stats" ? (
+            <div className="p-3 pt-0">
           <div className="grid w-full grid-cols-2 gap-2">
             {STAT_CARDS.filter((c) =>
               ["total", "active", "completed", "funding"].includes(c.key),
@@ -1420,6 +1441,8 @@ const CommandMapWorkspace = ({
             >
               Clear filters
             </button>
+          ) : null}
+            </div>
           ) : null}
         </div>
 

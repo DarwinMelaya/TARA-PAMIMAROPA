@@ -1014,13 +1014,14 @@ const Maps3D = ({
                 canvasContextAttributes: { antialias: true },
             });
 
+            // Top-left: avoid right rail, bottom stats, and feed panels.
             map.addControl(
                 new maplibregl.NavigationControl({
                     visualizePitch: !flatRef.current,
                     showCompass: true,
                     showZoom: true,
                 }),
-                'bottom-right',
+                'top-left',
             );
 
             if (flatRef.current) {
@@ -1233,11 +1234,11 @@ const Maps3D = ({
     }, [flyToUserToken, userLocation]);
 
     return (
-        <div className="relative h-full w-full">
+        <div className="relative h-full min-h-0 w-full">
             <div
                 ref={containerRef}
                 className={[
-                    'project-map-container maplibre-3d h-full w-full',
+                    'project-map-container maplibre-3d absolute inset-0 h-full w-full',
                     isDark ? 'project-map-container--dark' : 'project-map-container--light',
                 ].join(' ')}
                 aria-label={

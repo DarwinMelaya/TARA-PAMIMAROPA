@@ -18,7 +18,7 @@ const RegionDashboard = () => {
   const { projects } = useDashboardProjectStream(seed, projectStream);
 
   return (
-    <div className="h-full min-h-0 translate-y-0 opacity-100 transition-[opacity,transform] duration-500 ease-out motion-safe:starting:translate-y-1 motion-safe:starting:opacity-0">
+    <div className="flex h-full min-h-0 flex-1 flex-col translate-y-0 opacity-100 transition-[opacity,transform] duration-500 ease-out motion-safe:starting:translate-y-1 motion-safe:starting:opacity-0">
       <CommandMapWorkspace
         projects={projects}
         variant="region"

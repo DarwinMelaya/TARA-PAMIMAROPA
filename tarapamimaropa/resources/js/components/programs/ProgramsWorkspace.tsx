@@ -642,7 +642,7 @@ const ProgramsWorkspace = ({
               id="programs-step-kpis"
               className={`text-sm font-semibold ${ui.heading}`}
             >
-              Snapshot KPIs
+              Overview
             </h2>
             <span className={`text-xs ${ui.muted}`}>for {scopeLabel}</span>
           </div>

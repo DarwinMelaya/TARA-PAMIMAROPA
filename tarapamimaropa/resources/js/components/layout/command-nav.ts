@@ -29,6 +29,7 @@ export type CommandNavConfig = {
     homeHref: NavItem['href'];
     roleLabel: string;
     roleIcon: LucideIcon;
+    brandTitle: string;
     items: NavItem[];
     mobileItems: NavItem[];
 };
@@ -37,124 +38,119 @@ const profileItem: NavItem = {
     title: 'Profile',
     href: editProfile(),
     icon: UserRound,
+    group: 'Account',
 };
+
+function withGroups(
+    main: Omit<NavItem, 'group'>[],
+): NavItem[] {
+    return [
+        ...main.map((item) => ({ ...item, group: 'Main' as const })),
+        profileItem,
+    ];
+}
 
 function configForRole(role: UserRole | undefined): CommandNavConfig {
     switch (role) {
-        case 'regional_office':
+        case 'regional_office': {
+            const main = [
+                {
+                    title: 'Dashboard',
+                    href: regionDashboard(),
+                    icon: LayoutGrid,
+                },
+                {
+                    title: 'Programs',
+                    href: regionPrograms(),
+                    icon: FolderKanban,
+                },
+            ];
+            const items = withGroups(main);
             return {
                 homeHref: regionDashboard(),
                 roleLabel: 'Regional Office',
                 roleIcon: MapPinned,
-                items: [
-                    {
-                        title: 'Dashboard',
-                        href: regionDashboard(),
-                        icon: LayoutGrid,
-                    },
-                    {
-                        title: 'Programs',
-                        href: regionPrograms(),
-                        icon: FolderKanban,
-                    },
-                ],
+                brandTitle: 'TARA MIMAROPA',
+                items,
                 mobileItems: [
-                    {
-                        title: 'Dashboard',
-                        href: regionDashboard(),
-                        icon: LayoutGrid,
-                    },
-                    {
-                        title: 'Programs',
-                        href: regionPrograms(),
-                        icon: FolderKanban,
-                    },
+                    ...main.map((i) => ({ ...i, group: 'Main' })),
                     profileItem,
                 ],
             };
-        case 'psto':
+        }
+        case 'psto': {
+            const main = [
+                {
+                    title: 'Dashboard',
+                    href: pstoDashboard(),
+                    icon: LayoutGrid,
+                },
+                {
+                    title: 'Programs',
+                    href: pstoPrograms(),
+                    icon: FolderKanban,
+                },
+            ];
+            const items = withGroups(main);
             return {
                 homeHref: pstoDashboard(),
                 roleLabel: 'PSTO',
                 roleIcon: MapPin,
-                items: [
-                    {
-                        title: 'Dashboard',
-                        href: pstoDashboard(),
-                        icon: LayoutGrid,
-                    },
-                    {
-                        title: 'Programs',
-                        href: pstoPrograms(),
-                        icon: FolderKanban,
-                    },
-                ],
+                brandTitle: 'TARA PSTO',
+                items,
                 mobileItems: [
-                    {
-                        title: 'Dashboard',
-                        href: pstoDashboard(),
-                        icon: LayoutGrid,
-                    },
-                    {
-                        title: 'Programs',
-                        href: pstoPrograms(),
-                        icon: FolderKanban,
-                    },
+                    ...main.map((i) => ({ ...i, group: 'Main' })),
                     profileItem,
                 ],
             };
-        case 'super_admin':
+        }
+        case 'super_admin': {
+            const main = [
+                {
+                    title: 'Dashboard',
+                    href: superAdminDashboard(),
+                    icon: LayoutGrid,
+                },
+                {
+                    title: 'Users',
+                    href: superAdminUsers(),
+                    icon: Users,
+                },
+            ];
+            const items = withGroups(main);
             return {
                 homeHref: superAdminDashboard(),
                 roleLabel: 'Super Admin',
                 roleIcon: Shield,
-                items: [
-                    {
-                        title: 'Dashboard',
-                        href: superAdminDashboard(),
-                        icon: LayoutGrid,
-                    },
-                    {
-                        title: 'Users',
-                        href: superAdminUsers(),
-                        icon: Users,
-                    },
-                ],
+                brandTitle: 'TARA Admin',
+                items,
                 mobileItems: [
-                    {
-                        title: 'Dashboard',
-                        href: superAdminDashboard(),
-                        icon: LayoutGrid,
-                    },
-                    {
-                        title: 'Users',
-                        href: superAdminUsers(),
-                        icon: Users,
-                    },
+                    ...main.map((i) => ({ ...i, group: 'Main' })),
                     profileItem,
                 ],
             };
-        default:
+        }
+        default: {
+            const main = [
+                {
+                    title: 'Dashboard',
+                    href: appDashboard(),
+                    icon: LayoutGrid,
+                },
+            ];
+            const items = withGroups(main);
             return {
                 homeHref: appDashboard(),
                 roleLabel: 'Platform',
                 roleIcon: LayoutGrid,
-                items: [
-                    {
-                        title: 'Dashboard',
-                        href: appDashboard(),
-                        icon: LayoutGrid,
-                    },
-                ],
+                brandTitle: 'TARA',
+                items,
                 mobileItems: [
-                    {
-                        title: 'Dashboard',
-                        href: appDashboard(),
-                        icon: LayoutGrid,
-                    },
+                    ...main.map((i) => ({ ...i, group: 'Main' })),
                     profileItem,
                 ],
             };
+        }
     }
 }
 

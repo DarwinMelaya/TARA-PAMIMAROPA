@@ -27,6 +27,7 @@ import {
 import AnalyticsChatBot from '@/components/region/dashboard/AnalyticsChatBot';
 import GraphsPanel from '@/components/region/dashboard/GraphsPanel';
 import RegionalDirectorAiAnalytics from '@/components/region/dashboard/RegionalDirectorAiAnalytics';
+import QuickSnapshotModal from '@/components/modals/region/QuickSnapshotModal';
 import Maps, {
     type MapViewMode,
     type UserLocation,
@@ -468,6 +469,7 @@ const CommandMapWorkspace = ({
   const [planningOpen, setPlanningOpen] = useState(false);
   const [chatSeedPrompt, setChatSeedPrompt] = useState<string | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
+  const [snapshotOpen, setSnapshotOpen] = useState(false);
   const [reportError, setReportError] = useState("");
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locateLoading, setLocateLoading] = useState(false);
@@ -911,6 +913,23 @@ const CommandMapWorkspace = ({
               </button>
               <button
                 type="button"
+                onClick={() => setSnapshotOpen(true)}
+                className={[
+                  "inline-flex shrink-0 items-center justify-center gap-2",
+                  ui.chromeBtn,
+                  snapshotOpen
+                    ? theme === "light"
+                      ? "border-blue-500/50 bg-blue-50 text-blue-800"
+                      : "border-blue-400/50 bg-blue-500/20 text-blue-100"
+                    : "",
+                ].join(" ")}
+                aria-pressed={snapshotOpen}
+              >
+                <HiTableCells className="h-4 w-4" aria-hidden />
+                <span className="hidden sm:inline">Snapshot</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => {
                   setReportError("");
                   setReportOpen(true);
@@ -1084,6 +1103,23 @@ const CommandMapWorkspace = ({
                 >
                   <HiChartBar className="h-4 w-4 shrink-0" aria-hidden />
                   Graphs
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSnapshotOpen(true)}
+                  className={[
+                    "inline-flex h-9 w-full items-center justify-start gap-2 px-2.5 text-xs",
+                    ui.chromeBtn,
+                    snapshotOpen
+                      ? theme === "light"
+                        ? "border-blue-500/50 bg-blue-50 text-blue-800"
+                        : "border-blue-400/50 bg-blue-500/20 text-blue-100"
+                      : "",
+                  ].join(" ")}
+                  aria-pressed={snapshotOpen}
+                >
+                  <HiTableCells className="h-4 w-4 shrink-0" aria-hidden />
+                  Snapshot
                 </button>
                 <button
                   type="button"
@@ -1770,6 +1806,16 @@ const CommandMapWorkspace = ({
           </div>
         </div>
       ) : null}
+
+      <QuickSnapshotModal
+        open={snapshotOpen}
+        onOpenChange={setSnapshotOpen}
+        projects={projects}
+        provinceFilter={provinceFilter}
+        statusFilter={statusFilter}
+        onProvinceFilter={setProvinceFilter}
+        onStatusFilter={setStatusFilter}
+      />
 
       {reportOpen ? (
         <div

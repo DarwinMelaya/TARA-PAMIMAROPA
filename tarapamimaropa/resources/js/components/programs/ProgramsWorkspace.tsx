@@ -20,6 +20,7 @@ import {
 } from 'react-icons/hi2';
 import AddProjectsModal from '@/components/modals/psto/AddProjectsModal';
 import EditProjectsModal from '@/components/modals/psto/EditProjectsModal';
+import QuickSnapshotModal from '@/components/modals/region/QuickSnapshotModal';
 import {
   PROVINCES,
   formatCompact,
@@ -169,8 +170,9 @@ const ProgramsWorkspace = ({
   >("year_asc");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [chartsOpen, setChartsOpen] = useState(false);
   const [viewing, setViewing] = useState<TaraProject | null>(null);
+  const [snapshotOpen, setSnapshotOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<TaraProject | null>(null);
 
@@ -341,6 +343,34 @@ const ProgramsWorkspace = ({
     sortBy !== "year_asc" ||
     search.trim().length > 0;
 
+  const advancedFilterCount = useMemo(() => {
+    let count = 0;
+    if (typeFilter !== "all") count += 1;
+    if (sectorFilter !== "all") count += 1;
+    if (yearFilter !== "all") count += 1;
+    if (cityFilter !== "all") count += 1;
+    if (districtFilter !== "all") count += 1;
+    if (sortBy !== "year_asc") count += 1;
+    return count;
+  }, [
+    typeFilter,
+    sectorFilter,
+    yearFilter,
+    cityFilter,
+    districtFilter,
+    sortBy,
+  ]);
+
+  const showDataToolbar =
+    canMutate ||
+    allowImport ||
+    (allowExport && exportUrl) ||
+    (allowExport && exportTemplateUrl);
+
+  const stepBadgeClass = isDark
+    ? "bg-slate-800 text-slate-200"
+    : "bg-slate-200 text-slate-800";
+
   const stats = useMemo(
     () => summarizeProjects(scopedProjects),
     [scopedProjects],
@@ -350,19 +380,6 @@ const ProgramsWorkspace = ({
     () => scopedProjects.reduce((s, p) => s + p.budget, 0),
     [scopedProjects],
   );
-
-  const byProvince = useMemo(() => {
-    const rows = PROVINCES.map((province) => {
-      const items = projects.filter((p) => p.province === province);
-      return {
-        province,
-        count: items.length,
-        budget: items.reduce((s, p) => s + p.budget, 0),
-      };
-    });
-    const max = Math.max(1, ...rows.map((r) => r.count));
-    return { rows, max };
-  }, [projects]);
 
   const byStatus = useMemo(() => {
     const counts = new Map<string, number>();
@@ -395,8 +412,7 @@ const ProgramsWorkspace = ({
     const rows = [...counts.entries()]
       .map(([type, data]) => ({ type, ...data }))
       .sort((a, b) => b.count - a.count);
-    const max = Math.max(1, ...rows.map((r) => r.count));
-    return { rows, max };
+    return { rows };
   }, [scopedProjects]);
 
   const pageCount = Math.max(1, Math.ceil(filteredProjects.length / PAGE_SIZE));
@@ -456,64 +472,21 @@ const ProgramsWorkspace = ({
       <div className="mx-auto max-w-6xl">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
-          <h1 className={`text-2xl font-semibold tracking-tight sm:text-3xl ${ui.heading}`}>
-            Projects Overview
-          </h1>
-          <p className={`mt-1.5 max-w-prose text-sm leading-relaxed ${ui.muted}`}>
-            {provinceLocked
-              ? `Projects for ${lockedProvince}.${summaryGraphsHref ? " Deep charts stay behind Summary graphs." : ""}`
-              : `Pick a province, then scan the list.${summaryGraphsHref ? " Deep charts stay behind Summary graphs." : ""}`}
-          </p>
+            <h1 className={`text-2xl font-semibold tracking-tight sm:text-3xl ${ui.heading}`}>
+              Project list
+            </h1>
+            <p className={`mt-1.5 max-w-prose text-sm leading-relaxed ${ui.muted}`}>
+              Pick a province, filter the list, open a row for details.
+            </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {canMutate ? (
-              <button
-                type="button"
-                onClick={() => setAddOpen(true)}
-                className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition duration-[180ms] hover:bg-emerald-500"
-              >
-                <HiPlus className="h-4 w-4" aria-hidden />
-                Add project
-              </button>
-            ) : null}
-            {allowImport ? (
-              <>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
-                  className="hidden"
-                  onChange={(e) => onImportFile(e.target.files?.[0])}
-                />
-                <button
-                  type="button"
-                  disabled={importing}
-                  onClick={onPickImport}
-                  className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition duration-[180ms] disabled:opacity-50 ${ui.ghostBtn}`}
-                >
-                  <HiArrowUpTray className="h-4 w-4" aria-hidden />
-                  {importing ? "Importing…" : "Import Excel"}
-                </button>
-              </>
-            ) : null}
-            {allowExport && exportUrl ? (
-              <a
-                href={exportUrl}
-                className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition duration-[180ms] ${ui.ghostBtn}`}
-              >
-                <HiArrowDownTray className="h-4 w-4" aria-hidden />
-                Export Excel
-              </a>
-            ) : null}
-            {allowExport && exportTemplateUrl ? (
-              <a
-                href={exportTemplateUrl}
-                className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition duration-[180ms] ${ui.ghostBtn}`}
-              >
-                <HiDocumentArrowDown className="h-4 w-4" aria-hidden />
-                Template
-              </a>
-            ) : null}
+            <Link
+              href={homeHref}
+              className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition duration-[180ms] ${ui.ghostBtn}`}
+            >
+              <HiMapPin className="h-4 w-4" aria-hidden />
+              {homeLabel}
+            </Link>
             {summaryGraphsHref ? (
               <Link
                 href={summaryGraphsHref}
@@ -523,19 +496,94 @@ const ProgramsWorkspace = ({
                 Summary graphs
               </Link>
             ) : null}
-            <Link
-              href={homeHref}
+            <button
+              type="button"
+              onClick={() => setSnapshotOpen(true)}
               className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition duration-[180ms] ${ui.ghostBtn}`}
             >
-              <HiMapPin className="h-4 w-4" aria-hidden />
-              {homeLabel}
-            </Link>
+              <HiChartBar className="h-4 w-4" aria-hidden />
+              Quick snapshot
+            </button>
           </div>
         </header>
 
-        {/* Province focus */}
+        {showDataToolbar ? (
+          <div
+            className={`mt-4 flex flex-col gap-2 rounded-xl border p-3 sm:flex-row sm:items-center sm:justify-between ${ui.card}`}
+          >
+            <p className={`text-xs font-medium uppercase tracking-wide ${ui.muted}`}>
+              Data
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {canMutate ? (
+                <button
+                  type="button"
+                  onClick={() => setAddOpen(true)}
+                  className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition duration-[180ms] hover:bg-emerald-500"
+                >
+                  <HiPlus className="h-4 w-4" aria-hidden />
+                  Add project
+                </button>
+              ) : null}
+              {allowImport ? (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
+                    className="hidden"
+                    onChange={(e) => onImportFile(e.target.files?.[0])}
+                  />
+                  <button
+                    type="button"
+                    disabled={importing}
+                    onClick={onPickImport}
+                    className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition duration-[180ms] disabled:opacity-50 ${ui.ghostBtn}`}
+                  >
+                    <HiArrowUpTray className="h-4 w-4" aria-hidden />
+                    {importing ? "Importing…" : "Import Excel"}
+                  </button>
+                </>
+              ) : null}
+              {allowExport && exportUrl ? (
+                <a
+                  href={exportUrl}
+                  className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition duration-[180ms] ${ui.ghostBtn}`}
+                >
+                  <HiArrowDownTray className="h-4 w-4" aria-hidden />
+                  Export Excel
+                </a>
+              ) : null}
+              {allowExport && exportTemplateUrl ? (
+                <a
+                  href={exportTemplateUrl}
+                  className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition duration-[180ms] ${ui.ghostBtn}`}
+                >
+                  <HiDocumentArrowDown className="h-4 w-4" aria-hidden />
+                  Template
+                </a>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        <section className="mt-6" aria-labelledby="programs-step-province">
+          <div className="mb-3 flex items-center gap-2">
+            <span
+              className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${stepBadgeClass}`}
+              aria-hidden
+            >
+              1
+            </span>
+            <h2
+              id="programs-step-province"
+              className={`text-sm font-semibold ${ui.heading}`}
+            >
+              Province
+            </h2>
+          </div>
         {provinceLocked ? (
-          <div className="mt-6 flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <HiMapPin className="h-4 w-4 shrink-0 text-slate-500" aria-hidden />
             <span className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white">
               {lockedProvince}
@@ -545,7 +593,7 @@ const ProgramsWorkspace = ({
             </span>
           </div>
         ) : (
-        <div className="mt-6 flex items-center gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <HiMapPin className="h-4 w-4 shrink-0 text-slate-500" aria-hidden />
           <button
             type="button"
@@ -580,9 +628,25 @@ const ProgramsWorkspace = ({
           })}
         </div>
         )}
+        </section>
 
-        {/* 3 hero KPIs only */}
-        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <section className="mt-8" aria-labelledby="programs-step-kpis">
+          <div className="mb-3 flex items-center gap-2">
+            <span
+              className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${stepBadgeClass}`}
+              aria-hidden
+            >
+              2
+            </span>
+            <h2
+              id="programs-step-kpis"
+              className={`text-sm font-semibold ${ui.heading}`}
+            >
+              Snapshot KPIs
+            </h2>
+            <span className={`text-xs ${ui.muted}`}>for {scopeLabel}</span>
+          </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {kpis.map((kpi) => {
             const Icon = kpi.icon;
             return (
@@ -604,209 +668,47 @@ const ProgramsWorkspace = ({
             );
           })}
         </div>
+        </section>
 
-        {/* Snapshot charts: collapsed by default */}
-        <div className="mt-6">
-          <button
-            type="button"
-            onClick={() => setChartsOpen((o) => !o)}
-            className={`flex w-full min-h-11 items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition duration-[180ms] ${ui.card} ${ui.cardHover}`}
-            aria-expanded={chartsOpen}
-          >
-            <span className="flex items-center gap-2">
-              <HiChartBar className={`h-4 w-4 ${ui.muted}`} aria-hidden />
-              <span className={`text-sm font-semibold ${ui.heading}`}>
-                Quick snapshot
-              </span>
-              <span className={`text-xs font-medium ${ui.muted}`}>
-                PSTO · status · type
-              </span>
+        <section className="mt-8" aria-labelledby="programs-step-list">
+          <div className="mb-3 flex items-start gap-2">
+            <span
+              className={`mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${stepBadgeClass}`}
+              aria-hidden
+            >
+              3
             </span>
-            {chartsOpen ? (
-              <HiChevronUp className={`h-5 w-5 ${ui.soft}`} aria-hidden />
-            ) : (
-              <HiChevronDown className={`h-5 w-5 ${ui.soft}`} aria-hidden />
-            )}
-          </button>
-
-          {chartsOpen ? (
-            <div className="mt-3 space-y-3">
-              {!provinceLocked ? (
-              <div className={`rounded-xl border p-4 ${ui.card}`}>
-                <div className="mb-3 flex items-center justify-between gap-2">
-                  <p className={`text-sm font-medium ${ui.heading}`}>
-                    Projects per PSTO
-                  </p>
-                  <span className={`text-xs ${ui.muted}`}>Tap bar to focus</span>
-                </div>
-                <div className="space-y-2">
-                  {byProvince.rows.map((row) => {
-                    const active = provinceFilter === row.province;
-                    const pct = Math.round((row.count / byProvince.max) * 100);
-                    return (
-                      <button
-                        key={row.province}
-                        type="button"
-                        onClick={() =>
-                          setProvince(active ? "all" : row.province)
-                        }
-                        className={[
-                          "w-full rounded-lg border p-2.5 text-left transition duration-[180ms]",
-                          active
-                            ? "border-blue-500/50 bg-blue-600/10"
-                            : `border-transparent ${ui.barHover}`,
-                        ].join(" ")}
-                      >
-                        <div className="mb-1.5 flex items-center justify-between gap-2 text-xs">
-                          <span className={`font-medium ${ui.body}`}>
-                            {row.province}
-                          </span>
-                          <span className={`shrink-0 ${ui.muted}`}>
-                            <span className={`font-semibold ${ui.heading}`}>
-                              {row.count}
-                            </span>{" "}
-                            · {formatCompact(row.budget)}
-                          </span>
-                        </div>
-                        <div className={`h-2 overflow-hidden rounded-full ${ui.track}`}>
-                          <div
-                            className="h-full rounded-full bg-blue-500 transition-[width] duration-[320ms]"
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              ) : null}
-
-              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                <div className={`rounded-xl border p-4 ${ui.card}`}>
-                  <p className={`mb-3 text-sm font-medium ${ui.heading}`}>
-                    By status
-                    {provinceFilter === "all" ? "" : ` · ${provinceFilter}`}
-                  </p>
-                  <div className="space-y-2.5">
-                    {byStatus.rows.length === 0 ? (
-                      <p className="text-xs text-slate-500">No projects.</p>
-                    ) : null}
-                    {byStatus.rows.map((row) => {
-                      const pct = Math.round((row.count / byStatus.max) * 100);
-                      const sample = scopedProjects.find(
-                        (p) => projectStatusLabel(p) === row.status,
-                      );
-                      const badgeClass = sample
-                        ? projectStatusClass(sample, statusMode)
-                        : statusMode === "light"
-                          ? "border border-slate-400 bg-slate-200 text-slate-900 ring-0"
-                          : "bg-slate-800/80 text-slate-200 ring-slate-500/40";
-                      return (
-                        <button
-                          key={row.status}
-                          type="button"
-                          onClick={() =>
-                            setStatus(
-                              statusFilter === row.status ? "all" : row.status,
-                            )
-                          }
-                          className="w-full text-left"
-                        >
-                          <div className="mb-1 flex items-center justify-between text-xs">
-                            <span
-                              className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${badgeClass}`}
-                            >
-                              {row.status}
-                            </span>
-                            <span className={`font-semibold ${ui.heading}`}>
-                              {row.count}
-                            </span>
-                          </div>
-                          <div className={`h-2 overflow-hidden rounded-full ${ui.track}`}>
-                            <div
-                              className="h-full rounded-full bg-blue-500/80"
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className={`rounded-xl border p-4 ${ui.card}`}>
-                  <p className={`mb-3 text-sm font-medium ${ui.heading}`}>
-                    By type
-                    {provinceFilter === "all" ? "" : ` · ${provinceFilter}`}
-                  </p>
-                  <div className="space-y-2.5">
-                    {byType.rows.length === 0 ? (
-                      <p className="text-xs text-slate-500">No projects.</p>
-                    ) : null}
-                    {byType.rows.map((row) => {
-                      const pct = Math.round((row.count / byType.max) * 100);
-                      const active = typeFilter === row.type;
-                      return (
-                        <button
-                          key={row.type}
-                          type="button"
-                          onClick={() => setType(active ? "all" : row.type)}
-                          className="w-full text-left"
-                        >
-                          <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-                            <span className={`min-w-0 truncate font-medium ${ui.body}`}>
-                              {row.type}
-                            </span>
-                            <span className={`shrink-0 ${ui.muted}`}>
-                              <span className={`font-semibold ${ui.heading}`}>
-                                {row.count}
-                              </span>{" "}
-                              · {formatCompact(row.budget)}
-                            </span>
-                          </div>
-                          <div className={`h-2 overflow-hidden rounded-full ${ui.track}`}>
-                            <div
-                              className={[
-                                "h-full rounded-full transition-[width] duration-[320ms]",
-                                active ? "bg-blue-500" : "bg-blue-500/80",
-                              ].join(" ")}
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : null}
-        </div>
-
-        {/* List: filters + table */}
-        <div className="mt-8">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <HiClipboardDocumentList
                   className={`h-4 w-4 ${ui.muted}`}
                   aria-hidden
                 />
-                <h2 className={`text-sm font-semibold ${ui.heading}`}>
-                  Projects in {scopeLabel}
+                <h2
+                  id="programs-step-list"
+                  className={`text-sm font-semibold ${ui.heading}`}
+                >
+                  Project list
                 </h2>
               </div>
               <p className={`mt-1 text-xs ${ui.muted}`}>
-                {filteredProjects.length} shown
-                {filteredProjects.length !== scopedProjects.length
-                  ? ` of ${scopedProjects.length}`
-                  : ""}{" "}
-                · {formatPeso(
-                  filteredProjects.reduce((s, p) => s + p.budget, 0),
-                )}{" "}
-                filtered cost
+                Pick a province, filter the list, open a row for details.
               </p>
             </div>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <p className={`text-xs ${ui.muted}`}>
+              {filteredProjects.length} shown
+              {filteredProjects.length !== scopedProjects.length
+                ? ` of ${scopedProjects.length}`
+                : ""}{" "}
+              ·{" "}
+              {formatPeso(
+                filteredProjects.reduce((s, p) => s + p.budget, 0),
+              )}{" "}
+              filtered cost
+            </p>
 
             <div className="flex w-full flex-col gap-2 sm:max-w-md sm:flex-row sm:items-center">
               <label className="relative block min-w-0 flex-1">
@@ -839,143 +741,164 @@ const ProgramsWorkspace = ({
             </div>
           </div>
 
-          <div className={`mt-3 grid grid-cols-1 gap-2 rounded-xl border p-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${ui.card}`}>
-            <label className="block text-xs">
-              <span className={`mb-1 block font-medium ${ui.muted}`}>Type</span>
-              <select
-                value={typeFilter}
-                onChange={(e) => setType(e.target.value)}
-                className={selectClass}
-              >
-                <option value="all">All types</option>
-                {typeOptions.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </label>
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((open) => !open)}
+              aria-expanded={filtersOpen}
+              className={`inline-flex min-h-9 items-center gap-2 rounded-lg border px-3 text-xs font-medium transition duration-[180ms] ${ui.ghostBtn}`}
+            >
+              More filters
+              {advancedFilterCount > 0 ? (
+                <span className="rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                  {advancedFilterCount}
+                </span>
+              ) : null}
+              {filtersOpen ? (
+                <HiChevronUp className="h-4 w-4" aria-hidden />
+              ) : (
+                <HiChevronDown className="h-4 w-4" aria-hidden />
+              )}
+            </button>
 
-            <label className="block text-xs">
-              <span className={`mb-1 block font-medium ${ui.muted}`}>Sector</span>
-              <select
-                value={sectorFilter}
-                onChange={(e) => {
-                  setSectorFilter(e.target.value);
-                  resetPage();
-                }}
-                className={selectClass}
+            {filtersOpen ? (
+              <div
+                className={`mt-2 grid grid-cols-1 gap-2 rounded-xl border p-3 sm:grid-cols-2 lg:grid-cols-3 ${ui.card}`}
               >
-                <option value="all">All sectors</option>
-                {sectorOptions.map((sector) => (
-                  <option key={sector} value={sector}>
-                    {sector}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <label className="block text-xs">
+                  <span className={`mb-1 block font-medium ${ui.muted}`}>
+                    Type
+                  </span>
+                  <select
+                    value={typeFilter}
+                    onChange={(e) => setType(e.target.value)}
+                    className={selectClass}
+                  >
+                    <option value="all">All types</option>
+                    {typeOptions.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-            <label className="block text-xs">
-              <span className={`mb-1 block font-medium ${ui.muted}`}>
-                Year approved
-              </span>
-              <select
-                value={yearFilter}
-                onChange={(e) => {
-                  setYearFilter(e.target.value);
-                  resetPage();
-                }}
-                className={selectClass}
-              >
-                <option value="all">All years</option>
-                {yearOptions.map((year) => (
-                  <option key={year} value={String(year)}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <label className="block text-xs">
+                  <span className={`mb-1 block font-medium ${ui.muted}`}>
+                    Sector
+                  </span>
+                  <select
+                    value={sectorFilter}
+                    onChange={(e) => {
+                      setSectorFilter(e.target.value);
+                      resetPage();
+                    }}
+                    className={selectClass}
+                  >
+                    <option value="all">All sectors</option>
+                    {sectorOptions.map((sector) => (
+                      <option key={sector} value={sector}>
+                        {sector}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-            <label className="block text-xs">
-              <span className={`mb-1 block font-medium ${ui.muted}`}>City</span>
-              <select
-                value={cityFilter}
-                onChange={(e) => {
-                  setCityFilter(e.target.value);
-                  resetPage();
-                }}
-                className={selectClass}
-              >
-                <option value="all">All cities</option>
-                {cityOptions.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <label className="block text-xs">
+                  <span className={`mb-1 block font-medium ${ui.muted}`}>
+                    Year approved
+                  </span>
+                  <select
+                    value={yearFilter}
+                    onChange={(e) => {
+                      setYearFilter(e.target.value);
+                      resetPage();
+                    }}
+                    className={selectClass}
+                  >
+                    <option value="all">All years</option>
+                    {yearOptions.map((year) => (
+                      <option key={year} value={String(year)}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-            <label className="block text-xs">
-              <span className={`mb-1 block font-medium ${ui.muted}`}>
-                District
-              </span>
-              <select
-                value={districtFilter}
-                onChange={(e) => {
-                  setDistrictFilter(e.target.value);
-                  resetPage();
-                }}
-                className={selectClass}
-              >
-                <option value="all">All districts</option>
-                {districtOptions.map((district) => (
-                  <option key={district} value={district}>
-                    {district}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <label className="block text-xs">
+                  <span className={`mb-1 block font-medium ${ui.muted}`}>
+                    City
+                  </span>
+                  <select
+                    value={cityFilter}
+                    onChange={(e) => {
+                      setCityFilter(e.target.value);
+                      resetPage();
+                    }}
+                    className={selectClass}
+                  >
+                    <option value="all">All cities</option>
+                    {cityOptions.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-            <label className="block text-xs">
-              <span className={`mb-1 block font-medium ${ui.muted}`}>Status</span>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatus(e.target.value)}
-                className={selectClass}
-              >
-                <option value="all">All status</option>
-                {statusOptions.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <label className="block text-xs">
+                  <span className={`mb-1 block font-medium ${ui.muted}`}>
+                    District
+                  </span>
+                  <select
+                    value={districtFilter}
+                    onChange={(e) => {
+                      setDistrictFilter(e.target.value);
+                      resetPage();
+                    }}
+                    className={selectClass}
+                  >
+                    <option value="all">All districts</option>
+                    {districtOptions.map((district) => (
+                      <option key={district} value={district}>
+                        {district}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-            <label className="block text-xs">
-              <span className={`mb-1 block font-medium ${ui.muted}`}>Sort by</span>
-              <select
-                value={sortBy}
-                onChange={(e) => {
-                  setSortBy(
-                    e.target.value as
-                      | "year_asc"
-                      | "year_desc"
-                      | "name"
-                      | "province"
-                      | "status",
-                  );
-                  resetPage();
-                }}
-                className={selectClass}
-              >
-                <option value="year_asc">Year approved ↑ (oldest first)</option>
-                <option value="year_desc">Year approved ↓ (newest first)</option>
-                <option value="name">Project name A–Z</option>
-                <option value="province">Province A–Z</option>
-                <option value="status">Status A–Z</option>
-              </select>
-            </label>
+                <label className="block text-xs">
+                  <span className={`mb-1 block font-medium ${ui.muted}`}>
+                    Sort by
+                  </span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => {
+                      setSortBy(
+                        e.target.value as
+                          | "year_asc"
+                          | "year_desc"
+                          | "name"
+                          | "province"
+                          | "status",
+                      );
+                      resetPage();
+                    }}
+                    className={selectClass}
+                  >
+                    <option value="year_asc">
+                      Year approved ↑ (oldest first)
+                    </option>
+                    <option value="year_desc">
+                      Year approved ↓ (newest first)
+                    </option>
+                    <option value="name">Project name A–Z</option>
+                    <option value="province">Province A–Z</option>
+                    <option value="status">Status A–Z</option>
+                  </select>
+                </label>
+              </div>
+            ) : null}
           </div>
 
           <div className="mt-3 flex flex-wrap gap-1.5">
@@ -1169,7 +1092,7 @@ const ProgramsWorkspace = ({
               ) : null}
             </div>
           ) : null}
-        </div>
+        </section>
       </div>
 
       {viewing && (
@@ -1310,6 +1233,19 @@ const ProgramsWorkspace = ({
           </div>
         </div>
       )}
+
+      <QuickSnapshotModal
+        open={snapshotOpen}
+        onOpenChange={setSnapshotOpen}
+        projects={projects}
+        provinceFilter={provinceFilter}
+        statusFilter={statusFilter}
+        onProvinceFilter={(next) => {
+          if (provinceLocked) return;
+          setProvince(next);
+        }}
+        onStatusFilter={setStatus}
+      />
 
       {canMutate ? (
         <>

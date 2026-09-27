@@ -1,9 +1,7 @@
 import { memo } from "react";
 import Maps3D from "./Maps3D";
 import type { MapBaseLayer, MapViewMode, UserLocation } from "./mapTypes";
-import {
-  type TaraProject,
-} from "../../constants/taraProjects";
+import type { TaraProject } from "../../constants/taraProjects";
 import { useTheme } from "@/theme/ThemeProvider";
 
 export type { MapBaseLayer, MapViewMode, UserLocation };
@@ -39,14 +37,12 @@ const Maps = memo(function Maps({
   const isDark = isDarkProp ?? themeDark;
 
   return (
-    <div className="relative h-full min-h-0 w-full">
-      <Maps3D
-        projects={projects}
-        isDark={isDark}
-        flat={viewMode === "2d"}
-        {...props}
-      />
-    </div>
+    <Maps3D
+      projects={projects}
+      isDark={isDark}
+      flat={viewMode === "2d"}
+      {...props}
+    />
   );
 });
 

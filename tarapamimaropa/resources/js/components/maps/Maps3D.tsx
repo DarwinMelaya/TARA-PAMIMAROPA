@@ -306,10 +306,10 @@ const buildTooltipContent = (project: TaraProject) => {
 
     return `
     <div class="project-map-tooltip__inner">
-      <strong>◈ ${escapeHtml(project.name)}</strong>
-      <span>${escapeHtml(project.program)} · ${escapeHtml(status.label)} · ${project.progress}%</span>
+      <strong>${escapeHtml(project.name)}</strong>
+      <span>${escapeHtml(program.short)} · ${escapeHtml(status.label)} · ${project.progress}%</span>
       <p>${escapeHtml(project.municipality)}, ${escapeHtml(project.province)}</p>
-      <em>Click for project intel · ${escapeHtml(program.short)}</em>
+      <em>Click pin to view details</em>
     </div>
   `;
 };
@@ -424,12 +424,12 @@ const stackMimaropaOutlines = (map: maplibregl.Map) => {
 const ensureMimaropaOutlines = (map: maplibregl.Map, isDark: boolean) => {
     if (!map.isStyleLoaded()) return;
 
-    const fillColor = isDark ? '#22d3ee' : '#0038a8';
-    const lineColor = isDark ? '#a5f3fc' : '#002d87';
-    const casingColor = isDark ? '#083344' : '#ffffff';
-    const labelColor = isDark ? '#ecfeff' : '#0f172a';
+    const fillColor = isDark ? '#3b82f6' : '#0038a8';
+    const lineColor = isDark ? '#93c5fd' : '#0038a8';
+    const casingColor = isDark ? '#0f172a' : '#ffffff';
+    const labelColor = isDark ? '#f1f5f9' : '#0f172a';
     const labelHalo = isDark ? '#020617' : '#ffffff';
-    const fillOpacity = isDark ? 0.16 : 0.08;
+    const fillOpacity = isDark ? 0.12 : 0.06;
 
     const addOrUpdate = (run: () => void) => {
         try {
@@ -719,7 +719,6 @@ const Maps3D = ({
             maxzoom: 14,
         });
 
-        // Soft glow halo — constellation look when zoomed out
         map.addLayer({
             id: 'projects-dots-halo',
             type: 'circle',
@@ -730,18 +729,18 @@ const Maps3D = ({
                     ['linear'],
                     ['zoom'],
                     5,
-                    ['case', ['==', ['get', 'selected'], 1], 14, 9],
+                    ['case', ['==', ['get', 'selected'], 1], 12, 6],
                     10,
-                    ['case', ['==', ['get', 'selected'], 1], 22, 15],
+                    ['case', ['==', ['get', 'selected'], 1], 18, 10],
                 ],
                 'circle-color': ['get', 'color'],
                 'circle-opacity': [
                     'case',
                     ['==', ['get', 'selected'], 1],
-                    0.38,
-                    0.22,
+                    0.3,
+                    0.12,
                 ],
-                'circle-blur': 0.65,
+                'circle-blur': 0.4,
             },
         });
 
@@ -755,24 +754,24 @@ const Maps3D = ({
                     ['linear'],
                     ['zoom'],
                     5,
-                    ['case', ['==', ['get', 'selected'], 1], 5, 3.2],
+                    ['case', ['==', ['get', 'selected'], 1], 6, 3.6],
                     10,
-                    ['case', ['==', ['get', 'selected'], 1], 8, 5.5],
+                    ['case', ['==', ['get', 'selected'], 1], 9, 6],
                 ],
                 'circle-color': ['get', 'color'],
                 'circle-stroke-width': [
                     'case',
                     ['==', ['get', 'selected'], 1],
-                    2.2,
-                    1.2,
+                    3,
+                    1.5,
                 ],
                 'circle-stroke-color': [
                     'case',
                     ['==', ['get', 'selected'], 1],
-                    '#ffffff',
-                    isDarkRef.current ? '#020617' : '#ffffff',
+                    isDarkRef.current ? '#93c5fd' : '#0038a8',
+                    isDarkRef.current ? '#0f172a' : '#ffffff',
                 ],
-                'circle-opacity': 0.95,
+                'circle-opacity': 1,
             },
         });
 
@@ -953,8 +952,13 @@ const Maps3D = ({
         if (valid.length > 1) {
             const bounds = new maplibregl.LngLatBounds();
             positioned.forEach((p) => bounds.extend([p.lng, p.lat]));
+            const canvas = map.getCanvas();
+            const shortSide = Math.min(
+                canvas.clientWidth,
+                canvas.clientHeight,
+            );
             map.fitBounds(bounds, {
-                padding: 80,
+                padding: Math.max(16, Math.min(80, shortSide * 0.12)),
                 maxZoom: 14,
                 pitch: angles.pitch,
                 bearing: angles.bearing,
@@ -1249,14 +1253,22 @@ const Maps3D = ({
             />
             {overviewHint ? (
                 <p
+                    role="status"
                     className={[
-                        'pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full border px-3 py-1.5 text-[11px] font-medium shadow-lg backdrop-blur-md',
+                        'pointer-events-none absolute bottom-24 left-1/2 z-10 hidden -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium shadow-lg backdrop-blur-md lg:inline-flex',
                         isDark
                             ? 'border-slate-600/80 bg-slate-950/85 text-slate-200'
-                            : 'border-slate-300 bg-white/90 text-slate-700',
+                            : 'border-[#c5cdd8] bg-white/95 text-slate-700',
                     ].join(' ')}
                 >
-                    Program glow dots · zoom in for labeled pins
+                    <span
+                        className={[
+                            'h-1.5 w-1.5 rounded-full',
+                            isDark ? 'bg-blue-300' : 'bg-[#0038a8]',
+                        ].join(' ')}
+                        aria-hidden
+                    />
+                    Each dot is a project. Zoom in to see labeled pins.
                 </p>
             ) : null}
         </div>

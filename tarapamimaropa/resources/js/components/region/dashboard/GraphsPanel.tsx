@@ -665,16 +665,20 @@ const GraphsPanel = ({
   const { theme } = useTheme();
   const shell =
     theme === "light"
-      ? "border-cyan-500/25 bg-white/95 shadow-sm backdrop-blur-xl"
-      : "border-cyan-400/25 bg-slate-900/95 shadow-[0_8px_48px_rgba(0,0,0,0.5),0_0_24px_rgba(34,211,238,0.1)] backdrop-blur-xl";
+      ? "border-[#dce1e8] bg-white shadow-[0_4px_16px_rgba(15,23,42,0.08)]"
+      : "border-slate-800 bg-slate-900/95 shadow-[0_8px_24px_rgba(0,0,0,0.4)] backdrop-blur-md";
   const divider =
-    theme === "light" ? "border-cyan-200/80" : "border-cyan-900/50";
-  const label =
-    theme === "light" ? "text-cyan-800/90" : "text-cyan-200/90";
+    theme === "light" ? "border-[#e5e9ef]" : "border-slate-800";
+  const label = theme === "light" ? "text-slate-500" : "text-slate-400";
+  const accent = theme === "light" ? "text-[#0038a8]" : "text-blue-300";
+  const countPill =
+    theme === "light"
+      ? "bg-[#eef3fc] text-[#0038a8]"
+      : "bg-blue-500/15 text-blue-200";
   const mutedBtn =
     theme === "light"
-      ? "border border-slate-300 text-slate-600 hover:text-slate-900"
-      : "border border-slate-700/80 text-slate-400 hover:text-white";
+      ? "border border-[#c5cdd8] text-slate-600 hover:border-[#0038a8] hover:text-[#0038a8]"
+      : "border border-slate-700 text-slate-300 hover:border-blue-400 hover:text-white";
   const cell =
     theme === "light"
       ? "border-slate-200 bg-slate-50"
@@ -882,16 +886,16 @@ const GraphsPanel = ({
             className="flex min-w-0 flex-1 items-center gap-2 text-left"
           >
             <HiChartBar
-              className={`h-4 w-4 shrink-0 ${theme === "light" ? "text-cyan-700" : "text-cyan-300"}`}
+              className={`h-4 w-4 shrink-0 ${accent}`}
               aria-hidden
             />
             <p
-              className={`text-[11px] font-bold uppercase tracking-[0.16em] ${label}`}
+              className={`text-xs font-bold uppercase tracking-[0.14em] ${label}`}
             >
               Graphs
             </p>
             <span
-              className={`rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold ${theme === "light" ? "text-cyan-800" : "text-cyan-300"}`}
+              className={`rounded-full px-2 py-0.5 text-xs font-bold tabular-nums ${countPill}`}
             >
               {projects.length}
             </span>
@@ -900,7 +904,7 @@ const GraphsPanel = ({
             <button
               type="button"
               onClick={onToggleExpand}
-              className={`rounded-lg px-2 py-1 text-[10px] font-semibold ${mutedBtn}`}
+              className={`rounded-md px-2 py-1 text-xs font-semibold transition-colors duration-150 ${mutedBtn}`}
               aria-expanded={expanded}
             >
               <span className="inline-flex items-center gap-1">
@@ -935,16 +939,16 @@ const GraphsPanel = ({
           className="flex min-w-0 flex-1 items-center gap-2 text-left"
         >
           <HiChartBar
-            className={`h-4 w-4 shrink-0 ${theme === "light" ? "text-cyan-700" : "text-cyan-300"}`}
+            className={`h-4 w-4 shrink-0 ${accent}`}
             aria-hidden
           />
           <p
-            className={`text-[11px] font-bold uppercase tracking-[0.16em] ${label}`}
+            className={`text-xs font-bold uppercase tracking-[0.14em] ${label}`}
           >
             Graphs
           </p>
           <span
-            className={`rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold ${theme === "light" ? "text-cyan-800" : "text-cyan-300"}`}
+            className={`rounded-full px-2 py-0.5 text-xs font-bold tabular-nums ${countPill}`}
           >
             {projects.length}
           </span>

@@ -72,114 +72,17 @@ const STAT_CARDS: {
   key: StatKey;
   label: string;
   icon: typeof HiSquares2X2;
-  accent: string;
-  accentLight: string;
-  valueClass: string;
-  valueClassLight: string;
   format: "number" | "peso" | "compact";
   statusFilter?: ProjectStatus | "all";
 }[] = [
-  {
-    key: "total",
-    label: "Total projects",
-    icon: HiSquares2X2,
-    accent:
-      "border-cyan-400/35 bg-gradient-to-br from-cyan-500/20 to-cyan-600/5 text-cyan-100",
-    accentLight:
-      "border-cyan-300 bg-gradient-to-br from-cyan-50 to-sky-50 text-cyan-900",
-    valueClass: "text-cyan-200",
-    valueClassLight: "text-cyan-800",
-    format: "number",
-    statusFilter: "all",
-  },
-  {
-    key: "active",
-    label: "Active",
-    icon: HiSignal,
-    accent:
-      "border-blue-400/35 bg-gradient-to-br from-blue-500/20 to-blue-600/5 text-blue-100",
-    accentLight:
-      "border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-900",
-    valueClass: "text-blue-300",
-    valueClassLight: "text-blue-800",
-    format: "number",
-    statusFilter: "ongoing",
-  },
-  {
-    key: "completed",
-    label: "Completed",
-    icon: HiAcademicCap,
-    accent:
-      "border-emerald-400/35 bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 text-emerald-100",
-    accentLight:
-      "border-emerald-300 bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-900",
-    valueClass: "text-emerald-300",
-    valueClassLight: "text-emerald-800",
-    format: "number",
-    statusFilter: "completed",
-  },
-  {
-    key: "delayed",
-    label: "Delayed",
-    icon: HiExclamationTriangle,
-    accent:
-      "border-red-400/35 bg-gradient-to-br from-red-500/20 to-red-600/5 text-red-100",
-    accentLight:
-      "border-red-300 bg-gradient-to-br from-red-50 to-rose-50 text-red-900",
-    valueClass: "text-red-300",
-    valueClassLight: "text-red-800",
-    format: "number",
-    statusFilter: "delayed",
-  },
-  {
-    key: "onHold",
-    label: "On hold",
-    icon: HiPauseCircle,
-    accent:
-      "border-amber-400/35 bg-gradient-to-br from-amber-500/20 to-amber-600/5 text-amber-100",
-    accentLight:
-      "border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50 text-amber-900",
-    valueClass: "text-amber-300",
-    valueClassLight: "text-amber-800",
-    format: "number",
-    statusFilter: "on_hold",
-  },
-  {
-    key: "beneficiaries",
-    label: "Beneficiaries",
-    icon: HiUserGroup,
-    accent:
-      "border-violet-400/35 bg-gradient-to-br from-violet-500/20 to-violet-600/5 text-violet-100",
-    accentLight:
-      "border-violet-300 bg-gradient-to-br from-violet-50 to-purple-50 text-violet-900",
-    valueClass: "text-violet-300",
-    valueClassLight: "text-violet-800",
-    format: "compact",
-  },
-  {
-    key: "funding",
-    label: "Funding released",
-    icon: HiBanknotes,
-    accent:
-      "border-yellow-400/35 bg-gradient-to-br from-yellow-500/20 to-yellow-600/5 text-yellow-100",
-    accentLight:
-      "border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-50 text-amber-950",
-    valueClass: "text-yellow-200",
-    valueClassLight: "text-amber-800",
-    format: "peso",
-  },
-  {
-    key: "utilized",
-    label: "Funding utilized",
-    icon: HiChartBar,
-    accent:
-      "border-teal-400/35 bg-gradient-to-br from-teal-500/20 to-teal-600/5 text-teal-100",
-    accentLight:
-      "border-teal-300 bg-gradient-to-br from-teal-50 to-cyan-50 text-teal-900",
-    valueClass: "text-teal-300",
-    valueClassLight: "text-teal-800",
-    format: "peso",
-  },
+  { key: "total", label: "Total projects", icon: HiSquares2X2, format: "number", statusFilter: "all" },
+  { key: "active", label: "Active", icon: HiSignal, format: "number", statusFilter: "ongoing" },
+  { key: "completed", label: "Completed", icon: HiAcademicCap, format: "number", statusFilter: "completed" },
+  { key: "delayed", label: "Delayed", icon: HiExclamationTriangle, format: "number", statusFilter: "delayed" },
+  { key: "onHold", label: "On hold", icon: HiPauseCircle, format: "number", statusFilter: "on_hold" },
+  { key: "beneficiaries", label: "Beneficiaries", icon: HiUserGroup, format: "compact" },
+  { key: "funding", label: "Funding released", icon: HiBanknotes, format: "peso" },
+  { key: "utilized", label: "Funding utilized", icon: HiChartBar, format: "peso" },
 ];
 
 const formatStat = (
@@ -312,125 +215,137 @@ const readPerfLite = () =>
 
 const UI = {
   light: {
-    page: "bg-slate-100 text-slate-900",
+    page: "bg-[#f4f6f9] text-slate-900",
     panel:
-      "border-slate-200 bg-white shadow-sm lg:border-cyan-500/25 lg:bg-white/95 lg:backdrop-blur-xl lg:shadow-[0_8px_40px_rgba(15,23,42,0.08)]",
+      "border-[#dce1e8] bg-white shadow-[0_4px_16px_rgba(15,23,42,0.08)]",
     chromeBtn:
-      "rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:border-cyan-500/50 hover:text-slate-900",
-    badge:
-      "border-cyan-600/35 bg-white text-cyan-800 shadow-sm lg:bg-white/95",
-    title:
-      "bg-gradient-to-r from-slate-900 via-cyan-800 to-blue-700 bg-clip-text text-transparent",
-    subtitle:
-      "rounded-lg bg-white/90 px-2 py-1 font-medium text-slate-800 shadow-sm backdrop-blur-sm",
+      "min-h-10 rounded-lg border border-[#c5cdd8] bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors duration-150 hover:border-[#0038a8] hover:text-[#0038a8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0038a8]/40 disabled:opacity-50",
+    badge: "border-[#c5cdd8] bg-white text-[#0038a8] shadow-sm",
+    title: "text-slate-900",
+    subtitle: "text-slate-600",
     meta: "text-slate-500",
     select:
-      "cursor-pointer appearance-none rounded-xl border bg-white py-2 pl-8 pr-8 text-sm font-semibold text-slate-900 outline-none transition shadow-sm",
-    selectIdle: "border-slate-300 hover:border-cyan-500/50",
-    selectActive: "border-cyan-500/70 shadow-[0_0_18px_rgba(34,211,238,0.18)]",
-    layerBar: "border-slate-300 bg-white shadow-sm",
+      "min-h-10 cursor-pointer appearance-none rounded-lg border bg-white py-2 pl-8 pr-8 text-sm font-semibold text-slate-900 shadow-sm outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-[#0038a8]/40",
+    selectIdle: "border-[#c5cdd8] hover:border-[#0038a8]",
+    selectActive: "border-[#0038a8] bg-[#eef3fc]",
+    layerBar: "border-[#c5cdd8] bg-white shadow-sm",
     layerIdle: "text-slate-500 hover:text-slate-900",
-    overlayDarkish:
-      "bg-[radial-gradient(circle_at_20%_0%,rgba(14,116,144,0.04),transparent_45%),linear-gradient(to_bottom,rgba(255,255,255,0.02),rgba(248,250,252,0.12))]",
-    overlay3d:
-      "bg-[radial-gradient(circle_at_20%_0%,rgba(14,116,144,0.03),transparent_40%),linear-gradient(to_bottom,transparent,rgba(248,250,252,0.08))]",
-    grid: "bg-[linear-gradient(rgba(14,116,144,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(14,116,144,0.04)_1px,transparent_1px)] bg-[size:40px_40px]",
-    fadeTop: "from-white/70 via-white/20",
-    fadeBottom: "from-white/75 via-white/25",
-    mobileSheetBtn: "border-slate-300 bg-white text-slate-700 shadow-sm",
-    mobileSheetBtnOn: "border-cyan-500/60 bg-cyan-50 text-cyan-800",
+    overlayDarkish: "",
+    overlay3d: "",
+    grid: "",
+    fadeTop: "from-white/80 via-white/30",
+    fadeBottom: "from-white/70 via-white/20",
+    mobileSheetBtn: "border-[#c5cdd8] bg-white text-slate-700 shadow-sm",
+    mobileSheetBtnOn: "border-[#0038a8] bg-[#0038a8] text-white",
     scrim: "bg-slate-900/45",
-    modal: "border-slate-200 bg-white shadow-xl",
+    modal: "border-[#dce1e8] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.18)]",
     modalMuted: "text-slate-500",
     modalBody: "text-slate-700",
     modalHeading: "text-slate-900",
     feedItem:
-      "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white",
-    feedItemOn:
-      "border-cyan-500/50 bg-cyan-50 shadow-[0_0_24px_rgba(34,211,238,0.12)]",
+      "border-[#e5e9ef] bg-white hover:border-[#c5cdd8] hover:bg-[#f8fafc]",
+    feedItemOn: "border-[#0038a8] bg-[#eef3fc]",
     input:
-      "border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30",
-    insight:
-      "border-violet-300/50 bg-white/95 text-slate-800 shadow-sm",
+      "border-[#c5cdd8] bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#0038a8] focus:ring-2 focus:ring-[#0038a8]/20",
+    insight: "border-[#dce1e8] bg-white text-slate-800 shadow-sm",
 
-    chipIdle: "border border-slate-300 text-slate-600",
-    chipOn: "bg-cyan-500 text-white",
-    chipOnAlt: "bg-cyan-400 text-slate-950",
-    panelDivider: "border-cyan-200/80",
-    panelLabel: "text-cyan-800/90",
-    cell: "border-slate-200 bg-slate-50",
-    closeBtn: "rounded-lg border border-slate-300 p-2 text-slate-500 hover:text-slate-900",
+    chipIdle:
+      "border border-[#c5cdd8] bg-white text-slate-600 hover:border-[#0038a8] hover:text-[#0038a8]",
+    chipOn: "border border-[#0038a8] bg-[#0038a8] text-white",
+    chipOnAlt: "border border-[#0038a8] bg-[#0038a8] text-white",
+    panelDivider: "border-[#e5e9ef]",
+    panelLabel: "text-slate-500",
+    cell: "border-[#e5e9ef] bg-[#f8fafc]",
+    closeBtn:
+      "rounded-lg border border-[#c5cdd8] p-2 text-slate-500 transition-colors duration-150 hover:bg-slate-50 hover:text-slate-900",
     iconBtn: "text-slate-400 hover:text-slate-800",
     searchPanel:
-      "border-cyan-500/30 bg-white shadow-xl lg:shadow-[0_16px_60px_rgba(15,23,42,0.12),0_0_30px_rgba(34,211,238,0.08)]",
-    searchDivider: "border-slate-200",
+      "border-[#dce1e8] bg-white shadow-[0_16px_48px_rgba(15,23,42,0.18)]",
+    searchDivider: "border-[#e5e9ef]",
     avatarBox: "bg-slate-100 ring-slate-200",
-    emptyPhoto: "border-dashed border-slate-300 bg-slate-50 text-slate-500",
-    mutedBtn: "border border-slate-300 text-slate-600 hover:text-slate-900",
-    showMore: "border border-slate-300 text-cyan-800 hover:border-cyan-500/40 hover:bg-cyan-50",
+    emptyPhoto: "border-dashed border-[#c5cdd8] bg-[#f8fafc] text-slate-500",
+    mutedBtn:
+      "border border-[#c5cdd8] text-slate-600 hover:border-[#0038a8] hover:text-[#0038a8]",
+    showMore: "border border-[#c5cdd8] text-[#0038a8] hover:bg-[#eef3fc]",
     ringOffset: "ring-offset-white",
-    alert: "border-red-400/50 bg-white text-red-700",
-    insightLabel: "text-violet-700/80",
+    alert: "border-red-300 bg-white text-red-700",
+    insightLabel: "text-slate-500",
+    active: "border-[#0038a8] bg-[#eef3fc] text-[#0038a8]",
+    accentText: "text-[#0038a8]",
+    primaryBtn:
+      "min-h-10 rounded-lg border border-[#0038a8] bg-[#0038a8] px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-[#002d87] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0038a8]/40 focus-visible:ring-offset-1 disabled:opacity-40",
+    heroCard: "border-[#dce1e8] bg-white/95 shadow-[0_4px_16px_rgba(15,23,42,0.08)]",
+    statCard: "border-[#e5e9ef] bg-white hover:border-[#c5cdd8]",
+    statIcon: "bg-[#eef3fc] text-[#0038a8]",
+    statValue: "text-slate-900",
+    countPill: "bg-[#eef3fc] text-[#0038a8]",
   },
   dark: {
     page: "bg-slate-950 text-slate-100",
     panel:
-      "border-slate-700/80 bg-slate-900 lg:border-cyan-400/25 lg:bg-slate-900/92 lg:backdrop-blur-xl lg:shadow-[0_8px_40px_rgba(0,0,0,0.45),0_0_30px_rgba(34,211,238,0.08)]",
+      "border-slate-800 bg-slate-900/95 shadow-[0_8px_24px_rgba(0,0,0,0.4)] lg:backdrop-blur-md",
     chromeBtn:
-      "rounded-xl border border-slate-700/80 bg-slate-900 px-3 py-2 text-sm font-semibold text-slate-200 lg:border-slate-600/60 lg:bg-slate-900/90 lg:backdrop-blur-md",
-    badge:
-      "border-cyan-400/30 bg-slate-900 text-cyan-200 lg:bg-slate-900/90 lg:shadow-[0_0_20px_rgba(34,211,238,0.15)] lg:backdrop-blur-md",
-    title:
-      "bg-gradient-to-r from-white via-cyan-100 to-blue-300/90 bg-clip-text text-transparent",
-    subtitle: "text-cyan-200/75",
+      "min-h-10 rounded-lg border border-slate-700 bg-slate-900/95 px-3 py-2 text-sm font-semibold text-slate-200 transition-colors duration-150 hover:border-blue-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 disabled:opacity-50 lg:backdrop-blur-md",
+    badge: "border-slate-700 bg-slate-900 text-blue-200",
+    title: "text-white",
+    subtitle: "text-slate-300",
     meta: "text-slate-400",
     select:
-      "cursor-pointer appearance-none rounded-xl border bg-slate-900 py-2 pl-8 pr-8 text-sm font-semibold text-white outline-none transition lg:bg-slate-900/90 lg:backdrop-blur-md",
-    selectIdle: "border-slate-600/60 hover:border-cyan-500/40",
-    selectActive: "border-cyan-400/60 lg:shadow-[0_0_18px_rgba(34,211,238,0.25)]",
-    layerBar: "border-slate-700/80 bg-slate-900 lg:bg-slate-900/90 lg:backdrop-blur-md",
+      "min-h-10 cursor-pointer appearance-none rounded-lg border bg-slate-900/95 py-2 pl-8 pr-8 text-sm font-semibold text-white outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-blue-400/60 lg:backdrop-blur-md",
+    selectIdle: "border-slate-700 hover:border-blue-400",
+    selectActive: "border-blue-500 bg-blue-950/60",
+    layerBar: "border-slate-700 bg-slate-900/95 lg:backdrop-blur-md",
     layerIdle: "text-slate-400 hover:text-white",
     overlayDarkish:
-      "bg-[radial-gradient(circle_at_20%_0%,rgba(34,211,238,0.12),transparent_45%),radial-gradient(circle_at_80%_100%,rgba(37,99,235,0.12),transparent_42%),linear-gradient(to_bottom,rgba(2,6,23,0.08),rgba(2,6,23,0.55))]",
-    overlay3d:
-      "bg-[radial-gradient(circle_at_20%_0%,rgba(34,211,238,0.06),transparent_42%),linear-gradient(to_bottom,rgba(2,6,23,0.02),rgba(2,6,23,0.28))]",
-    grid: "bg-[linear-gradient(rgba(34,211,238,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.03)_1px,transparent_1px)] bg-[size:40px_40px]",
-    fadeTop: "from-slate-950/95 via-slate-950/45",
-    fadeBottom: "from-slate-950/95 via-slate-950/45",
-    mobileSheetBtn: "border-slate-700/80 bg-slate-900 text-slate-300",
-    mobileSheetBtnOn: "border-cyan-400/60 bg-cyan-500/25 text-cyan-100",
-    scrim: "bg-slate-950/75 lg:bg-slate-950/70",
-    modal: "border-slate-700 bg-slate-900",
-    modalMuted: "text-slate-500",
+      "bg-[linear-gradient(to_bottom,rgba(2,6,23,0.05),rgba(2,6,23,0.35))]",
+    overlay3d: "",
+    grid: "",
+    fadeTop: "from-slate-950/90 via-slate-950/40",
+    fadeBottom: "from-slate-950/90 via-slate-950/40",
+    mobileSheetBtn: "border-slate-700 bg-slate-900 text-slate-200",
+    mobileSheetBtnOn: "border-blue-500 bg-blue-600 text-white",
+    scrim: "bg-slate-950/70",
+    modal: "border-slate-800 bg-slate-900 shadow-[0_16px_40px_rgba(0,0,0,0.5)]",
+    modalMuted: "text-slate-400",
     modalBody: "text-slate-300",
     modalHeading: "text-white",
     feedItem:
-      "border-slate-800/80 bg-slate-800/40 hover:border-slate-600/80 hover:bg-slate-800/70",
-    feedItemOn:
-      "border-cyan-400/60 bg-cyan-400/15 shadow-[0_0_24px_rgba(34,211,238,0.2)]",
+      "border-slate-800 bg-slate-900 hover:border-slate-700 hover:bg-slate-800/60",
+    feedItemOn: "border-blue-500 bg-blue-950/50",
     input:
-      "border-slate-700/80 bg-slate-950 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 lg:bg-slate-950/80",
-    insight:
-      "border-violet-500/25 bg-slate-900/85 text-slate-200 backdrop-blur-md",
+      "border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30",
+    insight: "border-slate-800 bg-slate-900/90 text-slate-200",
 
-    chipIdle: "border border-slate-700/80 text-slate-400",
-    chipOn: "bg-cyan-500 text-white",
-    chipOnAlt: "bg-cyan-400 text-slate-950",
-    panelDivider: "border-cyan-900/50",
-    panelLabel: "text-cyan-200/90",
-    cell: "border-slate-700/70 bg-slate-950/50",
-    closeBtn: "rounded-lg border border-slate-700 p-2 text-slate-400 hover:text-white",
+    chipIdle:
+      "border border-slate-700 text-slate-300 hover:border-blue-400 hover:text-white",
+    chipOn: "border border-blue-500 bg-blue-600 text-white",
+    chipOnAlt: "border border-blue-500 bg-blue-600 text-white",
+    panelDivider: "border-slate-800",
+    panelLabel: "text-slate-400",
+    cell: "border-slate-800 bg-slate-950/60",
+    closeBtn:
+      "rounded-lg border border-slate-700 p-2 text-slate-400 transition-colors duration-150 hover:bg-slate-800 hover:text-white",
     iconBtn: "text-slate-400 hover:text-white",
     searchPanel:
-      "border-cyan-400/30 bg-slate-900 shadow-[0_16px_60px_rgba(0,0,0,0.6)] lg:bg-slate-900/95 lg:shadow-[0_16px_60px_rgba(0,0,0,0.6),0_0_30px_rgba(34,211,238,0.12)] lg:backdrop-blur-xl",
-    searchDivider: "border-cyan-900/50",
+      "border-slate-800 bg-slate-900 shadow-[0_16px_48px_rgba(0,0,0,0.6)]",
+    searchDivider: "border-slate-800",
     avatarBox: "bg-slate-950/70 ring-slate-700/60",
-    emptyPhoto: "border-dashed border-slate-700/80 bg-slate-950/60 text-slate-500",
-    mutedBtn: "border border-slate-700/80 text-slate-400 hover:text-white",
-    showMore: "border border-slate-700/80 text-cyan-200 hover:border-cyan-500/40 hover:bg-cyan-500/10",
+    emptyPhoto: "border-dashed border-slate-700 bg-slate-950/60 text-slate-500",
+    mutedBtn:
+      "border border-slate-700 text-slate-300 hover:border-blue-400 hover:text-white",
+    showMore: "border border-slate-700 text-blue-300 hover:bg-blue-500/10",
     ringOffset: "ring-offset-slate-900",
-    alert: "border-red-500/40 bg-slate-900 text-red-300 lg:bg-slate-900/95 lg:backdrop-blur",
-    insightLabel: "text-violet-200/80",
+    alert: "border-red-500/40 bg-slate-900 text-red-300",
+    insightLabel: "text-slate-400",
+    active: "border-blue-500 bg-blue-950/60 text-blue-100",
+    accentText: "text-blue-300",
+    primaryBtn:
+      "min-h-10 rounded-lg border border-blue-500 bg-blue-600 px-3.5 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900 disabled:opacity-40",
+    heroCard: "border-slate-800 bg-slate-900/90 shadow-[0_8px_24px_rgba(0,0,0,0.4)] backdrop-blur-md",
+    statCard: "border-slate-800 bg-slate-950/40 hover:border-slate-700",
+    statIcon: "bg-blue-500/15 text-blue-300",
+    statValue: "text-white",
+    countPill: "bg-blue-500/15 text-blue-200",
   },
 } as const satisfies Record<ThemeMode, Record<string, string>>;
 
@@ -686,46 +601,65 @@ const CommandMapWorkspace = ({
           ].join(" ")}
         >
           {/* Title is visual only — never steal map drag/pan hits */}
-          <div className="pointer-events-none min-w-0 max-w-xl lg:max-w-2xl">
-            <h1 className={`text-xl font-bold tracking-tight sm:text-3xl ${ui.title}`}>
+          <div
+            className={[
+              "pointer-events-none min-w-0",
+              isPublic
+                ? `max-w-md rounded-2xl border p-3 sm:p-4 ${ui.heroCard}`
+                : "max-w-xl lg:max-w-2xl",
+            ].join(" ")}
+          >
+            {isPublic ? (
+              <p className={`text-xs font-bold uppercase tracking-[0.14em] ${ui.accentText}`}>
+                DOST-MIMAROPA · Project map
+              </p>
+            ) : null}
+            <h1
+              className={[
+                "font-bold tracking-tight",
+                isPublic ? "mt-1 text-xl sm:text-2xl" : "text-xl sm:text-3xl",
+                ui.title,
+              ].join(" ")}
+            >
               TARA PAMIMAROPA
             </h1>
             {isPublic ? (
               <>
-                <p className={`mt-1 max-w-xl text-xs sm:text-sm ${ui.subtitle}`}>
-                  Tracking of Accomplishments and Results of Activities and Programs across MIMAROPA
+                <p className={`mt-1 hidden text-sm leading-snug sm:block ${ui.subtitle}`}>
+                  Tracking of Accomplishments and Results of Activities and
+                  Programs across MIMAROPA
                 </p>
-                <p className={`mt-1 hidden text-xs sm:block ${ui.meta}`}>
-                  {stats.municipalities} municipalities · {stats.barangays} barangays
-                  · {stats.partners} partners · {filteredProjects.length} on map
-                </p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
+                <dl className={`mt-3 hidden gap-4 border-t pt-3 text-xs sm:flex ${ui.panelDivider}`}>
                   {(
                     [
-                      ["SETUP", "#16823c"],
-                      ["CEST", "#c9440b"],
-                      ["GIA", "#1d51db"],
-                      ["SSCP", "#7f23d0"],
+                      ["On map", filteredProjects.length],
+                      ["Municipalities", stats.municipalities],
+                      ["Partners", stats.partners],
                     ] as const
-                  ).map(([label, color]) => (
-                    <span
-                      key={label}
-                      className={[
-                        "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-wide backdrop-blur-sm",
-                        theme === "light"
-                          ? "border-slate-300 bg-white/90 text-slate-800 shadow-sm"
-                          : "border-white/15 bg-black/25 text-white",
-                      ].join(" ")}
-                    >
+                  ).map(([label, value]) => (
+                    <div key={label}>
+                      <dt className={ui.meta}>{label}</dt>
+                      <dd className={`mt-0.5 text-base font-bold tabular-nums ${ui.title}`}>
+                        {value.toLocaleString()}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+                <ul
+                  className={`mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold sm:mt-3 ${ui.subtitle}`}
+                  aria-label="Program colors"
+                >
+                  {(["SETUP", "CEST", "GIA", "SSCP"] as const).map((program) => (
+                    <li key={program} className="inline-flex items-center gap-1.5">
                       <span
-                        className="h-2 w-2 rounded-full"
-                        style={{ backgroundColor: color }}
+                        className="h-2.5 w-2.5 rounded-full ring-2 ring-white/80"
+                        style={{ backgroundColor: PROGRAM_META[program].color }}
                         aria-hidden
                       />
-                      {label}
-                    </span>
+                      {program}
+                    </li>
                   ))}
-                </div>
+                </ul>
               </>
             ) : (
               <p className={`mt-1 hidden text-xs sm:block ${ui.meta}`}>
@@ -735,10 +669,10 @@ const CommandMapWorkspace = ({
           </div>
 
           {isPublic ? (
-            <div className="pointer-events-auto flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <div className="pointer-events-auto flex flex-wrap items-center gap-2 sm:justify-end">
               <div className="relative shrink-0">
                 <HiMapPin
-                  className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-300"
+                  className={`pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 ${ui.accentText}`}
                   aria-hidden
                 />
                 <select
@@ -781,20 +715,17 @@ const CommandMapWorkspace = ({
                   })
                 }
                 className={[
-                  "inline-flex shrink-0 items-center justify-center gap-2",
+                  "inline-flex w-10 shrink-0 items-center justify-center",
                   ui.chromeBtn,
-                  searchOpen
-                    ? theme === "light"
-                      ? "border-cyan-500/60 bg-cyan-50 text-cyan-800"
-                      : "border-cyan-400/60 bg-cyan-500/20 text-cyan-100"
-                    : "",
+                  searchOpen ? ui.active : "",
                 ].join(" ")}
+                aria-label="Search projects"
+                title="Search projects"
                 aria-pressed={searchOpen}
               >
                 <HiMagnifyingGlass className="h-4 w-4" aria-hidden />
-                <span className="hidden sm:inline">Search</span>
               </button>
-              <ThemeToggle compact />
+              <ThemeToggle compact className="w-10" />
               <button
                 type="button"
                 onClick={() => {
@@ -803,39 +734,32 @@ const CommandMapWorkspace = ({
                 className={[
                   "inline-flex shrink-0 items-center justify-center gap-2",
                   ui.chromeBtn,
-                  viewMode === "3d"
-                    ? theme === "light"
-                      ? "border-fuchsia-400/50 bg-fuchsia-50 text-fuchsia-800"
-                      : "border-fuchsia-400/50 bg-fuchsia-500/20 text-fuchsia-100 lg:shadow-[0_0_18px_rgba(217,70,239,0.25)]"
-                    : "",
+                  viewMode === "3d" ? ui.active : "",
                 ].join(" ")}
                 aria-pressed={viewMode === "3d"}
+                title={viewMode === "3d" ? "Switch to flat 2D map" : "Switch to 3D map"}
               >
                 <HiCube className="h-4 w-4" aria-hidden />
-                <span className="hidden sm:inline">
-                  {viewMode === "3d" ? "3D on" : "3D"}
-                </span>
+                <span>{viewMode === "3d" ? "3D" : "2D"}</span>
               </button>
               <button
                 type="button"
                 onClick={handleLocateMe}
                 disabled={locateLoading}
                 className={[
-                  "inline-flex shrink-0 items-center justify-center gap-2",
+                  "inline-flex w-10 shrink-0 items-center justify-center",
                   ui.chromeBtn,
-                  theme === "light"
-                    ? "text-emerald-800 disabled:opacity-50"
-                    : "text-emerald-100 disabled:opacity-50",
+                  userLocation ? ui.active : "",
                 ].join(" ")}
+                aria-label={locateLoading ? "Locating…" : "Show my location"}
+                title={locateLoading ? "Locating…" : "Show my location"}
               >
                 <HiMapPin
                   className={`h-4 w-4 ${locateLoading ? "animate-pulse" : ""}`}
                   aria-hidden
                 />
-                <span className="hidden sm:inline">
-                  {locateLoading ? "Locating…" : "My location"}
-                </span>
               </button>
+              <span className={`mx-0.5 hidden h-6 border-l sm:block ${ui.panelDivider}`} aria-hidden />
               <button
                 type="button"
                 onClick={() => {
@@ -849,13 +773,10 @@ const CommandMapWorkspace = ({
                 className={[
                   "inline-flex shrink-0 items-center justify-center gap-2",
                   ui.chromeBtn,
-                  graphsExpanded || mobileSheet === "graphs"
-                    ? theme === "light"
-                      ? "border-teal-500/50 bg-teal-50 text-teal-800"
-                      : "border-teal-400/50 bg-teal-500/20 text-teal-100"
-                    : "",
+                  graphsExpanded || mobileSheet === "graphs" ? ui.active : "",
                 ].join(" ")}
                 aria-pressed={graphsExpanded || mobileSheet === "graphs"}
+                aria-label="Graphs"
               >
                 <HiChartBar className="h-4 w-4" aria-hidden />
                 <span className="hidden sm:inline">Graphs</span>
@@ -866,13 +787,10 @@ const CommandMapWorkspace = ({
                 className={[
                   "inline-flex shrink-0 items-center justify-center gap-2",
                   ui.chromeBtn,
-                  snapshotOpen
-                    ? theme === "light"
-                      ? "border-blue-500/50 bg-blue-50 text-blue-800"
-                      : "border-blue-400/50 bg-blue-500/20 text-blue-100"
-                    : "",
+                  snapshotOpen ? ui.active : "",
                 ].join(" ")}
                 aria-pressed={snapshotOpen}
+                aria-label="Snapshot"
               >
                 <HiTableCells className="h-4 w-4" aria-hidden />
                 <span className="hidden sm:inline">Snapshot</span>
@@ -886,10 +804,8 @@ const CommandMapWorkspace = ({
                 className={[
                   "inline-flex shrink-0 items-center justify-center gap-2",
                   ui.chromeBtn,
-                  theme === "light"
-                    ? "border-amber-500/40 bg-amber-50 text-amber-800"
-                    : "border-amber-500/40 bg-amber-500/15 text-amber-100",
                 ].join(" ")}
+                aria-label="Report"
               >
                 <HiDocumentArrowDown className="h-4 w-4" aria-hidden />
                 <span className="hidden sm:inline">Report</span>
@@ -904,11 +820,11 @@ const CommandMapWorkspace = ({
                     e.preventDefault();
                     el.scrollIntoView({ behavior: "smooth", block: "start" });
                   }}
-                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[#002d87] bg-[#0038a8] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#002d87] sm:px-4"
+                  className={`inline-flex shrink-0 items-center justify-center gap-2 ${ui.primaryBtn}`}
                 >
-                  <HiChevronDown className="h-4 w-4" aria-hidden />
-                  <span className="hidden sm:inline">Browse list</span>
+                  <span className="hidden sm:inline">Browse projects</span>
                   <span className="sm:hidden">List</span>
+                  <HiChevronDown className="h-4 w-4" aria-hidden />
                 </a>
               ) : null}
             </div>
@@ -922,7 +838,7 @@ const CommandMapWorkspace = ({
             >
               <div className="relative w-full">
                 <HiMapPin
-                  className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-cyan-400"
+                  className={`pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${ui.accentText}`}
                   aria-hidden
                 />
                 <select
@@ -972,11 +888,7 @@ const CommandMapWorkspace = ({
                     "inline-flex h-9 items-center justify-center rounded-lg border text-sm transition",
                     ui.chromeBtn,
                     "px-0 py-0",
-                    searchOpen
-                      ? theme === "light"
-                        ? "border-cyan-500/60 bg-cyan-50 text-cyan-800"
-                        : "border-cyan-400/60 bg-cyan-500/20 text-cyan-100"
-                      : "",
+                    searchOpen ? ui.active : "",
                   ].join(" ")}
                   aria-label="Search"
                   aria-pressed={searchOpen}
@@ -997,11 +909,7 @@ const CommandMapWorkspace = ({
                     "inline-flex h-9 items-center justify-center rounded-lg border text-sm transition",
                     ui.chromeBtn,
                     "px-0 py-0",
-                    viewMode === "3d"
-                      ? theme === "light"
-                        ? "border-fuchsia-400/50 bg-fuchsia-50 text-fuchsia-800"
-                        : "border-fuchsia-400/50 bg-fuchsia-500/20 text-fuchsia-100"
-                      : "",
+                    viewMode === "3d" ? ui.active : "",
                   ].join(" ")}
                   aria-label={viewMode === "3d" ? "3D on" : "Switch to 3D"}
                   aria-pressed={viewMode === "3d"}
@@ -1017,7 +925,7 @@ const CommandMapWorkspace = ({
                     "inline-flex h-9 items-center justify-center rounded-lg border text-sm transition disabled:opacity-50",
                     ui.chromeBtn,
                     "px-0 py-0",
-                    theme === "light" ? "text-emerald-700" : "text-emerald-200",
+                    userLocation ? ui.active : "",
                   ].join(" ")}
                   aria-label="My location"
                 >
@@ -1042,11 +950,7 @@ const CommandMapWorkspace = ({
                   className={[
                     "inline-flex h-9 w-full items-center justify-start gap-2 px-2.5 text-xs",
                     ui.chromeBtn,
-                    graphsExpanded || mobileSheet === "graphs"
-                      ? theme === "light"
-                        ? "border-teal-500/50 bg-teal-50 text-teal-800"
-                        : "border-teal-400/50 bg-teal-500/20 text-teal-100"
-                      : "",
+                    graphsExpanded || mobileSheet === "graphs" ? ui.active : "",
                   ].join(" ")}
                   aria-pressed={graphsExpanded || mobileSheet === "graphs"}
                 >
@@ -1059,11 +963,7 @@ const CommandMapWorkspace = ({
                   className={[
                     "inline-flex h-9 w-full items-center justify-start gap-2 px-2.5 text-xs",
                     ui.chromeBtn,
-                    snapshotOpen
-                      ? theme === "light"
-                        ? "border-blue-500/50 bg-blue-50 text-blue-800"
-                        : "border-blue-400/50 bg-blue-500/20 text-blue-100"
-                      : "",
+                    snapshotOpen ? ui.active : "",
                   ].join(" ")}
                   aria-pressed={snapshotOpen}
                 >
@@ -1120,7 +1020,7 @@ const CommandMapWorkspace = ({
             <div className={`border-b p-3 ${ui.searchDivider}`}>
               <div className="relative">
                 <HiMagnifyingGlass
-                  className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-cyan-300"
+                  className={`pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 ${ui.meta}`}
                   aria-hidden
                 />
                 <input
@@ -1128,8 +1028,9 @@ const CommandMapWorkspace = ({
                   autoFocus
                   value={searchDraft}
                   onChange={(e) => setSearchDraft(e.target.value)}
-                  placeholder="Search project, program, LGU, partner…"
-                  className={`w-full rounded-xl border py-3 pl-11 pr-10 text-sm outline-none ${ui.input}`}
+                  placeholder="Project, program, municipality, partner…"
+                  aria-label="Search projects"
+                  className={`w-full rounded-lg border py-3 pl-11 pr-10 text-base outline-none transition-colors duration-150 sm:text-sm ${ui.input}`}
                 />
                 <button
                   type="button"
@@ -1140,10 +1041,10 @@ const CommandMapWorkspace = ({
                   <HiXMark className="h-5 w-5" aria-hidden />
                 </button>
               </div>
-              <p className={`mt-2 flex items-center gap-1.5 text-[11px] ${ui.meta}`}>
-                <HiMapPin className="h-3.5 w-3.5 text-cyan-500" aria-hidden />
+              <p className={`mt-2 flex items-center gap-1.5 text-xs ${ui.meta}`}>
+                <HiMapPin className={`h-3.5 w-3.5 ${ui.accentText}`} aria-hidden />
                 Searching in{" "}
-                <span className={`font-semibold ${theme === "light" ? "text-cyan-800" : "text-cyan-200"}`}>
+                <span className={`font-semibold ${ui.accentText}`}>
                   {provinceFilter === "all" ? "all MIMAROPA" : provinceFilter}
                 </span>
                 · {filteredProjects.length} result
@@ -1169,11 +1070,12 @@ const CommandMapWorkspace = ({
                         handleViewProject(project);
                         setSearchOpen(false);
                       }}
-                      className={`flex w-full items-center gap-3 rounded-xl border p-2.5 text-left transition hover:border-cyan-500/50 ${ui.feedItem}`}
+                      className={`flex w-full items-center gap-3 rounded-lg border p-2.5 text-left transition-colors duration-150 ${ui.feedItem}`}
                     >
                       <span
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[9px] font-extrabold uppercase text-white ring-1 ring-white/30"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[10px] font-extrabold uppercase text-white"
                         style={{ backgroundColor: meta.color }}
+                        aria-hidden
                       >
                         {meta.short}
                       </span>
@@ -1181,12 +1083,12 @@ const CommandMapWorkspace = ({
                         <span className={`block truncate text-sm font-semibold ${ui.modalHeading}`}>
                           {project.name}
                         </span>
-                        <span className={`block truncate text-[11px] ${ui.meta}`}>
+                        <span className={`block truncate text-xs ${ui.meta}`}>
                           {project.municipality}, {project.province}
                         </span>
                       </span>
                       <span
-                        className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-semibold ring-1 ${statusClass}`}
+                        className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold ${statusClass}`}
                       >
                         {statusLabel}
                       </span>
@@ -1195,7 +1097,7 @@ const CommandMapWorkspace = ({
                 );
               })}
               {filteredProjects.length > searchResultProjects.length ? (
-                <li className={`px-2 py-2 text-center text-[11px] ${ui.modalMuted}`}>
+                <li className={`px-2 py-2 text-center text-xs ${ui.modalMuted}`}>
                   Showing {searchResultProjects.length} of{" "}
                   {filteredProjects.length}. Refine search or open Project feed.
                 </li>
@@ -1264,14 +1166,14 @@ const CommandMapWorkspace = ({
               onClick={() => setStatsExpanded((v) => !v)}
               className="flex min-w-0 flex-1 items-center gap-2 text-left"
             >
-              <p className={`text-[11px] font-bold uppercase tracking-[0.18em] ${ui.panelLabel}`}>
+              <p className={`text-xs font-bold uppercase tracking-[0.14em] ${ui.panelLabel}`}>
                 Regional overview
               </p>
             </button>
             <button
               type="button"
               onClick={() => setStatsExpanded((v) => !v)}
-              className={`hidden rounded-lg px-2 py-1 text-[10px] font-semibold transition lg:inline-flex ${ui.mutedBtn}`}
+              className={`hidden rounded-md px-2 py-1 text-xs font-semibold transition-colors duration-150 lg:inline-flex ${ui.mutedBtn}`}
               aria-expanded={statsExpanded}
             >
               {statsExpanded ? "Collapse" : "Expand"}
@@ -1294,33 +1196,24 @@ const CommandMapWorkspace = ({
                   key={card.key}
                   type="button"
                   onClick={() => handleStatClick(card)}
+                  aria-pressed={card.statusFilter != null ? isActive : undefined}
                   className={[
-                    "rounded-xl border p-2.5 text-left transition",
-                    theme === "light" ? card.accentLight : card.accent,
-                    isActive
-                      ? `ring-2 ring-cyan-400/50 ring-offset-1 ${ui.ringOffset}`
-                      : "hover:brightness-110",
+                    "rounded-xl border p-3 text-left transition-colors duration-150",
+                    isActive ? ui.feedItemOn : ui.statCard,
                   ].join(" ")}
                 >
-                  <div className="flex items-start justify-between gap-1">
-                    <p
-                      className={`text-[9px] font-semibold uppercase tracking-wide ${
-                        theme === "light" ? "text-slate-700" : "opacity-80"
-                      }`}
-                    >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={`text-xs font-medium ${ui.meta}`}>
                       {card.label}
                     </p>
-                    <Icon
-                      className={`h-4 w-4 shrink-0 ${
-                        theme === "light" ? "opacity-80" : "opacity-70"
-                      }`}
-                      aria-hidden
-                    />
+                    <span
+                      className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg ${ui.statIcon}`}
+                    >
+                      <Icon className="h-4 w-4" aria-hidden />
+                    </span>
                   </div>
                   <p
-                    className={`mt-1 text-lg font-bold tabular-nums sm:text-xl ${
-                      theme === "light" ? card.valueClassLight : card.valueClass
-                    }`}
+                    className={`mt-1.5 text-lg font-bold tabular-nums sm:text-xl ${ui.statValue}`}
                   >
                     {formatStat(value, card.format)}
                   </p>
@@ -1330,7 +1223,7 @@ const CommandMapWorkspace = ({
           </div>
 
           <div className={`mt-3 rounded-xl border p-2.5 ${ui.cell}`}>
-            <p className={`mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] ${ui.meta}`}>
+            <p className={`mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.1em] ${ui.meta}`}>
               <HiMapPin className="h-3.5 w-3.5" aria-hidden />
               Province
             </p>
@@ -1338,8 +1231,9 @@ const CommandMapWorkspace = ({
               <button
                 type="button"
                 onClick={() => setProvinceFilter("all")}
+                aria-pressed={provinceFilter === "all"}
                 className={[
-                  "rounded-full px-2.5 py-1 text-[10px] font-semibold",
+                  "min-h-8 rounded-full px-3 text-xs font-semibold transition-colors duration-150",
                   provinceFilter === "all" ? ui.chipOnAlt : ui.chipIdle,
                 ].join(" ")}
               >
@@ -1350,8 +1244,9 @@ const CommandMapWorkspace = ({
                   key={province}
                   type="button"
                   onClick={() => setProvinceFilter(province)}
+                  aria-pressed={provinceFilter === province}
                   className={[
-                    "rounded-full px-2.5 py-1 text-[10px] font-semibold",
+                    "min-h-8 rounded-full px-3 text-xs font-semibold transition-colors duration-150",
                     provinceFilter === province ? ui.chipOnAlt : ui.chipIdle,
                   ].join(" ")}
                 >
@@ -1365,7 +1260,7 @@ const CommandMapWorkspace = ({
             <button
               type="button"
               onClick={clearFilters}
-              className={`mt-2 w-full rounded-lg py-1.5 text-[11px] font-semibold transition ${ui.mutedBtn}`}
+              className={`mt-2 min-h-9 w-full rounded-lg text-xs font-semibold transition-colors duration-150 ${ui.mutedBtn}`}
             >
               Clear filters
             </button>
@@ -1409,17 +1304,17 @@ const CommandMapWorkspace = ({
                 onClick={() => setFeedExpanded((v) => !v)}
                 className="flex min-w-0 flex-1 items-center gap-2 text-left"
               >
-                <p className={`text-[11px] font-bold uppercase tracking-[0.16em] ${ui.panelLabel}`}>
+                <p className={`text-xs font-bold uppercase tracking-[0.14em] ${ui.panelLabel}`}>
                   Project feed
                 </p>
-                <span className={`rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold ${theme === "light" ? "text-cyan-800" : "text-cyan-300"}`}>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-bold tabular-nums ${ui.countPill}`}>
                   {filteredProjects.length}
                 </span>
               </button>
               <button
                 type="button"
                 onClick={() => setFeedExpanded((v) => !v)}
-                className={`hidden rounded-lg px-2 py-1 text-[10px] font-semibold transition lg:inline-flex ${ui.mutedBtn}`}
+                className={`hidden rounded-md px-2 py-1 text-xs font-semibold transition-colors duration-150 lg:inline-flex ${ui.mutedBtn}`}
                 aria-expanded={feedExpanded}
               >
                 {feedExpanded ? "Collapse" : "Expand"}
@@ -1430,8 +1325,9 @@ const CommandMapWorkspace = ({
                 <button
                   type="button"
                   onClick={() => setStatusFilter("all")}
+                  aria-pressed={statusFilter === "all"}
                   className={[
-                    "rounded-full px-2.5 py-1 text-[10px] font-semibold",
+                    "min-h-8 rounded-full px-3 text-xs font-semibold transition-colors duration-150",
                     statusFilter === "all" ? ui.chipOn : ui.chipIdle,
                   ].join(" ")}
                 >
@@ -1444,8 +1340,9 @@ const CommandMapWorkspace = ({
                     onClick={() =>
                       setStatusFilter(statusFilter === status ? "all" : status)
                     }
+                    aria-pressed={statusFilter === status}
                     className={[
-                      "rounded-full px-2.5 py-1 text-[10px] font-semibold",
+                      "min-h-8 rounded-full px-3 text-xs font-semibold transition-colors duration-150",
                       statusFilter === status ? ui.chipOn : ui.chipIdle,
                     ].join(" ")}
                   >
@@ -1461,7 +1358,7 @@ const CommandMapWorkspace = ({
             {filteredProjects.length === 0 ? (
               <li className="flex flex-col items-center px-4 py-10 text-center">
                 <HiBuildingOffice2
-                  className="h-8 w-8 text-cyan-500/60"
+                  className={`h-8 w-8 ${ui.meta}`}
                   aria-hidden
                 />
                 <p className={`mt-3 text-sm font-semibold ${ui.modalHeading}`}>
@@ -1485,30 +1382,33 @@ const CommandMapWorkspace = ({
                     type="button"
                     onClick={() => handleViewProject(project)}
                     className={[
-                      "flex w-full flex-col gap-1 rounded-xl border p-2.5 text-left transition",
+                      "flex w-full flex-col gap-1.5 rounded-lg border p-3 text-left transition-colors duration-150",
                       isSelected ? ui.feedItemOn : ui.feedItem,
                     ].join(" ")}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${statusClass}`}
+                        className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${statusClass}`}
                       >
                         {statusLabel}
                       </span>
-                      <span className={`text-[11px] font-bold ${theme === "light" ? "text-cyan-800" : "text-cyan-200"}`}>
+                      <span className={`text-sm font-semibold tabular-nums ${ui.modalHeading}`}>
                         {formatCompact(project.budget)}
                       </span>
                     </div>
                     <p className={`line-clamp-1 text-sm font-semibold ${ui.modalHeading}`}>
                       {project.name}
                     </p>
-                    <p className={`line-clamp-1 text-[11px] ${ui.meta}`}>
-                      {project.municipality}, {project.province} ·{" "}
+                    <p className={`flex min-w-0 items-center gap-1.5 text-xs ${ui.meta}`}>
                       <span
-                        className="font-semibold"
-                        style={{ color: program.color }}
-                      >
-                        {project.program}
+                        className="h-2 w-2 shrink-0 rounded-full"
+                        style={{ backgroundColor: program.color }}
+                        aria-hidden
+                      />
+                      <span className="font-semibold">{project.program}</span>
+                      <span aria-hidden>·</span>
+                      <span className="truncate">
+                        {project.municipality}, {project.province}
                       </span>
                     </p>
                   </button>
@@ -1522,7 +1422,7 @@ const CommandMapWorkspace = ({
                   onClick={() =>
                     setFeedLimit((n) => n + FEED_PAGE_SIZE)
                   }
-                  className={`w-full rounded-lg py-2 text-[11px] font-semibold transition ${ui.showMore}`}
+                  className={`min-h-9 w-full rounded-lg text-xs font-semibold transition-colors duration-150 ${ui.showMore}`}
                 >
                   Show more ({filteredProjects.length - feedLimit} left)
                 </button>
@@ -1540,130 +1440,105 @@ const CommandMapWorkspace = ({
           aria-modal="true"
           aria-label="Project detail"
         >
-          <div className={`max-h-[85vh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-2xl border p-4 shadow-2xl [-webkit-overflow-scrolling:touch] sm:p-5 ${theme === "light" ? "border-cyan-500/30 bg-white" : "border-cyan-800/50 bg-slate-900"}`}>
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className={`text-[11px] font-bold uppercase tracking-[0.16em] ${theme === "light" ? "text-cyan-800/80" : "text-cyan-300/80"}`}>
-                  Project intel · {viewing.program}
-                </p>
-                <h2 className={`mt-1 text-lg font-semibold ${ui.modalHeading}`}>
-                  {viewing.name}
-                </h2>
-              </div>
+          <div className={`max-h-[85vh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-2xl border [-webkit-overflow-scrolling:touch] ${ui.modal}`}>
+            <div className="relative">
+              {viewing.photo_url ? (
+                <img
+                  src={viewing.photo_url}
+                  alt=""
+                  loading="lazy"
+                  className={`h-48 w-full rounded-t-2xl object-cover ${ui.avatarBox}`}
+                />
+              ) : (
+                <div className={`flex h-24 w-full items-center justify-center rounded-t-2xl border-b text-xs ${ui.emptyPhoto}`}>
+                  No project photo
+                </div>
+              )}
               <button
                 type="button"
                 onClick={handleCloseDetail}
-                className={ui.closeBtn}
-                aria-label="Close"
+                className={`absolute right-3 top-3 grid h-10 w-10 place-items-center ${ui.closeBtn} ${theme === "light" ? "bg-white" : "bg-slate-900"}`}
+                aria-label="Close project details"
               >
                 <HiXMark className="h-5 w-5" aria-hidden />
               </button>
             </div>
 
-            {viewing.photo_url ? (
-              <img
-                src={viewing.photo_url}
-                alt={viewing.name}
-                loading="lazy"
-                className={`mt-3 h-44 w-full rounded-xl object-cover ring-1 ${theme === "light" ? "ring-slate-200" : "ring-slate-700/60"}`}
-              />
-            ) : (
-              <div className={`mt-3 flex h-28 w-full items-center justify-center rounded-xl border text-xs ${ui.emptyPhoto}`}>
-                No project photo
-              </div>
-            )}
+            <div className="p-4 sm:p-5">
+              <p
+                className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.14em]"
+                style={{ color: PROGRAM_META[viewing.program].color }}
+              >
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: PROGRAM_META[viewing.program].color }}
+                  aria-hidden
+                />
+                {viewing.program} · {viewing.province}
+              </p>
+              <h2 className={`mt-1.5 text-lg font-semibold leading-snug ${ui.modalHeading}`}>
+                {viewing.name}
+              </h2>
+              <p className="mt-2">
+                <span
+                  className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold ${projectStatusClass(viewing, statusMode)}`}
+                >
+                  {projectStatusLabel(viewing)}
+                </span>
+              </p>
 
-            {describeProject(viewing).trim() ? (
-              <>
-                <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-300/70">
-                  Project description
-                </p>
-                <p className={`mt-1 text-sm leading-relaxed ${ui.modalBody}`}>
+              {describeProject(viewing).trim() ? (
+                <p className={`mt-3 text-sm leading-relaxed ${ui.modalBody}`}>
                   {describeProject(viewing)}
                 </p>
-              </>
-            ) : null}
+              ) : null}
 
-            <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-              <div className={`rounded-xl border p-3 ${ui.cell}`}>
-                <p className={ui.modalMuted}>Type</p>
-                <p className={`mt-1 font-semibold ${ui.modalHeading}`}>{viewing.program}</p>
-              </div>
-              <div className={`rounded-xl border p-3 ${ui.cell}`}>
-                <p className={ui.modalMuted}>Year</p>
-                <p className={`mt-1 font-semibold ${ui.modalHeading}`}>
-                  {projectYear(viewing)}
-                </p>
-              </div>
-              <div className={`col-span-2 rounded-xl border p-3 ${ui.cell}`}>
-                <p className={ui.modalMuted}>Beneficiary</p>
-                <p className={`mt-1 font-semibold ${ui.modalHeading}`}>
-                  {viewing.beneficiary}
-                </p>
-              </div>
-              <div className={`col-span-2 rounded-xl border p-3 ${ui.cell}`}>
-                <p className={ui.modalMuted}>Sector</p>
-                <p className={`mt-1 font-semibold ${ui.modalHeading}`}>{viewing.sector}</p>
-              </div>
-              <div className={`rounded-xl border p-3 ${ui.cell}`}>
-                <p className={ui.modalMuted}>Municipality</p>
-                <p className={`mt-1 font-semibold ${ui.modalHeading}`}>
-                  {viewing.municipality}
-                </p>
-              </div>
-              <div className={`rounded-xl border p-3 ${ui.cell}`}>
-                <p className={ui.modalMuted}>Status</p>
-                <p className="mt-1.5">
-                  <span
-                    className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ${projectStatusClass(viewing, statusMode)}`}
-                  >
-                    {projectStatusLabel(viewing)}
-                  </span>
-                </p>
-              </div>
-              <div className={`col-span-2 rounded-xl border p-3 ${ui.cell}`}>
-                <p className={ui.modalMuted}>Project Cost</p>
-                <p className={`mt-1 font-semibold ${theme === "light" ? "text-cyan-800" : "text-cyan-200"}`}>
-                  {formatPeso(viewing.budget)}
-                </p>
-              </div>
-            </div>
+              <dl className={`mt-4 grid grid-cols-2 gap-x-4 gap-y-3 rounded-xl border p-4 text-sm ${ui.cell}`}>
+                {(
+                  [
+                    ["Type", viewing.program, false],
+                    ["Year", projectYear(viewing), false],
+                    ["Beneficiary", viewing.beneficiary, true],
+                    ["Sector", viewing.sector, true],
+                    ["Municipality", viewing.municipality, false],
+                    ["Project cost", formatPeso(viewing.budget), false],
+                  ] as const
+                ).map(([label, value, wide]) => (
+                  <div key={label} className={wide ? "col-span-2" : ""}>
+                    <dt className={`text-xs ${ui.modalMuted}`}>{label}</dt>
+                    <dd className={`mt-0.5 font-semibold ${ui.modalHeading}`}>{value}</dd>
+                  </div>
+                ))}
+              </dl>
 
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-              <button
-                type="button"
-                onClick={() => openGoogleDirections(viewing, userLocation)}
-                className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition ${
-                  theme === "light"
-                    ? "border-cyan-400 bg-cyan-50 text-cyan-900 hover:bg-cyan-100"
-                    : "border-cyan-500/40 bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/25"
-                }`}
-              >
-                <HiPaperAirplane className="h-5 w-5" aria-hidden />
-                Google Maps directions
-                <HiArrowTopRightOnSquare className="h-4 w-4 opacity-70" aria-hidden />
-              </button>
-              {!userLocation ? (
+              <div className="mt-5 flex flex-col gap-2 sm:flex-row">
                 <button
                   type="button"
-                  onClick={handleLocateMe}
-                  disabled={locateLoading}
-                  className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold disabled:opacity-50 ${
-                    theme === "light"
-                      ? "border-emerald-400 bg-emerald-50 text-emerald-900"
-                      : "border-emerald-500/40 bg-emerald-500/10 text-emerald-100"
-                  }`}
+                  onClick={() => openGoogleDirections(viewing, userLocation)}
+                  className={`inline-flex min-h-11 flex-1 items-center justify-center gap-2 ${ui.primaryBtn}`}
                 >
-                  <HiMapPin className="h-5 w-5" aria-hidden />
-                  {locateLoading ? "Locating…" : "Use my location"}
+                  <HiPaperAirplane className="h-4 w-4" aria-hidden />
+                  Get directions
+                  <HiArrowTopRightOnSquare className="h-4 w-4 opacity-80" aria-hidden />
                 </button>
-              ) : null}
+                {!userLocation ? (
+                  <button
+                    type="button"
+                    onClick={handleLocateMe}
+                    disabled={locateLoading}
+                    className={`inline-flex min-h-11 items-center justify-center gap-2 ${ui.chromeBtn}`}
+                  >
+                    <HiMapPin className="h-4 w-4" aria-hidden />
+                    {locateLoading ? "Locating…" : "Use my location"}
+                  </button>
+                ) : null}
+              </div>
+              <p className={`mt-2 text-xs ${ui.modalMuted}`}>
+                {userLocation
+                  ? "Route starts from your current location."
+                  : "Opens Google Maps. Share your location first for a full driving route."}
+              </p>
             </div>
-            <p className="mt-2 text-[11px] text-slate-500">
-              {userLocation
-                ? "Route starts from your current GPS position."
-                : "No origin yet — Google opens with destination only. Tap Use my location for full route."}
-            </p>
           </div>
         </div>
       ) : null}
@@ -1685,10 +1560,10 @@ const CommandMapWorkspace = ({
           aria-modal="true"
           aria-label="Generate report"
         >
-          <div className={`w-full max-w-md overflow-y-auto overscroll-contain rounded-2xl border p-4 shadow-2xl [-webkit-overflow-scrolling:touch] sm:p-5 ${theme === "light" ? "border-amber-400/40 bg-white" : "border-amber-800/50 bg-slate-900"}`}>
+          <div className={`w-full max-w-md overflow-y-auto overscroll-contain rounded-2xl border p-4 [-webkit-overflow-scrolling:touch] sm:p-5 ${ui.modal}`}>
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className={`text-[11px] font-bold uppercase tracking-[0.16em] ${theme === "light" ? "text-amber-700/80" : "text-amber-300/80"}`}>
+                <p className={`text-xs font-bold uppercase tracking-[0.14em] ${ui.accentText}`}>
                   Generate report
                 </p>
                 <h2 className={`mt-1 text-lg font-semibold ${ui.modalHeading}`}>
@@ -1707,8 +1582,8 @@ const CommandMapWorkspace = ({
             </div>
 
             <div className={`mt-3 flex items-start gap-2 rounded-xl border p-3 ${ui.cell}`}>
-              <HiFunnel className="mt-0.5 h-4 w-4 shrink-0 text-cyan-500" aria-hidden />
-              <div className={`min-w-0 text-xs ${ui.modalBody}`}>
+              <HiFunnel className={`mt-0.5 h-4 w-4 shrink-0 ${ui.accentText}`} aria-hidden />
+              <div className={`min-w-0 text-sm ${ui.modalBody}`}>
                 <p className={`font-semibold ${ui.modalHeading}`}>Current scope</p>
                 <p className={`mt-0.5 break-words ${ui.meta}`}>
                   {describeFilters(reportFilters)}
@@ -1717,34 +1592,20 @@ const CommandMapWorkspace = ({
             </div>
 
             <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-              <div className={`rounded-xl border p-2.5 ${ui.cell}`}>
-                <p className={`text-[9px] font-semibold uppercase tracking-wide ${ui.modalMuted}`}>
-                  Funding
-                </p>
-                <p className={`mt-1 text-sm font-bold ${theme === "light" ? "text-cyan-800" : "text-cyan-200"}`}>
-                  {formatCompact(
-                    filteredProjects.reduce((s, p) => s + p.budget, 0),
-                  )}
-                </p>
-              </div>
-              <div className={`rounded-xl border p-2.5 ${ui.cell}`}>
-                <p className={`text-[9px] font-semibold uppercase tracking-wide ${ui.modalMuted}`}>
-                  Beneficiaries
-                </p>
-                <p className={`mt-1 text-sm font-bold ${theme === "light" ? "text-violet-800" : "text-violet-200"}`}>
-                  {formatCompact(
-                    filteredProjects.reduce((s, p) => s + p.beneficiaries, 0),
-                  )}
-                </p>
-              </div>
-              <div className={`rounded-xl border p-2.5 ${ui.cell}`}>
-                <p className={`text-[9px] font-semibold uppercase tracking-wide ${ui.modalMuted}`}>
-                  Provinces
-                </p>
-                <p className={`mt-1 text-sm font-bold ${theme === "light" ? "text-emerald-800" : "text-emerald-200"}`}>
-                  {new Set(filteredProjects.map((p) => p.province)).size}
-                </p>
-              </div>
+              {(
+                [
+                  ["Funding", `₱${formatCompact(filteredProjects.reduce((s, p) => s + p.budget, 0))}`],
+                  ["Beneficiaries", formatCompact(filteredProjects.reduce((s, p) => s + p.beneficiaries, 0))],
+                  ["Provinces", String(new Set(filteredProjects.map((p) => p.province)).size)],
+                ] as const
+              ).map(([label, value]) => (
+                <div key={label} className={`rounded-xl border p-3 ${ui.cell}`}>
+                  <p className={`text-xs font-medium ${ui.modalMuted}`}>{label}</p>
+                  <p className={`mt-1 text-base font-bold tabular-nums ${ui.modalHeading}`}>
+                    {value}
+                  </p>
+                </div>
+              ))}
             </div>
 
             {reportError ? (
@@ -1762,31 +1623,23 @@ const CommandMapWorkspace = ({
                 type="button"
                 onClick={handlePrintReport}
                 disabled={filteredProjects.length === 0}
-                className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition disabled:opacity-40 ${
-                  theme === "light"
-                    ? "border-amber-400 bg-amber-50 text-amber-900 hover:bg-amber-100"
-                    : "border-amber-500/40 bg-amber-500/15 text-amber-100 hover:bg-amber-500/25"
-                }`}
+                className={`inline-flex min-h-11 items-center justify-center gap-2 ${ui.primaryBtn}`}
               >
-                <HiDocumentArrowDown className="h-5 w-5" aria-hidden />
+                <HiDocumentArrowDown className="h-4 w-4" aria-hidden />
                 Download PDF report
               </button>
               <button
                 type="button"
                 onClick={handleDownloadCsv}
                 disabled={filteredProjects.length === 0}
-                className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition disabled:opacity-40 ${
-                  theme === "light"
-                    ? "border-cyan-400 bg-cyan-50 text-cyan-900 hover:bg-cyan-100"
-                    : "border-cyan-500/40 bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/25"
-                }`}
+                className={`inline-flex min-h-11 items-center justify-center gap-2 ${ui.chromeBtn}`}
               >
-                <HiTableCells className="h-5 w-5" aria-hidden />
+                <HiTableCells className="h-4 w-4" aria-hidden />
                 Export spreadsheet (CSV)
               </button>
             </div>
 
-            <p className="mt-3 flex items-center gap-1.5 text-[11px] text-slate-500">
+            <p className={`mt-3 flex items-center gap-1.5 text-xs ${ui.modalMuted}`}>
               <HiDocumentText className="h-3.5 w-3.5 shrink-0" aria-hidden />
               Report reflects active filters. Clear filters for a region-wide
               report.

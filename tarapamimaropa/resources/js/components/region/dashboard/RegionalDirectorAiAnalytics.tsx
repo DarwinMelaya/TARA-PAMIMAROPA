@@ -76,9 +76,9 @@ const RegionalDirectorAiAnalytics = ({
 }: RegionalDirectorAiAnalyticsProps) => {
     const { theme } = useTheme();
     const light = theme === 'light';
+    const [error, setError] = useState('');
     const [brief, setBrief] = useState<PlanningBrief | null>(null);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
 
     const loadBrief = async () => {
         setLoading(true);
@@ -152,7 +152,7 @@ const RegionalDirectorAiAnalytics = ({
         <div
             className={[shellClass, className].join(' ')}
             role="dialog"
-            aria-label="Regional Director AI planning analytics"
+            aria-label="Planning notes"
         >
             <header
                 className={`flex items-start justify-between gap-2 border-b px-3 py-2.5 sm:px-4 ${
@@ -161,23 +161,23 @@ const RegionalDirectorAiAnalytics = ({
             >
                 <div className="min-w-0">
                     <p
-                        className={`flex items-center gap-1.5 text-[11px] font-bold tracking-[0.16em] uppercase ${
-                            light ? 'text-cyan-800' : 'text-cyan-200'
+                        className={`flex items-center gap-1.5 text-sm font-semibold ${
+                            light ? 'text-cyan-900' : 'text-cyan-100'
                         }`}
                     >
                         <HiSparkles
                             className={`h-4 w-4 shrink-0 ${light ? 'text-cyan-600' : 'text-cyan-300'}`}
                             aria-hidden
                         />
-                        RD AI Planning
+                        Planning notes
                     </p>
                     <p
-                        className={`mt-0.5 truncate text-[10px] ${
+                        className={`mt-0.5 text-xs leading-snug ${
                             light ? 'text-slate-500' : 'text-slate-400'
                         }`}
                     >
-                        Gemini brief · live MIMAROPA portfolio for the Regional
-                        Director
+                        Clear priorities for the whole team from live MIMAROPA
+                        totals
                     </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
@@ -186,7 +186,7 @@ const RegionalDirectorAiAnalytics = ({
                         onClick={() => void loadBrief()}
                         disabled={loading}
                         className={iconBtn}
-                        title="Regenerate brief"
+                        title="Refresh notes"
                     >
                         <HiArrowPath
                             className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`}
@@ -197,7 +197,7 @@ const RegionalDirectorAiAnalytics = ({
                         type="button"
                         onClick={onClose}
                         className={iconBtn}
-                        aria-label="Close planning analytics"
+                        aria-label="Close planning notes"
                     >
                         <HiXMark className="h-4 w-4" aria-hidden />
                     </button>
@@ -216,8 +216,8 @@ const RegionalDirectorAiAnalytics = ({
                             <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:120ms]" />
                             <span className="h-2 w-2 animate-bounce rounded-full bg-cyan-400 [animation-delay:240ms]" />
                         </span>
-                        <p className="text-xs font-medium">
-                            Building Regional Director planning brief…
+                        <p className="text-sm font-medium">
+                            Preparing planning notes…
                         </p>
                     </div>
                 ) : null}
@@ -256,17 +256,17 @@ const RegionalDirectorAiAnalytics = ({
                                     light ? 'text-cyan-700/80' : 'text-cyan-300/80'
                                 }`}
                             >
-                                Situation · {brief.project_count} projects
+                                Overview · {brief.project_count} projects
                             </p>
                             <h2
-                                className={`mt-1 text-sm font-semibold leading-snug ${
+                                className={`mt-1 text-base font-semibold leading-snug ${
                                     light ? 'text-slate-900' : 'text-white'
                                 }`}
                             >
                                 {brief.headline}
                             </h2>
                             <p
-                                className={`mt-2 text-xs leading-relaxed ${
+                                className={`mt-2 text-sm leading-relaxed ${
                                     light ? 'text-slate-700' : 'text-slate-300'
                                 }`}
                             >
@@ -276,12 +276,12 @@ const RegionalDirectorAiAnalytics = ({
 
                         <section>
                             <p
-                                className={`mb-2 flex items-center gap-1.5 text-[10px] font-bold tracking-[0.14em] uppercase ${
+                                className={`mb-2 flex items-center gap-1.5 text-xs font-semibold ${
                                     light ? 'text-violet-800' : 'text-violet-200'
                                 }`}
                             >
                                 <HiLightBulb className="h-3.5 w-3.5" aria-hidden />
-                                Planning priorities
+                                What to focus on
                             </p>
                             <div className="space-y-2">
                                 {brief.priorities.map((item, index) => (
@@ -329,16 +329,16 @@ const RegionalDirectorAiAnalytics = ({
                                                         type="button"
                                                         onClick={() =>
                                                             onAskChat(
-                                                                `Help me execute this Regional Director priority: ${item.title}. Suggested action: ${item.action}`,
+                                                                `Help me carry out this priority: ${item.title}. Suggested action: ${item.action}`,
                                                             )
                                                         }
-                                                        className={`mt-2 text-[10px] font-semibold ${
+                                                        className={`mt-2 text-xs font-semibold ${
                                                             light
                                                                 ? 'text-violet-700 hover:text-violet-900'
                                                                 : 'text-violet-300 hover:text-violet-100'
                                                         }`}
                                                     >
-                                                        Ask AI chat →
+                                                        Ask in chat →
                                                     </button>
                                                 ) : null}
                                             </div>

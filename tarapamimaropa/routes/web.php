@@ -6,6 +6,7 @@ use App\Http\Controllers\Psto\DashboardController as PstoDashboardController;
 use App\Http\Controllers\Psto\ProgramController as PstoProgramController;
 use App\Http\Controllers\Psto\ProjectController as PstoProjectController;
 use App\Http\Controllers\Region\AnalyticsPlanningController;
+use App\Http\Controllers\Region\ChartInterpretationController;
 use App\Http\Controllers\Region\DashboardController;
 use App\Http\Controllers\Region\ProgramController;
 use App\Http\Controllers\Site\HomeController;
@@ -46,6 +47,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/analytics-planning-brief', [AnalyticsPlanningController::class, 'store'])
                 ->middleware('throttle:12,1')
                 ->name('analytics-planning-brief');
+            Route::post('/analytics-chart-interpret', [ChartInterpretationController::class, 'store'])
+                ->middleware('throttle:20,1')
+                ->name('analytics-chart-interpret');
             Route::get('/programs', [ProgramController::class, 'index'])->name('programs');
             Route::get('/programs/summary-graphs', [ProgramController::class, 'summaryGraphs'])->name('programs.summary-graphs');
             Route::post('/programs/import', [ProgramController::class, 'import'])->name('programs.import');

@@ -14,6 +14,7 @@ import {
     createWelcomeMessage,
     type ChatMessage,
 } from './analyticsChatEngine';
+import ChatReplyBody from './ChatReplyBody';
 import { useTheme } from '@/theme/ThemeProvider';
 
 type AnalyticsChatBotProps = {
@@ -51,9 +52,8 @@ const AnalyticsChatBot = ({
 }: AnalyticsChatBotProps) => {
     const { theme } = useTheme();
     const light = theme === 'light';
-    const isDirector = audience === 'regional_director';
     const [messages, setMessages] = useState<ChatMessage[]>(() => [
-        createWelcomeMessage(projects.length, audience),
+        createWelcomeMessage(projects, audience),
     ]);
     const [draft, setDraft] = useState('');
     const [typing, setTyping] = useState(false);
@@ -70,8 +70,8 @@ const AnalyticsChatBot = ({
     const projectCount = projects.length;
 
     const tips = useMemo(
-        () => (isDirector ? RD_PLANNING_QUICK_PROMPTS : CHAT_QUICK_PROMPTS),
-        [isDirector],
+        () => [...CHAT_QUICK_PROMPTS, ...RD_PLANNING_QUICK_PROMPTS].slice(0, 6),
+        [],
     );
     const insights = useMemo(() => buildLiveInsights(projects), [projects]);
 
@@ -93,10 +93,10 @@ const AnalyticsChatBot = ({
         const userMsg = buildUserMessage(trimmed);
         const history = messagesRef.current
             .filter((msg) => msg.role === 'user' || msg.role === 'assistant')
-            .slice(-10)
+            .slice(-6)
             .map((msg) => ({
                 role: msg.role as 'user' | 'assistant',
-                content: msg.text,
+                content: msg.text.slice(0, 4000),
             }));
 
         setMessages((prev) => [...prev, userMsg]);
@@ -134,7 +134,7 @@ const AnalyticsChatBot = ({
 
             const replyText =
                 payload?.reply?.trim() ||
-                'No reply returned from TARA AI. Please try again.';
+                'No answer came back. Please try again.';
 
             setMessages((prev) => [
                 ...prev,
@@ -157,7 +157,7 @@ const AnalyticsChatBot = ({
                     id: `msg-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
                     role: 'assistant',
                     createdAt: Date.now(),
-                    text: `TARA AI could not answer that request.\n\n${text}`,
+                    text: `Sorry — I couldn’t answer that yet.\n\n${text}`,
                 },
             ]);
         } finally {
@@ -179,9 +179,7 @@ const AnalyticsChatBot = ({
     };
 
     const resetChat = () => {
-        setMessages([
-            createWelcomeMessage(projectsRef.current.length, audience),
-        ]);
+        setMessages([createWelcomeMessage(projectsRef.current, audience)]);
         setDraft('');
         setTyping(false);
     };
@@ -205,7 +203,7 @@ const AnalyticsChatBot = ({
         <div
             className={[shellClass, className].join(' ')}
             role="dialog"
-            aria-label="AI analytics chat"
+            aria-label="Ask TARA chat"
         >
             <header
                 className={`flex items-start justify-between gap-2 border-b px-3 py-2.5 sm:px-4 ${
@@ -214,28 +212,22 @@ const AnalyticsChatBot = ({
             >
                 <div className="min-w-0">
                     <p
-                        className={`flex items-center gap-1.5 text-[11px] font-bold tracking-[0.16em] uppercase ${
-                            light ? 'text-violet-800' : 'text-violet-200'
+                        className={`flex items-center gap-1.5 text-sm font-semibold ${
+                            light ? 'text-violet-900' : 'text-violet-100'
                         }`}
                     >
                         <HiSparkles
                             className={`h-4 w-4 shrink-0 ${light ? 'text-violet-600' : 'text-violet-300'}`}
                             aria-hidden
                         />
-                        {isDirector ? 'RD AI analytics chat' : 'AI analytics chat'}
+                        Ask TARA
                     </p>
                     <p
-                        className={`mt-0.5 truncate text-[10px] ${
+                        className={`mt-0.5 text-xs leading-snug ${
                             light ? 'text-slate-500' : 'text-slate-400'
                         }`}
                     >
-                        Gemini ·{' '}
-                        {isDirector
-                            ? 'Regional Director planning · '
-                            : ''}
-                        live backend data · map shows{' '}
-                        {projectCount} project
-                        {projectCount === 1 ? '' : 's'}
+                        Live portfolio intelligence · {projectCount} in this view
                     </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
@@ -270,14 +262,16 @@ const AnalyticsChatBot = ({
                         light ? 'text-violet-700/80' : 'text-violet-300/80'
                     }`}
                 >
-                    Live insight
+                    Quick tip
                 </p>
                 <p
                     className={`mt-0.5 text-[11px] leading-snug ${
                         light ? 'text-slate-800' : 'text-slate-200'
                     }`}
                 >
-                    {insights[insightIndex % insights.length]}
+                    {insights.length > 0
+                        ? insights[insightIndex % insights.length]
+                        : 'Ask equity, risks, funding, or next-year priorities.'}
                 </p>
                 <button
                     type="button"
@@ -304,28 +298,42 @@ const AnalyticsChatBot = ({
                     <div
                         key={msg.id}
                         className={[
-                            'max-w-[92%] rounded-xl px-2.5 py-2 text-xs leading-relaxed whitespace-pre-wrap',
+                            'max-w-[96%] rounded-2xl px-3 py-2.5 text-sm leading-relaxed',
                             msg.role === 'user'
                                 ? light
                                     ? 'ml-auto border border-cyan-300/50 bg-cyan-50 text-cyan-900'
                                     : 'ml-auto border border-cyan-400/25 bg-cyan-500/20 text-cyan-50'
                                 : light
-                                  ? 'mr-auto border border-violet-200 bg-slate-50 text-slate-800'
-                                  : 'mr-auto border border-violet-500/20 bg-slate-950/70 text-slate-200',
+                                  ? 'mr-auto w-full border border-violet-200/80 bg-white text-slate-800 shadow-sm'
+                                  : 'mr-auto w-full border border-violet-500/20 bg-slate-950/70 text-slate-200',
                         ].join(' ')}
                     >
                         {msg.role === 'assistant' ? (
                             <span
-                                className={`mb-1 block text-[9px] font-bold tracking-wide uppercase ${
+                                className={`mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.14em] uppercase ${
                                     light
-                                        ? 'text-violet-700/80'
-                                        : 'text-violet-300/80'
+                                        ? 'text-violet-700/90'
+                                        : 'text-violet-300/90'
                                 }`}
                             >
-                                TARA AI
+                                <HiSparkles className="h-3.5 w-3.5" aria-hidden />
+                                TARA
                             </span>
                         ) : null}
-                        {msg.text}
+                        {msg.role === 'assistant' ? (
+                            <>
+                                <ChatReplyBody text={msg.text} light={light} />
+                                <p
+                                    className={`mt-2 text-[10px] ${
+                                        light ? 'text-slate-400' : 'text-slate-500'
+                                    }`}
+                                >
+                                    Drawn from live TARA project records
+                                </p>
+                            </>
+                        ) : (
+                            <p className="whitespace-pre-wrap">{msg.text}</p>
+                        )}
                     </div>
                 ))}
                 {typing ? (
@@ -375,11 +383,7 @@ const AnalyticsChatBot = ({
                         ref={inputRef}
                         value={draft}
                         onChange={(e) => setDraft(e.target.value)}
-                        placeholder={
-                            isDirector
-                                ? 'Ask for RD priorities, equity, funding…'
-                                : 'Ask about projects, funding, risk…'
-                        }
+                        placeholder="Ask equity, risks, funding trends, or next steps…"
                         disabled={typing}
                         className={`min-w-0 flex-1 rounded-xl border px-3 py-2 text-xs outline-none ${
                             light

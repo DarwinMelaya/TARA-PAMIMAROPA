@@ -21,38 +21,38 @@ export type ChatMessage = {
 };
 
 export const CHAT_QUICK_PROMPTS = [
-  "Give me an executive summary",
-  "Which projects are delayed?",
-  "Compare provinces",
-  "Show funding breakdown",
-  "Who has the most beneficiaries?",
-  "What needs attention first?",
+  "Summarize the portfolio with real numbers",
+  "Where are the biggest equity gaps?",
+  "What risks should we watch this month?",
+  "How is funding and amount due looking?",
+  "What does the year trend say?",
+  "Suggest priorities for next year",
 ];
 
 export const RD_PLANNING_QUICK_PROMPTS = [
-  "Draft RD planning priorities",
-  "Where is province equity weakest?",
-  "What should we fund next?",
-  "Flag high-risk projects",
-  "30-day action plan",
-  "Brief me for tomorrow's meeting",
+  "Draft a 30-day action plan from the data",
+  "Which provinces need more presence?",
+  "Flag status pressure and what to do",
+  "Recommend funding focus areas",
+  "What should we improve for map coverage?",
+  "Brief me for a management meeting",
 ];
 
 const uid = () =>
   `msg-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 
 export const createWelcomeMessage = (
-  projectCount: number,
-  audience: "general" | "regional_director" = "general",
-): ChatMessage => ({
-  id: uid(),
-  role: "assistant",
-  createdAt: Date.now(),
-  text:
-    audience === "regional_director"
-      ? `TARA AI Planning Advisor online (Gemini). I advise the Regional Director using live MIMAROPA project records — not only the ${projectCount} project${projectCount === 1 ? "" : "s"} on your current map filters. Ask for priorities, equity gaps, funding posture, risks, or a 30-day plan.`
-      : `TARA AI Analytics online (Gemini). I read live project records from the TARA backend — not just the ${projectCount} project${projectCount === 1 ? "" : "s"} currently on your map filters. Ask about status, provinces, funding, progress, or risk.`,
-});
+  projects: TaraProject[] | number,
+  _audience: "general" | "regional_director" = "general",
+): ChatMessage => {
+  const projectCount = Array.isArray(projects) ? projects.length : projects;
+  return {
+    id: uid(),
+    role: "assistant",
+    createdAt: Date.now(),
+    text: `Hi — I'm TARA. I read live portfolio intelligence from your project records (${projectCount} in this view): equity, status pressure, funding due, year trends, and risk signals. Ask a decision question and I'll answer with numbers.`,
+  };
+};
 
 const findProvince = (q: string): Province | null => {
   const lower = q.toLowerCase();

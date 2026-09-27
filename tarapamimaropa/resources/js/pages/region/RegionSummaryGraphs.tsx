@@ -7,6 +7,8 @@ import {
     type ReactNode,
 } from 'react';
 import { HiArrowLeft, HiChevronLeft, HiChevronRight } from 'react-icons/hi2';
+import RegionGraphsAiPanel from '@/components/region/graphs/RegionGraphsAiPanel';
+import type { ChartInterpretContext } from '@/components/region/graphs/ChartAiInterpretation';
 import {
     PROGRAM_META,
     PROJECT_STATUSES,
@@ -888,6 +890,16 @@ const StackedBarChart = ({
 /* ── Page ───────────────────────────────────────────────────────── */
 type ViewTab = 'region' | 'province' | 'municipality' | 'program';
 
+const rowsToChart = (
+    title: string,
+    rows: Row[],
+    format: 'number' | 'peso' | 'compact' = 'number',
+) => ({
+    title,
+    format,
+    rows: rows.map((r) => ({ label: r.label, value: r.value })),
+});
+
 const VIEW_TABS: { id: ViewTab; label: string; hint: string }[] = [
     {
         id: 'region',
@@ -1142,6 +1154,112 @@ const RegionSummaryGraphs = () => {
               ? `${bucketMeta(focusProgram).label}${year ? ` · ${year}` : ''}`
               : `${browseProvince}${year ? ` · ${year}` : ''}`;
 
+    const interpretContext = useMemo((): ChartInterpretContext => {
+        if (tab === 'province') {
+            return {
+                view: 'province',
+                context_label: contextLabel,
+                year: year || null,
+                stats: {
+                    total: provincialFocus.stats.total,
+                    funding: provincialFocus.stats.funding,
+                    beneficiaries: provincialFocus.stats.beneficiaries,
+                    active: provincialFocus.stats.active,
+                },
+                charts: [
+                    rowsToChart('Status', provincialFocus.byStatus),
+                    rowsToChart('Programs', provincialFocus.byProgram),
+                    rowsToChart('Top municipalities', provincialFocus.projects),
+                    rowsToChart(
+                        'Funding by municipality',
+                        provincialFocus.funding,
+                        'compact',
+                    ),
+                ],
+            };
+        }
+
+        if (tab === 'municipality') {
+            return {
+                view: 'municipality',
+                context_label: contextLabel,
+                year: year || null,
+                charts: [
+                    rowsToChart('Projects per municipality', municipal.projects),
+                    rowsToChart(
+                        'Funding per municipality',
+                        municipal.funding,
+                        'compact',
+                    ),
+                    rowsToChart(
+                        'Beneficiaries per municipality',
+                        municipal.beneficiaries,
+                        'compact',
+                    ),
+                    rowsToChart('Status in province', municipal.byStatus),
+                ],
+            };
+        }
+
+        if (tab === 'program') {
+            return {
+                view: 'program',
+                context_label: contextLabel,
+                year: year || null,
+                stats: {
+                    total: programFocus.stats.total,
+                    funding: programFocus.stats.funding,
+                    beneficiaries: programFocus.stats.beneficiaries,
+                    completed: programFocus.stats.completed,
+                },
+                charts: [
+                    rowsToChart('By province', programFocus.byProvince),
+                    rowsToChart(
+                        'Funding by province',
+                        programFocus.fundingByProvince,
+                        'compact',
+                    ),
+                    rowsToChart('Status', programFocus.byStatus),
+                ],
+            };
+        }
+
+        return {
+            view: 'region',
+            context_label: contextLabel,
+            year: year || null,
+            stats: {
+                total: regional.summary.total,
+                funding: regional.summary.funding,
+                beneficiaries: regional.summary.beneficiaries,
+                active: regional.summary.active,
+                completed: regional.summary.completed,
+            },
+            charts: [
+                rowsToChart(
+                    'Projects per province',
+                    regional.projectsPerProvince,
+                ),
+                rowsToChart(
+                    'Funding per province',
+                    regional.fundingPerProvince,
+                    'compact',
+                ),
+                rowsToChart('Implementation status', regional.byStatus),
+                rowsToChart('Program mix', regional.byProgram),
+                rowsToChart('Projects per year', regional.perYear),
+            ],
+        };
+    }, [
+        tab,
+        contextLabel,
+        year,
+        regional,
+        provincialFocus,
+        municipal,
+        programFocus,
+    ]);
+
     return (
         <>
             <Head title="Summary graphs" />
@@ -1163,8 +1281,9 @@ const RegionSummaryGraphs = () => {
                             <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
                                 Summary graphs
                             </h1>
-                            <p className="mt-1.5 text-sm text-slate-500">
-                                Pick a level below. One view at a time.
+                            <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-500">
+                                Browse one level at a time, then let TARA explain
+                                what the charts are saying.
                             </p>
                         </header>
                     </div>
@@ -1248,6 +1367,13 @@ const RegionSummaryGraphs = () => {
                             ) : null}
                         </div>
                     </div>
+
+                    {!loading && yearFiltered.length > 0 ? (
+                        <RegionGraphsAiPanel
+                            context={interpretContext}
+                            projects={filtered}
+                        />
+                    ) : null}
 
                     {loading ? (
                         <LoadingSkeleton />

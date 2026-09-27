@@ -23,7 +23,7 @@ const RegionDashboard = () => {
         projects={projects}
         variant="region"
         programsHref={programs.url()}
-        pageTitle="Region dashboard · RD AI Planning"
+        pageTitle="Region dashboard"
       />
     </div>
   );

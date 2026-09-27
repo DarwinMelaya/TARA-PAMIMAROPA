@@ -6,7 +6,6 @@ use App\Enums\UserRole;
 use App\Http\Requests\AnalyticsChatRequest;
 use App\Services\GeminiAnalyticsChatService;
 use Illuminate\Http\JsonResponse;
-use RuntimeException;
 
 class AnalyticsChatController extends Controller
 {
@@ -27,25 +26,17 @@ class AnalyticsChatController extends Controller
             }
         }
 
-        $audience = $user?->role === UserRole::RegionalOffice
-            ? 'regional_director'
-            : (string) $request->input('audience', 'general');
-
-        try {
-            $reply = $chat->reply(
-                message: $request->string('message')->toString(),
-                history: $request->input('history', []),
-                provinceScope: $provinceScope,
-                audience: $audience === 'regional_director' ? 'regional_director' : 'general',
-            );
-        } catch (RuntimeException $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], 422);
-        }
+        $result = $chat->reply(
+            message: $request->string('message')->toString(),
+            history: $request->input('history', []),
+            provinceScope: $provinceScope,
+            audience: 'general',
+        );
 
         return response()->json([
-            'reply' => $reply,
+            'reply' => $result['reply'],
+            'source' => $result['source'],
+            'fallback_reason' => $result['fallback_reason'],
         ]);
     }
 }

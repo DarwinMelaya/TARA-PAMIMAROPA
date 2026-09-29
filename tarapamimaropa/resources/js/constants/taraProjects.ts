@@ -731,6 +731,26 @@ export const projectType = (project: TaraProject): string => {
     return PROGRAM_TO_TYPE[project.program];
 };
 
+/** Short label + accent color per project type (dark enough for white text). */
+export const projectTypeMeta = (
+    type: string,
+): { short: string; color: string } => {
+    const t = type.trim().toLowerCase();
+
+    if (t.startsWith('setup')) return { short: 'SETUP', color: '#16823c' };
+    if (t.startsWith('sscp')) return { short: 'SSCP', color: '#7f23d0' };
+    if (t.startsWith('cest')) return { short: 'CEST', color: '#c9440b' };
+    if (t.startsWith('roll')) return { short: 'Roll-out', color: '#a16207' };
+    if (t.startsWith('tapi')) return { short: 'TAPI-assisted', color: '#be185d' };
+    if (t.includes('gia')) {
+        if (t.includes('extern')) return { short: 'GIA · External', color: '#4338ca' };
+        if (t.includes('intern')) return { short: 'GIA · Internal', color: '#0e7490' };
+        return { short: 'GIA · Community', color: '#1d51db' };
+    }
+
+    return { short: type.trim() || 'Other', color: '#475569' };
+};
+
 export const projectYear = (project: TaraProject): number => {
     if (project.year_approved && project.year_approved > 1900) {
         return project.year_approved;

@@ -69,7 +69,7 @@ export default function MobileBottomNav({ items }: MobileBottomNavProps) {
                 paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
             }}
         >
-            <div className="border-border bg-background relative mx-auto max-w-lg overflow-hidden rounded-2xl border shadow-lg">
+            <div className="border-border bg-background/95 supports-[backdrop-filter]:bg-background/85 relative mx-auto max-w-lg overflow-hidden rounded-2xl border shadow-lg backdrop-blur">
                 <ul className="relative z-10 flex items-stretch gap-0.5 px-1.5 py-1.5">
                     {items.map((item, index) => {
                         const active = index === activeIndex;
@@ -82,7 +82,7 @@ export default function MobileBottomNav({ items }: MobileBottomNavProps) {
                                     prefetch
                                     aria-current={active ? 'page' : undefined}
                                     className={cn(
-                                        'flex flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-2 text-center transition-colors',
+                                        'flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
                                         active
                                             ? 'bg-primary text-primary-foreground'
                                             : 'text-muted-foreground hover:bg-muted hover:text-foreground',

@@ -38,7 +38,7 @@ const CommandSidebar = ({ footer }: CommandSidebarProps) => {
         <>
             <div className="hidden md:contents">
                 <Sidebar collapsible="icon" variant="inset">
-                    <SidebarHeader className="gap-3 border-b border-sidebar-border/80 px-3 pt-4 pb-3">
+                    <SidebarHeader className="border-b border-sidebar-border/80 px-3 pt-3 pb-2">
                         <SidebarMenu>
                             <SidebarMenuItem>
                                 <SidebarMenuButton
@@ -50,37 +50,39 @@ const CommandSidebar = ({ footer }: CommandSidebarProps) => {
                                         <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-9 shrink-0 items-center justify-center rounded-xl">
                                             <AppLogoIcon className="size-5 fill-current text-white dark:text-black" />
                                         </div>
-                                        <div className="ml-1 grid min-w-0 flex-1 text-left text-sm group-data-[collapsible=icon]:hidden">
-                                            <span className="text-sidebar-foreground/55 truncate text-[10px] font-semibold tracking-[0.16em] uppercase">
-                                                DOST MIMAROPA
-                                            </span>
+                                        <div className="ml-1 grid min-w-0 flex-1 text-left group-data-[collapsible=icon]:hidden">
                                             <span className="text-sidebar-foreground truncate text-sm font-bold leading-tight">
                                                 {brandTitle}
+                                            </span>
+                                            <span
+                                                title={`DOST MIMAROPA · ${roleLabel}`}
+                                                className="text-sidebar-foreground/60 flex min-w-0 items-center gap-1 text-[11px] leading-tight"
+                                            >
+                                                <RoleIcon
+                                                    className="size-3 shrink-0"
+                                                    aria-hidden
+                                                />
+                                                <span className="truncate">
+                                                    DOST MIMAROPA · {roleLabel}
+                                                </span>
                                             </span>
                                         </div>
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
                         </SidebarMenu>
-
-                        <div className="text-sidebar-foreground/55 flex items-center gap-2 px-2 text-[10px] font-semibold tracking-[0.14em] uppercase group-data-[collapsible=icon]:hidden">
-                            <RoleIcon
-                                className="size-3.5 shrink-0 opacity-80"
-                                aria-hidden
-                            />
-                            {roleLabel}
-                        </div>
                     </SidebarHeader>
 
-                    <SidebarContent className="px-2 pt-2">
+                    <SidebarContent className="px-2 pt-2 [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-sidebar-border">
+
                         <NavMain items={items} />
                     </SidebarContent>
 
-                    <SidebarFooter className="gap-2 border-t border-sidebar-border/80 px-3 pt-3 pb-4">
+                    <SidebarFooter className="gap-1.5 border-t border-sidebar-border/80 px-3 pt-2 pb-3">
                         <div className="group-data-[collapsible=icon]:hidden">
                             {footer ?? <AppearanceToggle />}
                         </div>
-                        <div className="border-sidebar-border bg-sidebar-accent/50 rounded-xl border p-1.5">
+                        <div className="border-sidebar-border bg-sidebar-accent/50 rounded-xl border p-1">
                             <NavUser />
                         </div>
                     </SidebarFooter>

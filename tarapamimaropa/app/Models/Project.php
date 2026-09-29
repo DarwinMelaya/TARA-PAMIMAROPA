@@ -21,6 +21,7 @@ use Illuminate\Support\Str;
  * @property string|null $sector
  * @property string|null $province
  * @property string|null $city
+ * @property string|null $barangay
  * @property string|null $district
  * @property string|null $status
  * @property string|null $project_cost
@@ -41,6 +42,7 @@ use Illuminate\Support\Str;
     'sector',
     'province',
     'city',
+    'barangay',
     'district',
     'status',
     'project_cost',
@@ -115,6 +117,7 @@ class Project extends Model
             'sector',
             'province',
             'city',
+            'barangay',
             'status',
             'project_cost',
             'latitude',
@@ -158,7 +161,7 @@ class Project extends Model
             'sector' => $this->sector ?: 'Others',
             'province' => $this->province ?: 'Palawan',
             'municipality' => $this->city ?: '',
-            'barangay' => '',
+            'barangay' => $this->barangay ?: '',
             'partner_agency' => $this->collaborators ?: 'DOST-MIMAROPA',
             'collaborators' => $this->collaborators,
             'district' => $this->district,
@@ -282,7 +285,7 @@ class Project extends Model
             'sector' => $this->sector ?: 'Others',
             'province' => $this->province ?: 'Palawan',
             'municipality' => $this->city ?: '',
-            'barangay' => '',
+            'barangay' => $this->barangay ?: '',
             'partner_agency' => $this->collaborators ?: 'DOST-MIMAROPA',
             'status' => $status,
             'status_label' => $this->status ?: 'Unknown',

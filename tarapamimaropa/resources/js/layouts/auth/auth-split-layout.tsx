@@ -1,10 +1,53 @@
 import { Link } from '@inertiajs/react';
-import { ArrowUpRight, ChevronLeft, Moon, Sun } from 'lucide-react';
+import {
+    ArrowUpRight,
+    BarChart3,
+    ChevronLeft,
+    FolderKanban,
+    Globe2,
+    Moon,
+    Sun,
+} from 'lucide-react';
 import { useAppearance } from '@/hooks/use-appearance';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
 const BRAND = 'TARA PAMIMAROPA';
+
+const PROVINCES = [
+    'Occidental Mindoro',
+    'Oriental Mindoro',
+    'Marinduque',
+    'Romblon',
+    'Palawan',
+];
+
+const HIGHLIGHTS = [
+    {
+        icon: FolderKanban,
+        title: 'Project monitoring',
+        text: 'Keep every provincial project, budget, and status in one record.',
+    },
+    {
+        icon: BarChart3,
+        title: 'Summary graphs',
+        text: 'See results per province, municipality, and barangay.',
+    },
+    {
+        icon: Globe2,
+        title: 'Public transparency',
+        text: 'Share accomplishments with the public through the portal.',
+    },
+];
+
+const BrandMark = ({ className = '' }: { className?: string }) => (
+    <span
+        aria-hidden="true"
+        className={`grid size-9 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground text-sm font-bold ${className}`}
+    >
+        T
+    </span>
+);
 
 export default function AuthSplitLayout({
     children,
@@ -15,107 +58,129 @@ export default function AuthSplitLayout({
     const isDark = resolvedAppearance === 'dark';
 
     return (
-        <div className="bg-background relative flex min-h-svh">
-            <div className="flex w-full flex-col px-6 py-8 sm:px-10 lg:w-1/2 lg:px-16 xl:px-24">
-                <Link
-                    href={home()}
-                    className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 rounded-md text-sm transition-colors focus-visible:ring-2 focus-visible:ring-[#4318FF] focus-visible:outline-none"
-                >
-                    <ChevronLeft className="size-4" aria-hidden="true" />
-                    Back to home
-                </Link>
+        <div className="bg-background text-foreground flex min-h-svh">
+            <div className="flex w-full flex-col px-6 py-6 sm:px-10 lg:w-[52%] lg:px-14 xl:px-20">
+                <header className="flex items-center justify-between gap-4">
+                    <Link
+                        href={home()}
+                        className="flex items-center gap-2.5 rounded-md focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                    >
+                        <BrandMark />
+                        <span className="leading-tight">
+                            <span className="block text-sm font-semibold tracking-tight">
+                                {BRAND}
+                            </span>
+                            <span className="text-muted-foreground block text-xs">
+                                DOST-MIMAROPA
+                            </span>
+                        </span>
+                    </Link>
 
-                <main className="mx-auto flex w-full max-w-[420px] flex-1 flex-col justify-center py-12">
-                    <div className="mb-8 flex items-center gap-3 lg:hidden">
-                        <span
-                            className="grid size-10 place-items-center rounded-xl bg-[#4318FF] text-lg font-black text-white"
-                            aria-hidden="true"
+                    <div className="flex items-center gap-1">
+                        <Link
+                            href={home()}
+                            className="text-muted-foreground hover:text-foreground hover:bg-muted hidden min-h-9 items-center gap-1 rounded-md px-2.5 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none sm:inline-flex"
                         >
-                            T
-                        </span>
-                        <span className="font-black tracking-tight text-[#1B2559] dark:text-white">
-                            {BRAND}
-                        </span>
+                            <ChevronLeft className="size-4" aria-hidden="true" />
+                            Back to home
+                        </Link>
+                        <button
+                            type="button"
+                            onClick={() =>
+                                updateAppearance(isDark ? 'light' : 'dark')
+                            }
+                            aria-label={
+                                isDark
+                                    ? 'Switch to light mode'
+                                    : 'Switch to dark mode'
+                            }
+                            className="text-muted-foreground hover:text-foreground hover:bg-muted inline-flex size-9 cursor-pointer items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                        >
+                            {isDark ? (
+                                <Sun className="size-4" aria-hidden="true" />
+                            ) : (
+                                <Moon className="size-4" aria-hidden="true" />
+                            )}
+                        </button>
                     </div>
+                </header>
 
-                    <h1 className="text-3xl font-bold tracking-tight text-[#1B2559] sm:text-4xl dark:text-white">
+                <main className="mx-auto flex w-full max-w-[400px] flex-1 flex-col justify-center py-12">
+                    <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
                         {title}
                     </h1>
-                    <p className="text-muted-foreground mt-2 text-sm sm:text-base">
+                    <p className="text-muted-foreground mt-2 text-sm">
                         {description}
                     </p>
 
                     <div className="mt-8">{children}</div>
                 </main>
 
-                <footer className="text-muted-foreground text-xs">
-                    &copy; {new Date().getFullYear()} DOST-MIMAROPA · All
-                    rights reserved · Powered by {BRAND}
+                <footer className="text-muted-foreground flex flex-col gap-1 text-xs sm:flex-row sm:justify-between">
+                    <span>
+                        &copy; {new Date().getFullYear()} DOST-MIMAROPA. All
+                        rights reserved.
+                    </span>
+                    <span>Department of Science and Technology</span>
                 </footer>
             </div>
 
-            <aside className="relative hidden overflow-hidden rounded-bl-[180px] bg-linear-to-br from-[#868CFF] via-[#4318FF] to-[#2111A5] lg:flex lg:w-1/2 lg:flex-col xl:rounded-bl-[220px]">
+            <aside className="relative hidden overflow-hidden bg-neutral-950 text-white lg:flex lg:w-[48%] lg:flex-col dark:border-l dark:border-white/10 dark:bg-neutral-900">
                 <div
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-0"
-                >
-                    <div className="absolute -top-32 -left-24 size-[480px] rounded-full bg-fuchsia-300/50 blur-3xl" />
-                    <div className="absolute top-1/3 -right-40 size-[520px] rounded-full bg-sky-400/40 blur-3xl" />
-                    <div className="absolute -bottom-40 left-1/4 size-[420px] rounded-full bg-indigo-900/60 blur-3xl" />
-                    <div className="absolute top-0 left-0 h-48 w-[140%] -translate-x-[10%] -rotate-12 bg-white/15 blur-2xl" />
-                </div>
+                    className="pointer-events-none absolute inset-0 opacity-[0.05] [background-image:linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] [background-size:48px_48px]"
+                />
 
-                <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-10 px-10 text-white">
-                    <div className="flex flex-col items-center gap-6">
-                        <div
-                            className="grid size-40 place-items-center rounded-full bg-white text-7xl font-black text-[#4318FF] shadow-2xl shadow-indigo-950/30 xl:size-48 xl:text-8xl"
-                            aria-hidden="true"
+                <div className="relative flex flex-1 flex-col justify-between px-12 py-12 xl:px-16">
+                    <p className="text-xs font-medium tracking-[0.14em] text-white/70 uppercase">
+                        Department of Science and Technology · MIMAROPA
+                    </p>
+
+                    <div className="max-w-md">
+                        <h2 className="text-3xl leading-tight font-semibold tracking-tight xl:text-4xl">
+                            Tracking accomplishments across MIMAROPA.
+                        </h2>
+                        <p className="mt-4 text-sm leading-relaxed text-white/80">
+                            Tracking of Accomplishments and Results of
+                            Activities and Programs. One workspace for PSTO and
+                            regional teams.
+                        </p>
+
+                        <ul className="mt-10 space-y-5">
+                            {HIGHLIGHTS.map(({ icon: Icon, title, text }) => (
+                                <li key={title} className="flex gap-3.5">
+                                    <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-white/10 ring-1 ring-white/15">
+                                        <Icon
+                                            className="size-4"
+                                            aria-hidden="true"
+                                        />
+                                    </span>
+                                    <span>
+                                        <span className="block text-sm font-semibold">
+                                            {title}
+                                        </span>
+                                        <span className="mt-0.5 block text-sm text-white/75">
+                                            {text}
+                                        </span>
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+
+                        <Link
+                            href={home()}
+                            className="mt-10 inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-white px-4 text-sm font-semibold text-neutral-950 transition-colors hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 focus-visible:outline-none"
                         >
-                            T
-                        </div>
-                        <div className="text-center">
-                            <p className="text-4xl font-black tracking-tight xl:text-5xl">
-                                {BRAND}
-                            </p>
-                            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-white/85">
-                                Tracking of Accomplishments and Results of
-                                Activities and Programs across MIMAROPA
-                            </p>
-                        </div>
+                            View public portal
+                            <ArrowUpRight className="size-4" aria-hidden="true" />
+                        </Link>
                     </div>
 
-                    <Link
-                        href={home()}
-                        className="group w-full max-w-sm rounded-3xl border border-white/30 bg-white/10 px-8 py-6 text-center backdrop-blur-md transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
-                    >
-                        <p className="text-sm text-white/85">
-                            A transparency initiative of DOST-MIMAROPA
-                        </p>
-                        <p className="mt-1 inline-flex items-center gap-1.5 text-2xl font-bold">
-                            View public portal
-                            <ArrowUpRight
-                                className="size-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                                aria-hidden="true"
-                            />
-                        </p>
-                    </Link>
+                    <p className="text-xs leading-relaxed text-white/60">
+                        {PROVINCES.join(' · ')}
+                    </p>
                 </div>
             </aside>
-
-            <button
-                type="button"
-                onClick={() => updateAppearance(isDark ? 'light' : 'dark')}
-                aria-label={
-                    isDark ? 'Switch to light mode' : 'Switch to dark mode'
-                }
-                className="fixed right-6 bottom-6 z-20 flex size-12 items-center justify-center rounded-full bg-linear-to-br from-[#868CFF] to-[#4318FF] text-white shadow-lg shadow-indigo-900/30 transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#4318FF] focus-visible:outline-none"
-            >
-                {isDark ? (
-                    <Sun className="size-5" aria-hidden="true" />
-                ) : (
-                    <Moon className="size-5" aria-hidden="true" />
-                )}
-            </button>
         </div>
     );
 }

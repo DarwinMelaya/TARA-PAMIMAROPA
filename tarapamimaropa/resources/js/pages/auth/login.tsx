@@ -76,7 +76,7 @@ export default function Login({
             {status && (
                 <div
                     role="status"
-                    className="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700 dark:border-green-900 dark:bg-green-950/40 dark:text-green-400"
+                    className="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700 dark:border-green-900 dark:bg-green-950/40 dark:text-green-400"
                 >
                     {status}
                 </div>
@@ -98,58 +98,40 @@ export default function Login({
 
                         <div className="grid gap-5">
                             <div className="grid gap-2">
-                                <Label
-                                    htmlFor="email"
-                                    className="gap-0.5 font-semibold text-[#1B2559] dark:text-white"
-                                >
-                                    Email
-                                    <span
-                                        className="text-[#4318FF] dark:text-[#9F8BFF]"
-                                        aria-hidden="true"
-                                    >
-                                        *
-                                    </span>
-                                </Label>
+                                <Label htmlFor="email">Email address</Label>
                                 <Input
                                     id="email"
                                     type="email"
                                     name="email"
                                     required
                                     autoFocus
-                                    tabIndex={1}
                                     autoComplete="username"
                                     inputMode="email"
-                                    placeholder="mail@example.com"
+                                    placeholder="name@example.com"
                                     className={fieldClass}
                                     value={hydrated ? email : emailFromServer}
                                     onChange={(event) =>
                                         setEmail(event.target.value)
+                                    }
+                                    aria-invalid={
+                                        errors.email ? true : undefined
                                     }
                                 />
                                 <InputError message={errors.email} />
                             </div>
 
                             <div className="grid gap-2">
-                                <Label
-                                    htmlFor="password"
-                                    className="gap-0.5 font-semibold text-[#1B2559] dark:text-white"
-                                >
-                                    Password
-                                    <span
-                                        className="text-[#4318FF] dark:text-[#9F8BFF]"
-                                        aria-hidden="true"
-                                    >
-                                        *
-                                    </span>
-                                </Label>
+                                <Label htmlFor="password">Password</Label>
                                 <PasswordInput
                                     id="password"
                                     name="password"
                                     required
-                                    tabIndex={2}
                                     autoComplete="current-password"
                                     placeholder="Enter your password"
                                     className={fieldClass}
+                                    aria-invalid={
+                                        errors.password ? true : undefined
+                                    }
                                 />
                                 <InputError message={errors.password} />
                             </div>
@@ -158,26 +140,23 @@ export default function Login({
                                 <div className="flex items-center gap-2.5">
                                     <Checkbox
                                         id="remember"
-                                        tabIndex={3}
                                         title="Stay signed in on this device until you log out"
                                         checked={remember}
                                         onCheckedChange={(value) =>
                                             setRemember(value === true)
                                         }
-                                        className="data-[state=checked]:border-[#4318FF] data-[state=checked]:bg-[#4318FF]"
                                     />
                                     <Label
                                         htmlFor="remember"
-                                        className="font-normal text-[#1B2559] dark:text-white"
+                                        className="cursor-pointer font-normal"
                                     >
-                                        Keep me logged in
+                                        Keep me signed in
                                     </Label>
                                 </div>
                                 {canResetPassword && (
                                     <TextLink
                                         href={request()}
-                                        className="text-sm font-medium text-[#4318FF] no-underline hover:underline dark:text-[#9F8BFF]"
-                                        tabIndex={4}
+                                        className={linkClass}
                                     >
                                         Forgot password?
                                     </TextLink>
@@ -186,8 +165,7 @@ export default function Login({
 
                             <Button
                                 type="submit"
-                                className="mt-2 h-12 w-full rounded-2xl bg-[#4318FF] text-sm font-semibold text-white shadow-lg shadow-[#4318FF]/25 hover:bg-[#3311DB] focus-visible:ring-[#4318FF]/40 dark:bg-[#7551FF] dark:hover:bg-[#6440F5]"
-                                tabIndex={5}
+                                className="mt-1 h-11 w-full cursor-pointer rounded-lg text-sm font-semibold"
                                 disabled={processing}
                                 data-test="login-button"
                             >
@@ -197,17 +175,18 @@ export default function Login({
                         </div>
 
                         {canRegister && (
-                            <div className="text-sm text-[#1B2559] dark:text-white">
-                                Not registered yet?{' '}
-                                <TextLink
-                                    href={register()}
-                                    tabIndex={6}
-                                    className="font-semibold text-[#4318FF] no-underline hover:underline dark:text-[#9F8BFF]"
-                                >
+                            <p className="text-muted-foreground text-center text-sm">
+                                No account yet?{' '}
+                                <TextLink href={register()} className={linkClass}>
                                     Create an account
                                 </TextLink>
-                            </div>
+                            </p>
                         )}
+
+                        <p className="text-muted-foreground border-t pt-6 text-xs leading-relaxed">
+                            For authorized DOST-MIMAROPA personnel only. Ask
+                            your system administrator if you need access.
+                        </p>
                     </>
                 )}
             </Form>
@@ -216,12 +195,15 @@ export default function Login({
 }
 
 const fieldClass =
-    'h-12 rounded-2xl border-[#E0E5F2] px-4 focus-visible:border-[#4318FF] focus-visible:ring-[#4318FF]/20 dark:border-white/15';
+    'h-11 rounded-lg px-3.5';
+
+const linkClass =
+    'text-sm font-medium';
 
 Login.layout = (page: ReactNode) => (
     <AuthSplitLayout
-        title="Sign In"
-        description="Enter your email and password to sign in."
+        title="Sign in"
+        description="Use your account to access the project monitoring workspace."
     >
         {page}
     </AuthSplitLayout>

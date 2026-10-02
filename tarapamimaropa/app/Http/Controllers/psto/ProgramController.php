@@ -32,6 +32,18 @@ class ProgramController extends Controller
         ]);
     }
 
+    public function summaryGraphs(Request $request): Response
+    {
+        $province = $request->user()?->province?->value;
+
+        return Inertia::render('psto/PstoSummaryGraphs', [
+            'projects' => filled($province)
+                ? Project::taraCollection($province)
+                : collect(),
+            'lockedProvince' => $province,
+        ]);
+    }
+
     public function import(
         ImportProjectsRequest $request,
         ProjectExcelImporter $importer,

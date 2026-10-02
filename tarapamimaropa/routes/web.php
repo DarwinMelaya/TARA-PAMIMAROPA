@@ -9,6 +9,7 @@ use App\Http\Controllers\Region\AnalyticsPlanningController;
 use App\Http\Controllers\Region\ChartInterpretationController;
 use App\Http\Controllers\Region\DashboardController;
 use App\Http\Controllers\Region\ProgramController;
+use App\Http\Controllers\Region\SummaryReportController;
 use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\SuperAdmin\DropdownOptionController;
 use App\Http\Controllers\SuperAdmin\UserController;
@@ -59,6 +60,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('analytics-chart-interpret');
             Route::get('/programs', [ProgramController::class, 'index'])->name('programs');
             Route::get('/programs/summary-graphs', [ProgramController::class, 'summaryGraphs'])->name('programs.summary-graphs');
+            Route::post('/programs/summary-graphs/export', SummaryReportController::class)
+                ->middleware('throttle:20,1')
+                ->name('programs.summary-graphs.export');
             Route::post('/programs/import', [ProgramController::class, 'import'])->name('programs.import');
             Route::get('/programs/export-template', [ProgramController::class, 'exportTemplate'])->name('programs.export-template');
         });
@@ -69,6 +73,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->group(function () {
             Route::get('/', [PstoDashboardController::class, 'index'])->name('dashboard');
             Route::get('/programs', [PstoProgramController::class, 'index'])->name('programs');
+            Route::get('/programs/summary-graphs', [PstoProgramController::class, 'summaryGraphs'])->name('programs.summary-graphs');
             Route::post('/programs/import', [PstoProgramController::class, 'import'])->name('programs.import');
             Route::get('/programs/export', [PstoProgramController::class, 'export'])->name('programs.export');
             Route::get('/programs/export-template', [PstoProgramController::class, 'exportTemplate'])->name('programs.export-template');

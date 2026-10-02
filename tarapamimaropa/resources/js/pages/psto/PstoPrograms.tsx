@@ -6,6 +6,7 @@ import {
   exportMethod,
   exportTemplate,
   importMethod,
+  summaryGraphs,
 } from '@/routes/psto/programs';
 
 type PageProps = {
@@ -47,6 +48,7 @@ const PstoPrograms = () => {
       exportTemplateUrl={exportTemplate.url()}
       allowMutate
       nextCodeSequence={nextCodeSequence}
+      summaryGraphsHref={summaryGraphs.url()}
       homeHref={dashboard.url()}
       homeLabel="Dashboard"
       pageTitle="PSTO Programs"

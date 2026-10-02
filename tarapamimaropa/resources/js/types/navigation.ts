@@ -13,4 +13,6 @@ export type NavItem = {
     isActive?: boolean;
     /** Optional nav group label (e.g. Main, Account). */
     group?: string;
+    /** Sub-links shown in a collapsible dropdown; parent `href` is not navigated. */
+    children?: NavItem[];
 };

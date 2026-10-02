@@ -1,8 +1,10 @@
 import {
     FolderKanban,
     LayoutGrid,
+    ListChecks,
     MapPin,
     MapPinned,
+    Settings,
     Shield,
     Users,
     UserRound,
@@ -23,6 +25,7 @@ import {
     dashboard as superAdminDashboard,
     users as superAdminUsers,
 } from '@/routes/superadmin';
+import { dropdowns as superAdminDropdowns } from '@/routes/superadmin/settings';
 import type { NavItem, UserRole } from '@/types';
 
 export type CommandNavConfig = {
@@ -117,7 +120,20 @@ function configForRole(role: UserRole | undefined): CommandNavConfig {
                     icon: Users,
                 },
             ];
-            const items = withGroups(main);
+            const dropdownItem: NavItem = {
+                title: 'Dropdown Management',
+                href: superAdminDropdowns(),
+                icon: ListChecks,
+            };
+            const items = withGroups([
+                ...main,
+                {
+                    title: 'System Settings',
+                    href: superAdminDropdowns(),
+                    icon: Settings,
+                    children: [dropdownItem],
+                },
+            ]);
             return {
                 homeHref: superAdminDashboard(),
                 roleLabel: 'Super Admin',
@@ -126,6 +142,7 @@ function configForRole(role: UserRole | undefined): CommandNavConfig {
                 items,
                 mobileItems: [
                     ...main.map((i) => ({ ...i, group: 'Main' })),
+                    { ...dropdownItem, title: 'Settings', icon: Settings },
                     profileItem,
                 ],
             };

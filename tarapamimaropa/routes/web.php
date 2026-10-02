@@ -37,6 +37,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/users', [UserController::class, 'index'])->name('users');
             Route::post('/users', [UserController::class, 'store'])->name('users.store');
             Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+
+            Route::inertia('/settings/dropdowns', 'superadmin/DropdownManagement')->name('settings.dropdowns');
         });
 
     Route::middleware(['role:regional_office'])

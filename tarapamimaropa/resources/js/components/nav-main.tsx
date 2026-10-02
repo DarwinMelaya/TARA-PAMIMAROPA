@@ -1,10 +1,21 @@
 import { Link } from '@inertiajs/react';
+import { ChevronRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
     SidebarGroup,
     SidebarGroupLabel,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarMenuSub,
+    SidebarMenuSubButton,
+    SidebarMenuSubItem,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn, toUrl } from '@/lib/utils';
@@ -47,6 +58,116 @@ function isBestMatch(
     });
 }
 
+function pathMatches(href: NavItem['href'], currentPath: string): boolean {
+    const path = hrefPath(href);
+    return currentPath === path || currentPath.startsWith(`${path}/`);
+}
+
+const itemButtonClass = (active: boolean) =>
+    cn(
+        'h-10 rounded-xl border px-3 text-sm transition-colors',
+        active
+            ? 'border-sidebar-border bg-sidebar-accent font-semibold text-sidebar-accent-foreground'
+            : 'border-transparent hover:bg-sidebar-accent/70',
+    );
+
+function NavDropdown({
+    item,
+    currentUrl,
+}: {
+    item: NavItem;
+    currentUrl: string;
+}) {
+    const { state, isMobile } = useSidebar();
+    const children = item.children ?? [];
+    const childActive = children.some((child) =>
+        pathMatches(child.href, currentUrl),
+    );
+    const [open, setOpen] = useState(childActive);
+
+    useEffect(() => {
+        if (childActive) setOpen(true);
+    }, [childActive]);
+
+    // Icon-only rail hides sub-menus, so the parent links to its first child.
+    if (state === 'collapsed' && !isMobile) {
+        return (
+            <SidebarMenuItem>
+                <SidebarMenuButton
+                    asChild
+                    isActive={childActive}
+                    tooltip={{ children: item.title }}
+                    className={itemButtonClass(childActive)}
+                >
+                    <Link href={children[0]?.href ?? item.href} prefetch>
+                        {item.icon ? (
+                            <item.icon className="size-[1.125rem]" />
+                        ) : null}
+                        <span className="truncate">{item.title}</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+        );
+    }
+
+    return (
+        <Collapsible asChild open={open} onOpenChange={setOpen}>
+            <SidebarMenuItem>
+                <CollapsibleTrigger asChild>
+                    <SidebarMenuButton
+                        tooltip={{ children: item.title }}
+                        className={cn(
+                            itemButtonClass(false),
+                            childActive && 'font-semibold',
+                        )}
+                    >
+                        {item.icon ? (
+                            <item.icon className="size-[1.125rem]" />
+                        ) : null}
+                        <span className="truncate">{item.title}</span>
+                        <ChevronRight
+                            className={cn(
+                                'ml-auto size-4 shrink-0 transition-transform duration-200',
+                                open && 'rotate-90',
+                            )}
+                            aria-hidden
+                        />
+                    </SidebarMenuButton>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                    <SidebarMenuSub className="mt-1 gap-1">
+                        {children.map((child) => {
+                            const active = pathMatches(child.href, currentUrl);
+                            return (
+                                <SidebarMenuSubItem key={child.title}>
+                                    <SidebarMenuSubButton
+                                        asChild
+                                        isActive={active}
+                                        className={cn(
+                                            'h-9 rounded-lg px-2.5',
+                                            active &&
+                                                'bg-sidebar-accent font-semibold text-sidebar-accent-foreground',
+                                        )}
+                                    >
+                                        <Link href={child.href} prefetch>
+                                            {child.icon ? (
+                                                <child.icon className="size-4" />
+                                            ) : null}
+                                            <span className="truncate">
+                                                {child.title}
+                                            </span>
+                                        </Link>
+                                    </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                            );
+                        })}
+                    </SidebarMenuSub>
+                </CollapsibleContent>
+            </SidebarMenuItem>
+        </Collapsible>
+    );
+}
+
 function groupItems(items: NavItem[]): { label: string; items: NavItem[] }[] {
     const order: string[] = [];
     const map = new Map<string, NavItem[]>();
@@ -76,6 +197,15 @@ export function NavMain({ items }: { items: NavItem[] }) {
                     </SidebarGroupLabel>
                     <SidebarMenu className="gap-1">
                         {group.items.map((item) => {
+                            if (item.children?.length) {
+                                return (
+                                    <NavDropdown
+                                        key={item.title}
+                                        item={item}
+                                        currentUrl={currentUrl}
+                                    />
+                                );
+                            }
                             const active = isBestMatch(
                                 item,
                                 items,
@@ -87,12 +217,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
                                         asChild
                                         isActive={active}
                                         tooltip={{ children: item.title }}
-                                        className={cn(
-                                            'h-10 rounded-xl border px-3 text-sm transition-colors',
-                                            active
-                                                ? 'border-sidebar-border bg-sidebar-accent font-semibold text-sidebar-accent-foreground'
-                                                : 'border-transparent hover:bg-sidebar-accent/70',
-                                        )}
+                                        className={itemButtonClass(active)}
                                     >
                                         <Link href={item.href} prefetch>
                                             {item.icon ? (

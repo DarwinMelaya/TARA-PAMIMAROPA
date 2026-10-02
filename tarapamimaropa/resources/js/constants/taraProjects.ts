@@ -63,7 +63,9 @@ export type TaraProject = {
     longitude: number;
     /** True when lat/lng were saved (not approximate). */
     has_coordinates?: boolean;
-    photo_url?: string;
+    short_description?: string | null;
+    photo_url?: string | null;
+    photos?: string[];
     amount_due?: number | null;
     refunded?: number | null;
     refund_rate?: number | null;

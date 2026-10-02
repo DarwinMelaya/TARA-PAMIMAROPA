@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -14,6 +15,8 @@ use Illuminate\Support\Str;
  * @property int|null $row_number
  * @property string|null $code
  * @property string $name
+ * @property string|null $short_description
+ * @property list<string>|null $images
  * @property string|null $type
  * @property int|null $year_approved
  * @property string|null $beneficiary
@@ -35,6 +38,8 @@ use Illuminate\Support\Str;
     'row_number',
     'code',
     'name',
+    'short_description',
+    'images',
     'type',
     'year_approved',
     'beneficiary',
@@ -74,6 +79,7 @@ class Project extends Model
             'refund_rate' => 'decimal:2',
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
+            'images' => 'array',
         ];
     }
 
@@ -110,6 +116,7 @@ class Project extends Model
             'id',
             'code',
             'name',
+            'short_description',
             'type',
             'year_approved',
             'beneficiary',
@@ -122,6 +129,7 @@ class Project extends Model
             'project_cost',
             'latitude',
             'longitude',
+            'images',
         ];
     }
 
@@ -154,7 +162,9 @@ class Project extends Model
             'db_id' => $this->id,
             'code' => $this->code,
             'name' => $this->name,
-            'description' => $this->buildDescription(),
+            'short_description' => $this->short_description,
+            'description' => $this->short_description ?: $this->buildDescription(),
+            ...$this->photoUrls(),
             'beneficiary' => $this->beneficiary ?? '',
             'program' => $program,
             'type' => $this->type ?: $program,
@@ -208,6 +218,22 @@ class Project extends Model
             });
 
         return collect($rows)->values();
+    }
+
+    /**
+     * @return array{photos: list<string>, photo_url: string|null}
+     */
+    private function photoUrls(): array
+    {
+        $photos = array_map(
+            fn (string $path) => Storage::disk('public')->url($path),
+            array_values($this->images ?? []),
+        );
+
+        return [
+            'photos' => $photos,
+            'photo_url' => $photos[0] ?? null,
+        ];
     }
 
     /**
@@ -304,7 +330,8 @@ class Project extends Model
             'latitude' => $coords['latitude'],
             'longitude' => $coords['longitude'],
             'has_coordinates' => $coords['has_coordinates'],
-            'description' => '',
+            'description' => $this->short_description ?? '',
+            ...$this->photoUrls(),
             'latest_accomplishment' => '',
         ];
     }

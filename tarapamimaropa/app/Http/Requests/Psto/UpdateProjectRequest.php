@@ -31,6 +31,7 @@ class UpdateProjectRequest extends FormRequest
     {
         $nullable = [
             'code',
+            'short_description',
             'type',
             'beneficiary',
             'collaborators',
@@ -77,6 +78,7 @@ class UpdateProjectRequest extends FormRequest
                 'max:255',
                 Rule::unique('projects', 'code')->ignore($project?->id),
             ],
+            'short_description' => ['nullable', 'string', 'max:500'],
             'type' => ['nullable', 'string', 'max:255'],
             'year_approved' => ['nullable', 'integer', 'min:1990', 'max:2100'],
             'beneficiary' => ['nullable', 'string', 'max:500'],

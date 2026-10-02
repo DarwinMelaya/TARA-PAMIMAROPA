@@ -117,7 +117,8 @@ export default function Login({
                                     required
                                     autoFocus
                                     tabIndex={1}
-                                    autoComplete="email"
+                                    autoComplete="username"
+                                    inputMode="email"
                                     placeholder="mail@example.com"
                                     className={fieldClass}
                                     value={hydrated ? email : emailFromServer}
@@ -158,6 +159,7 @@ export default function Login({
                                     <Checkbox
                                         id="remember"
                                         tabIndex={3}
+                                        title="Stay signed in on this device until you log out"
                                         checked={remember}
                                         onCheckedChange={(value) =>
                                             setRemember(value === true)

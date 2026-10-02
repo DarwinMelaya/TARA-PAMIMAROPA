@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Features;
@@ -24,7 +25,7 @@ test('users can authenticate using the login screen', function () {
 
 test('super admin users are redirected to the super admin dashboard', function () {
     $user = User::factory()->create([
-        'role' => \App\Enums\UserRole::SuperAdmin,
+        'role' => UserRole::SuperAdmin,
     ]);
 
     $response = $this->post(route('login.store'), [
@@ -38,7 +39,7 @@ test('super admin users are redirected to the super admin dashboard', function (
 
 test('regional office users are redirected to the region dashboard', function () {
     $user = User::factory()->create([
-        'role' => \App\Enums\UserRole::RegionalOffice,
+        'role' => UserRole::RegionalOffice,
     ]);
 
     $response = $this->post(route('login.store'), [
@@ -102,4 +103,35 @@ test('users are rate limited', function () {
     ]);
 
     $response->assertTooManyRequests();
+});
+
+test('keep me logged in sets a remember cookie that restores the session', function () {
+    $user = User::factory()->create();
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+        'remember' => '1',
+    ]);
+
+    $cookie = collect($response->headers->getCookies())
+        ->first(fn ($c) => str_starts_with($c->getName(), 'remember_web_'));
+
+    expect($cookie)->not->toBeNull()
+        ->and($cookie->getExpiresTime())->toBeGreaterThan(now()->addDays(30)->getTimestamp())
+        ->and($user->fresh()->remember_token)->not->toBeNull();
+});
+
+test('login without keep me logged in does not set a remember cookie', function () {
+    $user = User::factory()->create();
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+        'remember' => '0',
+    ]);
+
+    $names = collect($response->headers->getCookies())->map->getName();
+
+    expect($names->contains(fn ($n) => str_starts_with($n, 'remember_web_')))->toBeFalse();
 });

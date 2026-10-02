@@ -7,6 +7,7 @@ use App\Http\Requests\Psto\StoreProjectRequest;
 use App\Http\Requests\Psto\UpdateProjectRequest;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\UploadedFile;
 use Inertia\Inertia;
 
 class ProjectController extends Controller
@@ -16,10 +17,16 @@ class ProjectController extends Controller
         $data = $request->validated();
         $province = $request->user()->province->value;
 
-        unset($data['code'], $data['province']);
+        unset($data['code'], $data['province'], $data['images']);
+
+        $images = array_map(
+            fn (UploadedFile $file) => $file->store('projects', 'public'),
+            $request->file('images', []),
+        );
 
         Project::query()->create([
             ...$data,
+            'images' => $images ?: null,
             'province' => $province,
             'code' => Project::generateCode(
                 $province,

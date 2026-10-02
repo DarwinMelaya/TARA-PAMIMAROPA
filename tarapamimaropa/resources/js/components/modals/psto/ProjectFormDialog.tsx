@@ -1,7 +1,7 @@
 import { Form, usePage } from '@inertiajs/react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { AlertCircle, XIcon } from 'lucide-react';
-import { useState } from 'react';
+import { AlertCircle, ImagePlus, XIcon } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ComponentProps, ReactNode, WheelEvent } from 'react';
 import ProjectCoordinatePicker from '@/components/maps/ProjectCoordinatePicker';
 import InputError from '@/components/input-error';
@@ -55,6 +55,11 @@ type DropdownOptionsProp = {
 
 const selectClassName =
     'border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:ring-[3px]';
+
+const textareaClassName =
+    'border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive flex min-h-20 w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px]';
+
+const MAX_IMAGES = 5;
 
 const readOnlyClassName =
     'bg-muted/50 text-foreground flex h-9 items-center rounded-md border border-dashed px-3 text-sm';
@@ -288,6 +293,93 @@ const CityBarangayFields = ({
     );
 };
 
+const ProjectImagesField = ({ id, error }: { id: string; error?: string }) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [files, setFiles] = useState<File[]>([]);
+    const previews = useMemo(
+        () => files.map((file) => URL.createObjectURL(file)),
+        [files],
+    );
+
+    useEffect(
+        () => () => previews.forEach((url) => URL.revokeObjectURL(url)),
+        [previews],
+    );
+
+    // The native input owns what gets submitted, so keep its FileList in sync with the previews.
+    const sync = (next: File[]) => {
+        const transfer = new DataTransfer();
+        next.forEach((file) => transfer.items.add(file));
+        if (inputRef.current) inputRef.current.files = transfer.files;
+        setFiles(next);
+    };
+
+    const full = files.length >= MAX_IMAGES;
+
+    return (
+        <Field
+            id={id}
+            label="Pictures"
+            hint={`Up to ${MAX_IMAGES} images (JPG, PNG, WebP), 5 MB each.`}
+            error={error}
+            wide
+        >
+            <input
+                ref={inputRef}
+                id={id}
+                type="file"
+                name="images[]"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                className="sr-only"
+                disabled={full}
+                onChange={(e) =>
+                    sync(
+                        [...files, ...Array.from(e.target.files ?? [])].slice(
+                            0,
+                            MAX_IMAGES,
+                        ),
+                    )
+                }
+                aria-invalid={error ? true : undefined}
+            />
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                {previews.map((url, index) => (
+                    <div
+                        key={url}
+                        className="group bg-muted relative aspect-square overflow-hidden rounded-md border"
+                    >
+                        <img
+                            src={url}
+                            alt={files[index]?.name ?? ''}
+                            className="size-full object-cover"
+                        />
+                        <button
+                            type="button"
+                            onClick={() =>
+                                sync(files.filter((_, i) => i !== index))
+                            }
+                            className="bg-background/90 text-foreground hover:bg-background absolute top-1 right-1 inline-flex size-6 items-center justify-center rounded-full border shadow-sm"
+                            aria-label={`Remove ${files[index]?.name ?? 'picture'}`}
+                        >
+                            <XIcon className="size-3.5" />
+                        </button>
+                    </div>
+                ))}
+                {full ? null : (
+                    <label
+                        htmlFor={id}
+                        className="border-input text-muted-foreground hover:bg-muted/50 hover:text-foreground flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-md border border-dashed text-xs transition-colors"
+                    >
+                        <ImagePlus className="size-5" />
+                        Add picture
+                    </label>
+                )}
+            </div>
+        </Field>
+    );
+};
+
 const ProjectFormBody = ({
     onOpenChange,
     province,
@@ -379,6 +471,43 @@ const ProjectFormBody = ({
                                         aria-invalid={invalid(errors, 'name')}
                                     />
                                 </Field>
+
+                                <Field
+                                    id={id('short-description')}
+                                    label="Short description"
+                                    hint="Max 500 characters."
+                                    error={errors.short_description}
+                                    wide
+                                >
+                                    <textarea
+                                        id={id('short-description')}
+                                        name="short_description"
+                                        rows={3}
+                                        maxLength={500}
+                                        defaultValue={
+                                            project?.short_description ?? ''
+                                        }
+                                        placeholder="Brief summary of the project"
+                                        className={textareaClassName}
+                                        aria-invalid={invalid(
+                                            errors,
+                                            'short_description',
+                                        )}
+                                    />
+                                </Field>
+
+                                {project ? null : (
+                                    <ProjectImagesField
+                                        id={id('images')}
+                                        error={
+                                            errors.images ??
+                                            Object.entries(errors).find(
+                                                ([key]) =>
+                                                    key.startsWith('images.'),
+                                            )?.[1]
+                                        }
+                                    />
+                                )}
 
                                 {project ? (
                                     <Field

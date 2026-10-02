@@ -22,6 +22,7 @@ class StoreProjectRequest extends FormRequest
     {
         $nullable = [
             'code',
+            'short_description',
             'type',
             'beneficiary',
             'collaborators',
@@ -60,6 +61,9 @@ class StoreProjectRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'code' => ['nullable', 'string', 'max:255', 'unique:projects,code'],
+            'short_description' => ['nullable', 'string', 'max:500'],
+            'images' => ['nullable', 'array', 'max:5'],
+            'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'type' => ['nullable', 'string', 'max:255'],
             'year_approved' => ['nullable', 'integer', 'min:1990', 'max:2100'],
             'beneficiary' => ['nullable', 'string', 'max:500'],

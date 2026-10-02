@@ -24,6 +24,8 @@ import {
     projectStatusClass,
     projectStatusLabel,
     projectType,
+    projectTypeLabel,
+    projectTypeOptions,
     projectYear,
     summarizeProjects,
     type Province,
@@ -196,6 +198,7 @@ const matchesQuery = (project: TaraProject, query: string) => {
 
 type ExportScope = {
     province: Province | 'all';
+    type: string | 'all';
     status: string | 'all';
     search: string;
 };
@@ -223,6 +226,7 @@ const EXPORT_COLUMNS: { key: keyof TaraProject; label: string }[] = [
 const describeExportScope = (scope: ExportScope): string => {
     const parts: string[] = [];
     if (scope.province !== 'all') parts.push(`Province: ${scope.province}`);
+    if (scope.type !== 'all') parts.push(`Type: ${scope.type}`);
     if (scope.status !== 'all') parts.push(`Status: ${scope.status}`);
     if (scope.search.trim()) parts.push(`Search: "${scope.search.trim()}"`);
     return parts.length ? parts.join(' · ') : 'All projects (no filters)';
@@ -255,7 +259,7 @@ const openGoogleDirections = (
     window.open(url.toString(), '_blank', 'noopener,noreferrer');
 };
 
-/** Export currently filtered rows (search + province + status). */
+/** Export currently filtered rows (search + province + type + status). */
 const downloadFilteredCsv = (projects: TaraProject[], scope: ExportScope) => {
     const stamp = new Date();
     const meta = [
@@ -322,6 +326,7 @@ const LandingPage = () => {
     const [provinceFilter, setProvinceFilter] = useState<Province | 'all'>(
         'all',
     );
+    const [typeFilter, setTypeFilter] = useState<string | 'all'>('all');
     const [statusFilter, setStatusFilter] = useState<string | 'all'>('all');
     const [sortKey, setSortKey] = useState<SortKey>('name');
     const [page, setPage] = useState(1);
@@ -367,16 +372,20 @@ const LandingPage = () => {
         return [...labels].sort((a, b) => a.localeCompare(b));
     }, [projects]);
 
+    const typeOptions = useMemo(() => projectTypeOptions(projects), [projects]);
+
     const filtered = useMemo(
         () =>
             projects.filter(
                 (p) =>
                     (provinceFilter === 'all' || p.province === provinceFilter) &&
+                    (typeFilter === 'all' ||
+                        projectTypeLabel(p) === typeFilter) &&
                     (statusFilter === 'all' ||
                         projectStatusLabel(p) === statusFilter) &&
                     matchesQuery(p, query),
             ),
-        [projects, provinceFilter, statusFilter, query],
+        [projects, provinceFilter, typeFilter, statusFilter, query],
     );
 
     const sorted = useMemo(
@@ -395,7 +404,7 @@ const LandingPage = () => {
 
     useEffect(() => {
         setPage(1);
-    }, [query, provinceFilter, statusFilter, sortKey]);
+    }, [query, provinceFilter, typeFilter, statusFilter, sortKey]);
 
     const isViewing = viewing !== null;
 
@@ -418,17 +427,20 @@ const LandingPage = () => {
 
     const hasFilters =
         provinceFilter !== 'all' ||
+        typeFilter !== 'all' ||
         statusFilter !== 'all' ||
         query.trim().length > 0;
 
     const exportScope: ExportScope = {
         province: provinceFilter,
+        type: typeFilter,
         status: statusFilter,
         search: query,
     };
 
     const clearFilters = () => {
         setProvinceFilter('all');
+        setTypeFilter('all');
         setStatusFilter('all');
         setQuery('');
     };
@@ -829,6 +841,43 @@ const LandingPage = () => {
                                                 {province === 'all'
                                                     ? 'All'
                                                     : province}
+                                            </button>
+                                        );
+                                    },
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
+                            <p
+                                id="type-filter-label"
+                                className={`shrink-0 pt-2 text-xs font-bold uppercase tracking-[0.1em] sm:w-20 ${t.laneLabel}`}
+                            >
+                                Type
+                            </p>
+                            <div
+                                role="group"
+                                aria-labelledby="type-filter-label"
+                                className="flex flex-wrap gap-2"
+                            >
+                                {(['all', ...typeOptions] as const).map(
+                                    (type) => {
+                                        const active = typeFilter === type;
+                                        return (
+                                            <button
+                                                key={type}
+                                                type="button"
+                                                aria-pressed={active}
+                                                onClick={() =>
+                                                    setTypeFilter(
+                                                        active && type !== 'all'
+                                                            ? 'all'
+                                                            : type,
+                                                    )
+                                                }
+                                                className={`${CHIP_BASE} ${active ? t.chipActive : t.chip} ${t.focus}`}
+                                            >
+                                                {type === 'all' ? 'All' : type}
                                             </button>
                                         );
                                     },

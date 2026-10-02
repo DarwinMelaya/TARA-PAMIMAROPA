@@ -751,6 +751,34 @@ export const projectTypeMeta = (
     return { short: type.trim() || 'Other', color: '#475569' };
 };
 
+/** Normalized type label used by type filters (groups Excel spelling variants). */
+export const projectTypeLabel = (project: TaraProject): string =>
+    projectTypeMeta(projectType(project)).short;
+
+const TYPE_FILTER_ORDER = [
+    'SETUP',
+    'SSCP',
+    'CEST',
+    'Roll-out',
+    'TAPI-assisted',
+    'GIA · Community',
+    'GIA · Internal',
+    'GIA · External',
+];
+
+/** Type filter options present in the given projects, in canonical order. */
+export const projectTypeOptions = (projects: TaraProject[]): string[] => {
+    const labels = new Set(projects.map(projectTypeLabel));
+    const rank = (label: string) => {
+        const i = TYPE_FILTER_ORDER.indexOf(label);
+        return i === -1 ? TYPE_FILTER_ORDER.length : i;
+    };
+
+    return [...labels].sort(
+        (a, b) => rank(a) - rank(b) || a.localeCompare(b),
+    );
+};
+
 export const projectYear = (project: TaraProject): number => {
     if (project.year_approved && project.year_approved > 1900) {
         return project.year_approved;

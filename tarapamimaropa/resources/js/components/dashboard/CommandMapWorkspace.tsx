@@ -39,6 +39,8 @@ import {
     formatPeso,
     projectStatusClass,
     projectStatusLabel,
+    projectTypeLabel,
+    projectTypeOptions,
     projectYear,
     summarizeProjects,
     type ProjectStatus,
@@ -112,6 +114,7 @@ const openGoogleDirections = (
 type ReportFilters = {
   province: Province | "all";
   program: TaraProgram | "all";
+  type: string | "all";
   status: string | "all";
   search: string;
 };
@@ -138,6 +141,7 @@ const describeFilters = (filters: ReportFilters): string => {
   const parts: string[] = [];
   if (filters.province !== "all") parts.push(`Province: ${filters.province}`);
   if (filters.program !== "all") parts.push(`Program: ${filters.program}`);
+  if (filters.type !== "all") parts.push(`Type: ${filters.type}`);
   if (filters.status !== "all") parts.push(`Status: ${filters.status}`);
   if (filters.search.trim()) parts.push(`Search: "${filters.search.trim()}"`);
   return parts.length ? parts.join(" · ") : "All projects (no filters)";
@@ -365,6 +369,7 @@ const CommandMapWorkspace = ({
   const [viewing, setViewing] = useState<TaraProject | null>(null);
   const [provinceFilter, setProvinceFilter] = useState<Province | "all">("all");
   const [programFilter, setProgramFilter] = useState<TaraProgram | "all">("all");
+  const [typeFilter, setTypeFilter] = useState<string | "all">("all");
   const [statusFilter, setStatusFilter] = useState<string | "all">("all");
   const [search, setSearch] = useState("");
   const [searchDraft, setSearchDraft] = useState("");
@@ -413,9 +418,10 @@ const CommandMapWorkspace = ({
   // Reset feed window when filters change.
   useEffect(() => {
     setFeedLimit(FEED_PAGE_SIZE);
-  }, [provinceFilter, programFilter, statusFilter, search]);
+  }, [provinceFilter, programFilter, typeFilter, statusFilter, search]);
 
   const stats = useMemo(() => summarizeProjects(projects), [projects]);
+  const typeOptions = useMemo(() => projectTypeOptions(projects), [projects]);
 
   const filteredProjects = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -423,6 +429,7 @@ const CommandMapWorkspace = ({
     return projects.filter((p) => {
       if (provinceFilter !== "all" && p.province !== provinceFilter) return false;
       if (programFilter !== "all" && p.program !== programFilter) return false;
+      if (typeFilter !== "all" && projectTypeLabel(p) !== typeFilter) return false;
       if (statusFilter !== "all") {
         if (mappedKeys.includes(statusFilter)) {
           if (p.status !== statusFilter) return false;
@@ -443,7 +450,7 @@ const CommandMapWorkspace = ({
         label.includes(q)
       );
     });
-  }, [projects, provinceFilter, programFilter, statusFilter, search]);
+  }, [projects, provinceFilter, programFilter, typeFilter, statusFilter, search]);
 
   const deferredMapProjects = useDeferredValue(filteredProjects);
   const feedProjects = useMemo(
@@ -479,6 +486,7 @@ const CommandMapWorkspace = ({
   const clearFilters = () => {
     setProvinceFilter("all");
     setProgramFilter("all");
+    setTypeFilter("all");
     setStatusFilter("all");
     setSearch("");
     setSearchDraft("");
@@ -487,6 +495,7 @@ const CommandMapWorkspace = ({
   const reportFilters: ReportFilters = {
     province: provinceFilter,
     program: programFilter,
+    type: typeFilter,
     status: statusFilter,
     search,
   };
@@ -510,6 +519,7 @@ const CommandMapWorkspace = ({
   const hasFilters =
     provinceFilter !== "all" ||
     programFilter !== "all" ||
+    typeFilter !== "all" ||
     statusFilter !== "all" ||
     search.trim().length > 0;
 
@@ -706,6 +716,41 @@ const CommandMapWorkspace = ({
                   />
                 </svg>
               </div>
+              <div className="relative shrink-0">
+                <HiFunnel
+                  className={`pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 ${ui.accentText}`}
+                  aria-hidden
+                />
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  aria-label="Filter by project type"
+                  className={[
+                    ui.select,
+                    "max-w-[12rem]",
+                    typeFilter !== "all" ? ui.selectActive : ui.selectIdle,
+                  ].join(" ")}
+                >
+                  <option value="all">All types</option>
+                  {typeOptions.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+                <svg
+                  className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
               <button
                 type="button"
                 onClick={() =>
@@ -857,6 +902,42 @@ const CommandMapWorkspace = ({
                   {PROVINCES.map((province) => (
                     <option key={province} value={province}>
                       {province}
+                    </option>
+                  ))}
+                </select>
+                <svg
+                  className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+
+              <div className="relative w-full">
+                <HiFunnel
+                  className={`pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${ui.accentText}`}
+                  aria-hidden
+                />
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  aria-label="Filter by project type"
+                  className={[
+                    ui.select,
+                    "w-full py-1.5 pl-7 pr-7 text-xs",
+                    typeFilter !== "all" ? ui.selectActive : ui.selectIdle,
+                  ].join(" ")}
+                >
+                  <option value="all">All types</option>
+                  {typeOptions.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
                     </option>
                   ))}
                 </select>

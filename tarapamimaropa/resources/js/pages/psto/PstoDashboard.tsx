@@ -1,10 +1,12 @@
 import { Head, usePage } from '@inertiajs/react';
-import { useDeferredValue, useState } from 'react';
-import { HiMapPin, HiXMark } from 'react-icons/hi2';
+import { useDeferredValue, useMemo, useState } from 'react';
+import { HiFunnel, HiMapPin, HiXMark } from 'react-icons/hi2';
 import Maps from '@/components/maps/Maps';
 import {
   PROGRAM_META,
   projectStatusLabel,
+  projectTypeLabel,
+  projectTypeOptions,
   type TaraProject,
 } from '@/constants/taraProjects';
 import {
@@ -27,7 +29,16 @@ const PstoDashboard = () => {
   } = usePage<PageProps>().props;
   const { projects } = useDashboardProjectStream(seed, projectStream);
   const { isDark, theme } = useTheme();
-  const deferredProjects = useDeferredValue(projects);
+  const [typeFilter, setTypeFilter] = useState<string | 'all'>('all');
+  const typeOptions = useMemo(() => projectTypeOptions(projects), [projects]);
+  const filteredProjects = useMemo(
+    () =>
+      typeFilter === 'all'
+        ? projects
+        : projects.filter((p) => projectTypeLabel(p) === typeFilter),
+    [projects, typeFilter],
+  );
+  const deferredProjects = useDeferredValue(filteredProjects);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const selected = selectedId
@@ -96,6 +107,41 @@ const PstoDashboard = () => {
               {deferredProjects.length} project
               {deferredProjects.length === 1 ? '' : 's'} · 3D map
             </p>
+            <div className="relative mt-2">
+              <HiFunnel
+                className={[
+                  'pointer-events-none absolute top-1/2 left-2 h-3.5 w-3.5 -translate-y-1/2',
+                  theme === 'light' ? 'text-cyan-800' : 'text-cyan-300',
+                ].join(' ')}
+                aria-hidden
+              />
+              <select
+                value={typeFilter}
+                onChange={(e) => {
+                  setTypeFilter(e.target.value);
+                  setSelectedId(null);
+                }}
+                aria-label="Filter by project type"
+                className={[
+                  'min-h-9 w-full cursor-pointer rounded-lg border py-1.5 pr-3 pl-7 text-xs font-semibold outline-none transition-colors focus-visible:ring-2',
+                  theme === 'light'
+                    ? 'border-slate-300 bg-white text-slate-900 hover:border-cyan-700 focus-visible:ring-cyan-700/30'
+                    : 'border-slate-700 bg-slate-900 text-white hover:border-cyan-400 focus-visible:ring-cyan-400/30',
+                  typeFilter !== 'all'
+                    ? theme === 'light'
+                      ? 'border-cyan-700'
+                      : 'border-cyan-400'
+                    : '',
+                ].join(' ')}
+              >
+                <option value="all">All types</option>
+                {typeOptions.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 

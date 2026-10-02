@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\DropdownCategory;
+use App\Models\DropdownOption;
 use App\Models\Project;
 use Illuminate\Support\Collection;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
@@ -25,31 +27,6 @@ class ProjectExcelExporter
         'New',
         'Delayed',
         'On-hold',
-    ];
-
-    /** @var list<string> */
-    public const TYPES = [
-        'SETUP',
-        'SSCP',
-        'Roll-out',
-        'TAPI-assisted',
-        'GIA (Community Based)',
-        'GIA (Region-initiated Projects) Internally Funded',
-        'GIA (Region-initiated Projects) Externally Funded',
-        'CEST',
-    ];
-
-    /** @var list<string> */
-    public const SECTORS = [
-        'Industry',
-        'Water',
-        'Education',
-        'Environment',
-        'Energy',
-        'DRRM',
-        'Agriculture',
-        'Tourism',
-        'Fisheries',
     ];
 
     /** @var list<string> */
@@ -404,12 +381,12 @@ class ProjectExcelExporter
         }
 
         $lists->setCellValue('B1', 'Type');
-        foreach (self::TYPES as $i => $type) {
+        foreach (DropdownOption::labels(DropdownCategory::Type) as $i => $type) {
             $lists->setCellValue([2, $i + 2], $type);
         }
 
         $lists->setCellValue('C1', 'Sector');
-        foreach (self::SECTORS as $i => $sector) {
+        foreach (DropdownOption::labels(DropdownCategory::Sector) as $i => $sector) {
             $lists->setCellValue([3, $i + 2], $sector);
         }
 
@@ -430,8 +407,8 @@ class ProjectExcelExporter
         }
 
         $statusEnd = count(self::STATUSES) + 1;
-        $typeEnd = count(self::TYPES) + 1;
-        $sectorEnd = count(self::SECTORS) + 1;
+        $typeEnd = count(DropdownOption::labels(DropdownCategory::Type)) + 1;
+        $sectorEnd = count(DropdownOption::labels(DropdownCategory::Sector)) + 1;
         $provinceEnd = ($province !== null ? 1 : count(self::PROVINCES)) + 1;
 
         $this->applyListValidation(

@@ -7,15 +7,14 @@ import './projectMap.css';
 import {
     STATUS_META,
     PROGRAM_META,
+    projectType,
+    projectTypeMeta,
     type TaraProject,
 } from '../../constants/taraProjects';
 import { buildProjectPinHtml } from './projectMapPins';
 import type { MapBaseLayer, UserLocation } from './mapTypes';
 import mimaropaProvinces from './mimaropaProvinces.json';
-import {
-    placeKey,
-    resolveProjectMapCoords,
-} from './mimaropaPlaceCoords';
+import { placeKey, resolveProjectMapCoords } from './mimaropaPlaceCoords';
 
 setWorkerUrl(maplibreWorkerUrl);
 
@@ -145,7 +144,8 @@ const darkenLibertyStyle = (style: StyleSpec): StyleSpec => {
         }
 
         if (id.startsWith('aeroway')) {
-            if (next.type === 'fill') setPaint(next, 'fill-color', DARK.aeroway);
+            if (next.type === 'fill')
+                setPaint(next, 'fill-color', DARK.aeroway);
             if (next.type === 'line') setPaint(next, 'line-color', DARK.road);
             return next;
         }
@@ -202,7 +202,8 @@ const darkenLibertyStyle = (style: StyleSpec): StyleSpec => {
         }
 
         if (id.startsWith('boundary')) {
-            if (next.type === 'line') setPaint(next, 'line-color', DARK.boundary);
+            if (next.type === 'line')
+                setPaint(next, 'line-color', DARK.boundary);
             return next;
         }
 
@@ -314,15 +315,13 @@ const buildTooltipContent = (project: TaraProject) => {
   `;
 };
 
-const programDotColor = (program: string) =>
-    PROGRAM_META[program as keyof typeof PROGRAM_META]?.color ?? '#22d3ee';
+const projectDotColor = (project: TaraProject) =>
+    projectTypeMeta(projectType(project)).color;
 
 const paddedViewport = (map: maplibregl.Map) => {
     const bounds = map.getBounds();
-    const latPad =
-        (bounds.getNorth() - bounds.getSouth()) * VIEWPORT_PAD_RATIO;
-    const lngPad =
-        (bounds.getEast() - bounds.getWest()) * VIEWPORT_PAD_RATIO;
+    const latPad = (bounds.getNorth() - bounds.getSouth()) * VIEWPORT_PAD_RATIO;
+    const lngPad = (bounds.getEast() - bounds.getWest()) * VIEWPORT_PAD_RATIO;
     return new maplibregl.LngLatBounds(
         [bounds.getWest() - lngPad, bounds.getSouth() - latPad],
         [bounds.getEast() + lngPad, bounds.getNorth() + latPad],
@@ -330,9 +329,7 @@ const paddedViewport = (map: maplibregl.Map) => {
 };
 
 const cameraAngles = (flat: boolean) =>
-    flat
-        ? { pitch: 0, bearing: 0 }
-        : { pitch: PITCH_3D, bearing: BEARING_3D };
+    flat ? { pitch: 0, bearing: 0 } : { pitch: PITCH_3D, bearing: BEARING_3D };
 
 const flyCamera = (
     map: maplibregl.Map,
@@ -628,9 +625,9 @@ const Maps3D = ({
         positioned: { project: TaraProject; lat: number; lng: number }[];
         valid: TaraProject[];
     } | null>(null);
-    const clickHandlerRef = useRef<((e: maplibregl.MapLayerMouseEvent) => void) | null>(
-        null,
-    );
+    const clickHandlerRef = useRef<
+        ((e: maplibregl.MapLayerMouseEvent) => void) | null
+    >(null);
     const enterHandlerRef = useRef<(() => void) | null>(null);
     const leaveHandlerRef = useRef<(() => void) | null>(null);
     const [overviewHint, setOverviewHint] = useState(true);
@@ -652,11 +649,19 @@ const Maps3D = ({
             clickHandlerRef.current = null;
         }
         if (enterHandlerRef.current) {
-            map.off('mouseenter', 'projects-dots-circle', enterHandlerRef.current);
+            map.off(
+                'mouseenter',
+                'projects-dots-circle',
+                enterHandlerRef.current,
+            );
             enterHandlerRef.current = null;
         }
         if (leaveHandlerRef.current) {
-            map.off('mouseleave', 'projects-dots-circle', leaveHandlerRef.current);
+            map.off(
+                'mouseleave',
+                'projects-dots-circle',
+                leaveHandlerRef.current,
+            );
             leaveHandlerRef.current = null;
         }
         for (const id of [
@@ -685,7 +690,7 @@ const Maps3D = ({
                     id: project.id,
                     name: project.name,
                     program: project.program,
-                    color: programDotColor(project.program),
+                    color: projectDotColor(project),
                     selected: selectedIdRef.current === project.id ? 1 : 0,
                 },
                 geometry: {
@@ -701,8 +706,7 @@ const Maps3D = ({
         };
 
         const existing = map.getSource('projects-dots') as
-            | maplibregl.GeoJSONSource
-            | undefined;
+            maplibregl.GeoJSONSource | undefined;
 
         // Reuse GPU source — setData only. No layer tear-down on every zoom.
         if (existing) {
@@ -953,10 +957,7 @@ const Maps3D = ({
             const bounds = new maplibregl.LngLatBounds();
             positioned.forEach((p) => bounds.extend([p.lng, p.lat]));
             const canvas = map.getCanvas();
-            const shortSide = Math.min(
-                canvas.clientWidth,
-                canvas.clientHeight,
-            );
+            const shortSide = Math.min(canvas.clientWidth, canvas.clientHeight);
             map.fitBounds(bounds, {
                 padding: Math.max(16, Math.min(80, shortSide * 0.12)),
                 maxZoom: 14,
@@ -1219,9 +1220,10 @@ const Maps3D = ({
         })
             .setLngLat([userLocation.lng, userLocation.lat])
             .setPopup(
-                new maplibregl.Popup({ offset: 12, closeButton: false }).setText(
-                    'Your location',
-                ),
+                new maplibregl.Popup({
+                    offset: 12,
+                    closeButton: false,
+                }).setText('Your location'),
             )
             .addTo(map);
     }, [userLocation]);
@@ -1243,7 +1245,9 @@ const Maps3D = ({
                 ref={containerRef}
                 className={[
                     'project-map-container maplibre-3d absolute inset-0 h-full w-full',
-                    isDark ? 'project-map-container--dark' : 'project-map-container--light',
+                    isDark
+                        ? 'project-map-container--dark'
+                        : 'project-map-container--light',
                 ].join(' ')}
                 aria-label={
                     flat

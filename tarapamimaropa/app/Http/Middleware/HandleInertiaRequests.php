@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\DropdownCategory;
+use App\Models\DropdownOption;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -41,6 +43,8 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'typeColors' => fn (): array => DropdownOption::colors(DropdownCategory::Type),
+            'sectorColors' => fn (): array => DropdownOption::colors(DropdownCategory::Sector),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

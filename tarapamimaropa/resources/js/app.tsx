@@ -1,6 +1,7 @@
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { setSectorColors, setTypeColors } from '@/constants/taraProjects';
 import { initializeTheme } from '@/hooks/use-appearance';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
@@ -10,6 +11,11 @@ import SettingsLayout from '@/layouts/settings/layout';
 import SuperAdminLayout from '@/layouts/superadmin-layout';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+const syncDropdownColors = (props: Record<string, unknown>) => {
+    setTypeColors(props.typeColors as Record<string, string>);
+    setSectorColors(props.sectorColors as Record<string, string>);
+};
 
 void createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
@@ -33,7 +39,9 @@ void createInertiaApp({
         }
     },
     strictMode: true,
-    withApp(app) {
+    withApp(app, { page }) {
+        syncDropdownColors(page.props);
+
         return (
             <TooltipProvider delayDuration={0}>
                 {app}
@@ -44,6 +52,10 @@ void createInertiaApp({
     progress: {
         color: '#4B5563',
     },
+});
+
+router.on('navigate', (event) => {
+    syncDropdownColors(event.detail.page.props);
 });
 
 initializeTheme();

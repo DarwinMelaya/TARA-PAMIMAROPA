@@ -41,11 +41,11 @@ import {
   formatMoneyOrDash,
   formatPeso,
   formatRateOrDash,
-  projectStatusClass,
   projectStatusLabel,
   projectType,
   projectTypeMeta,
   projectYear,
+  sectorColor,
   type Province,
   type TaraProject,
 } from '@/constants/taraProjects';
@@ -72,72 +72,60 @@ export type ProgramsWorkspaceProps = {
   pageTitle?: string;
 };
 
+const TOKENS = {
+  page: 'bg-background text-foreground',
+  card: 'border-border bg-card shadow-xs',
+  cardHover: 'hover:border-foreground/25 hover:bg-muted/40',
+  heading: 'text-foreground',
+  muted: 'text-muted-foreground',
+  soft: 'text-muted-foreground',
+  body: 'text-foreground/80',
+  ghostBtn: 'border-border bg-background text-foreground hover:bg-muted',
+  chipIdle:
+    'border border-border text-muted-foreground hover:bg-muted hover:text-foreground',
+  input:
+    'border-input bg-background text-foreground placeholder:text-muted-foreground focus:border-foreground/40',
+  track: 'bg-muted',
+  rowBorder: 'border-border/60',
+  theadBorder: 'border-border',
+  rowHover: 'hover:bg-muted/50',
+  barHover: 'hover:bg-muted',
+  statusAllOn: 'bg-primary text-primary-foreground',
+  statusAllOff:
+    'border border-border text-muted-foreground hover:text-foreground',
+  statusIdle:
+    'border border-border text-muted-foreground ring-transparent hover:text-foreground',
+  pager: 'border-border text-foreground hover:bg-muted disabled:opacity-40',
+  modal: 'border-border bg-background shadow-xl',
+  modalClose: 'text-muted-foreground hover:bg-muted hover:text-foreground',
+  imgBorder: 'border-border',
+  scope: 'text-foreground/80',
+  value: 'text-foreground',
+};
+
 const UI = {
-  light: {
-    page: 'bg-background text-foreground',
-    card: 'border-slate-200 bg-white shadow-sm',
-    cardHover: 'hover:border-slate-300 hover:bg-slate-50',
-    heading: 'text-slate-900',
-    muted: 'text-slate-500',
-    soft: 'text-slate-600',
-    body: 'text-slate-700',
-    ghostBtn:
-      'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900',
-    chipIdle:
-      'border border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-900',
-    input:
-      'border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-blue-500',
-    track: 'bg-slate-200',
-    rowBorder: 'border-slate-100',
-    theadBorder: 'border-slate-200',
-    rowHover: 'hover:bg-slate-50',
-    barHover: 'hover:bg-slate-100',
-    statusAllOn: 'bg-slate-900 text-white',
-    statusAllOff:
-      'border border-slate-300 text-slate-500 hover:text-slate-800',
-    statusIdle:
-      'border border-slate-300 text-slate-500 ring-transparent hover:text-slate-800',
-    pager:
-      'border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-40',
-    modal: 'border-slate-200 bg-white shadow-xl',
-    modalClose: 'text-slate-500 hover:bg-slate-100 hover:text-slate-900',
-    imgBorder: 'border-slate-200',
-    scope: 'text-slate-700',
-    value: 'text-slate-900',
-  },
-  dark: {
-    page: 'bg-background text-foreground',
-    card: 'border-slate-700 bg-slate-900/80 shadow-[0_2px_8px_rgba(0,0,0,0.05)]',
-    cardHover: 'hover:border-slate-600 hover:bg-slate-900',
-    heading: 'text-white',
-    muted: 'text-slate-500',
-    soft: 'text-slate-400',
-    body: 'text-slate-300',
-    ghostBtn:
-      'border-slate-700 bg-transparent text-slate-300 hover:border-slate-600 hover:bg-slate-900 hover:text-white',
-    chipIdle:
-      'border border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-200',
-    input:
-      'border-slate-700 bg-slate-900 text-white placeholder:text-slate-600 focus:border-blue-500',
-    track: 'bg-slate-800',
-    rowBorder: 'border-slate-800/80',
-    theadBorder: 'border-slate-800',
-    rowHover: 'hover:bg-slate-800/40',
-    barHover: 'hover:bg-slate-800/50',
-    statusAllOn: 'bg-slate-100 text-slate-900',
-    statusAllOff:
-      'border border-slate-700 text-slate-400 hover:text-slate-200',
-    statusIdle:
-      'border border-slate-700 text-slate-500 ring-transparent hover:text-slate-300',
-    pager:
-      'border-slate-700 text-slate-300 hover:bg-slate-900 disabled:opacity-40',
-    modal: 'border-slate-800 bg-slate-950 shadow-[0_8px_24px_rgba(0,0,0,0.4)]',
-    modalClose: 'text-slate-400 hover:bg-slate-900 hover:text-white',
-    imgBorder: 'border-slate-800',
-    scope: 'text-slate-300',
-    value: 'text-white',
-  },
+  light: TOKENS,
+  dark: TOKENS,
 } as const satisfies Record<ThemeMode, Record<string, string>>;
+
+const STATUS_DOT: Record<TaraProject["status"], string> = {
+  planning: "bg-slate-400",
+  ongoing: "bg-blue-500",
+  completed: "bg-emerald-500",
+  delayed: "bg-red-500",
+  on_hold: "bg-amber-500",
+  cancelled: "bg-rose-500",
+};
+
+const StatusPill = ({ project }: { project: TaraProject }) => (
+  <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-foreground">
+    <span
+      className={`h-1.5 w-1.5 shrink-0 rounded-full ${STATUS_DOT[project.status] ?? "bg-slate-400"}`}
+      aria-hidden
+    />
+    {projectStatusLabel(project)}
+  </span>
+);
 
 const PAGE_SIZE = 25;
 
@@ -247,22 +235,16 @@ const EmptyState = ({
 
 const TypeBadge = ({
   type,
-  isDark,
   className = "",
 }: {
   type: string;
-  isDark: boolean;
   className?: string;
 }) => {
   const meta = projectTypeMeta(type);
   return (
     <span
       title={type}
-      className={`inline-flex max-w-full items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-semibold ${isDark ? "text-slate-100" : "text-slate-800"} ${className}`}
-      style={{
-        borderColor: `${meta.color}66`,
-        backgroundColor: `${meta.color}${isDark ? "33" : "14"}`,
-      }}
+      className={`inline-flex max-w-full items-center gap-1.5 rounded-md border border-border bg-muted/50 px-2 py-0.5 text-xs font-medium text-foreground ${className}`}
     >
       <span
         className="h-2 w-2 shrink-0 rounded-full"
@@ -270,6 +252,29 @@ const TypeBadge = ({
         aria-hidden
       />
       <span className="truncate">{meta.short}</span>
+    </span>
+  );
+};
+
+const SectorBadge = ({
+  sector,
+  className = "",
+}: {
+  sector: string;
+  className?: string;
+}) => {
+  const color = sectorColor(sector);
+  return (
+    <span
+      title={`Sector: ${sector}`}
+      className={`inline-flex max-w-full items-center gap-1.5 rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground ${className}`}
+    >
+      <span
+        className="h-2 w-2 shrink-0 rounded-full bg-muted-foreground/40"
+        style={color ? { backgroundColor: color } : undefined}
+        aria-hidden
+      />
+      <span className="truncate">{sector}</span>
     </span>
   );
 };
@@ -301,7 +306,7 @@ const DetailList = ({
   ui,
 }: {
   title: string;
-  rows: { label: string; value: string }[];
+  rows: { label: string; value: ReactNode }[];
   ui: UiTokens;
 }) => (
   <section>
@@ -339,9 +344,8 @@ const ProgramsWorkspace = ({
   homeLabel = "Dashboard",
   pageTitle = "Programs",
 }: ProgramsWorkspaceProps) => {
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
   const ui = UI[theme];
-  const statusMode = isDark ? "dark" : "light";
   const provinceLocked =
     lockedProvince != null &&
     (PROVINCES as readonly string[]).includes(lockedProvince);
@@ -660,9 +664,9 @@ const ProgramsWorkspace = ({
     },
   ];
 
-  const ghostBtnClass = `inline-flex min-h-10 items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-medium transition duration-[180ms] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 disabled:opacity-50 ${ui.ghostBtn}`;
+  const ghostBtnClass = `inline-flex min-h-10 items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-medium transition duration-[180ms] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 disabled:opacity-50 ${ui.ghostBtn}`;
   const primaryBtnClass =
-    "inline-flex min-h-10 items-center gap-2 rounded-lg bg-blue-600 px-3.5 py-2 text-sm font-medium text-white transition duration-[180ms] hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 focus-visible:ring-offset-2";
+    "inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground transition duration-[180ms] hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background";
   const hasExcelActions =
     allowImport || (allowExport && (exportUrl || exportTemplateUrl));
 
@@ -790,8 +794,8 @@ const ProgramsWorkspace = ({
                   aria-pressed={active}
                   onClick={() => setProvince(province)}
                   className={[
-                    "inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg px-3 text-sm font-medium transition duration-[180ms] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60",
-                    active ? "bg-blue-600 text-white" : ui.chipIdle,
+                    "inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg px-3 text-sm font-medium transition duration-[180ms] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
+                    active ? ui.statusAllOn : ui.chipIdle,
                   ].join(" ")}
                 >
                   {province === "all" ? "All provinces" : province}
@@ -843,13 +847,13 @@ const ProgramsWorkspace = ({
               aria-label="Filter by program type"
             >
               {[
-                { key: "all", label: "All types", count: scopedProjects.length, budget: totals.cost, color: null },
+                { key: "all", label: "All types", count: scopedProjects.length, budget: totals.cost, color: null as string | null },
                 ...byType.rows.map(({ type, count, budget }) => ({
                   key: type,
                   label: projectTypeMeta(type).short,
                   count,
                   budget,
-                  color: projectTypeMeta(type).color,
+                  color: projectTypeMeta(type).color as string | null,
                 })),
               ].map((card) => {
                 const active = typeFilter === card.key;
@@ -861,25 +865,23 @@ const ProgramsWorkspace = ({
                     aria-pressed={active}
                     onClick={() => setType(active || card.key === "all" ? "all" : card.key)}
                     className={[
-                      "flex min-h-[5.5rem] flex-col justify-between gap-2 rounded-xl border border-l-4 p-3 text-left transition duration-[180ms] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60",
+                      "flex min-h-[5.5rem] flex-col justify-between gap-2 rounded-xl border p-3 text-left transition duration-[180ms] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
                       active
-                        ? card.color
-                          ? "text-white"
-                          : `${ui.statusAllOn} border-transparent`
+                        ? `${ui.statusAllOn} border-transparent`
                         : `${ui.card} ${ui.cardHover}`,
                     ].join(" ")}
-                    style={
-                      card.color
-                        ? active
-                          ? { backgroundColor: card.color, borderColor: card.color }
-                          : { borderLeftColor: card.color }
-                        : undefined
-                    }
                   >
                     <span
-                      className={`line-clamp-2 text-sm font-semibold leading-snug ${active ? "" : ui.heading}`}
+                      className={`flex items-start gap-2 text-sm font-semibold leading-snug ${active ? "" : ui.heading}`}
                     >
-                      {card.label}
+                      {card.color ? (
+                        <span
+                          className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-black/10 dark:ring-white/20"
+                          style={{ backgroundColor: card.color }}
+                          aria-hidden
+                        />
+                      ) : null}
+                      <span className="line-clamp-2">{card.label}</span>
                     </span>
                     <span className="flex items-end justify-between gap-2">
                       <span
@@ -907,7 +909,7 @@ const ProgramsWorkspace = ({
           >
             Project list
             {typeFilter !== "all" ? (
-              <TypeBadge type={typeFilter} isDark={isDark} />
+              <TypeBadge type={typeFilter} />
             ) : null}
           </h2>
 
@@ -926,7 +928,7 @@ const ProgramsWorkspace = ({
                   resetPage();
                 }}
                 placeholder="Search name, code, beneficiary…"
-                className={`min-h-10 w-full rounded-lg border py-2 pl-9 pr-3 text-sm outline-none transition duration-[180ms] focus-visible:ring-2 focus-visible:ring-blue-500/40 ${ui.input}`}
+                className={`min-h-10 w-full rounded-lg border py-2 pl-9 pr-3 text-sm outline-none transition duration-[180ms] focus-visible:ring-2 focus-visible:ring-foreground/20 ${ui.input}`}
               />
             </label>
             <div className="flex gap-2">
@@ -939,7 +941,7 @@ const ProgramsWorkspace = ({
               >
                 Filters
                 {advancedFilterCount > 0 ? (
-                  <span className="rounded-full bg-blue-600 px-1.5 py-0.5 text-xs font-semibold leading-none text-white">
+                  <span className="rounded-full bg-primary px-1.5 py-0.5 text-xs font-semibold leading-none text-primary-foreground">
                     {advancedFilterCount}
                   </span>
                 ) : null}
@@ -1054,7 +1056,7 @@ const ProgramsWorkspace = ({
               aria-pressed={statusFilter === "all"}
               onClick={() => setStatus("all")}
               className={[
-                "inline-flex min-h-8 items-center rounded-full px-3 text-xs font-medium transition duration-[180ms] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60",
+                "inline-flex min-h-8 items-center rounded-full px-3 text-xs font-medium transition duration-[180ms] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
                 statusFilter === "all" ? ui.statusAllOn : ui.statusAllOff,
               ].join(" ")}
             >
@@ -1075,12 +1077,16 @@ const ProgramsWorkspace = ({
                   aria-pressed={active}
                   onClick={() => setStatus(active ? "all" : status)}
                   className={[
-                    "inline-flex min-h-8 items-center rounded-full px-3 text-xs font-semibold ring-1 transition duration-[180ms] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60",
-                    active && sample
-                      ? projectStatusClass(sample, statusMode)
-                      : ui.statusIdle,
+                    "inline-flex min-h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium transition duration-[180ms] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
+                    active ? ui.statusAllOn : ui.statusIdle,
                   ].join(" ")}
                 >
+                  {sample ? (
+                    <span
+                      className={`h-1.5 w-1.5 shrink-0 rounded-full ${STATUS_DOT[sample.status] ?? "bg-slate-400"}`}
+                      aria-hidden
+                    />
+                  ) : null}
                   {status}
                   <span className="ml-1.5 tabular-nums opacity-70">{count}</span>
                 </button>
@@ -1184,16 +1190,21 @@ const ProgramsWorkspace = ({
                             setViewing(project);
                           }}
                           aria-label={`View details for ${project.name}`}
-                          className={`line-clamp-2 rounded text-left font-medium leading-snug focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 ${ui.heading}`}
+                          className={`line-clamp-2 rounded text-left font-medium leading-snug focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 ${ui.heading}`}
                         >
                           {project.name}
                         </button>
                         <div className="mt-1 flex min-w-0 items-center gap-2">
                           <TypeBadge
                             type={projectType(project)}
-                            isDark={isDark}
                             className="shrink-0 lg:hidden"
                           />
+                          {project.sector?.trim() ? (
+                            <SectorBadge
+                              sector={project.sector.trim()}
+                              className="shrink-0"
+                            />
+                          ) : null}
                           {project.code ? (
                             <span
                               title={project.code}
@@ -1219,17 +1230,13 @@ const ProgramsWorkspace = ({
                         ) : null}
                       </td>
                       <td className="hidden px-3 py-3 lg:table-cell">
-                        <TypeBadge type={projectType(project)} isDark={isDark} className="whitespace-nowrap" />
+                        <TypeBadge type={projectType(project)} className="whitespace-nowrap" />
                       </td>
                       <td className={`whitespace-nowrap px-3 py-3 tabular-nums ${ui.body}`}>
                         {projectYear(project)}
                       </td>
                       <td className="px-3 py-3">
-                        <span
-                          className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${projectStatusClass(project, statusMode)}`}
-                        >
-                          {projectStatusLabel(project)}
-                        </span>
+                        <StatusPill project={project} />
                       </td>
                       <td className={`whitespace-nowrap px-3 py-3 text-right font-medium tabular-nums ${ui.heading}`}>
                         {formatMoneyOrDash(project.budget > 0 ? project.budget : null)}
@@ -1297,12 +1304,8 @@ const ProgramsWorkspace = ({
           >
             <div className={`shrink-0 border-b px-5 pt-5 pr-12 pb-4 ${ui.theadBorder}`}>
               <div className="flex flex-wrap items-center gap-2">
-                <TypeBadge type={projectType(viewing)} isDark={isDark} />
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${projectStatusClass(viewing, statusMode)}`}
-                >
-                  {projectStatusLabel(viewing)}
-                </span>
+                <TypeBadge type={projectType(viewing)} />
+                <StatusPill project={viewing} />
                 <span className={`text-xs tabular-nums ${ui.muted}`}>
                   Approved {projectYear(viewing)}
                 </span>
@@ -1343,7 +1346,14 @@ const ProgramsWorkspace = ({
                 rows={[
                   { label: "Beneficiaries", value: dash(viewing.beneficiary) },
                   { label: "Collaborators", value: dash(viewing.collaborators) },
-                  { label: "Sector", value: dash(viewing.sector) },
+                  {
+                    label: "Sector",
+                    value: viewing.sector?.trim() ? (
+                      <SectorBadge sector={viewing.sector.trim()} />
+                    ) : (
+                      "—"
+                    ),
+                  },
                 ]}
                 ui={ui}
               />

@@ -10,7 +10,9 @@ use App\Http\Controllers\Region\ChartInterpretationController;
 use App\Http\Controllers\Region\DashboardController;
 use App\Http\Controllers\Region\ProgramController;
 use App\Http\Controllers\Site\HomeController;
+use App\Http\Controllers\SuperAdmin\DropdownOptionController;
 use App\Http\Controllers\SuperAdmin\UserController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Public Routes
@@ -24,7 +26,7 @@ Route::post('/analytics-chat', [AnalyticsChatController::class, 'store'])
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Legacy /dashboard → bounce each role to its real home (avoids skeleton page).
-    Route::get('/dashboard', function (\Illuminate\Http\Request $request) {
+    Route::get('/dashboard', function (Request $request) {
         return redirect()->route($request->user()->homeRouteName());
     })->name('dashboard');
 
@@ -38,7 +40,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/users', [UserController::class, 'store'])->name('users.store');
             Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
 
-            Route::inertia('/settings/dropdowns', 'superadmin/DropdownManagement')->name('settings.dropdowns');
+            Route::get('/settings/dropdowns', [DropdownOptionController::class, 'index'])->name('settings.dropdowns');
+            Route::post('/settings/dropdowns', [DropdownOptionController::class, 'store'])->name('settings.dropdowns.store');
+            Route::put('/settings/dropdowns/{dropdownOption}', [DropdownOptionController::class, 'update'])->name('settings.dropdowns.update');
+            Route::delete('/settings/dropdowns/{dropdownOption}', [DropdownOptionController::class, 'destroy'])->name('settings.dropdowns.destroy');
         });
 
     Route::middleware(['role:regional_office'])

@@ -223,7 +223,7 @@ const ChartTooltip = ({ tip }: { tip: ChartTip | null }) => {
     return (
         <div
             role="tooltip"
-            className="pointer-events-none fixed z-[1100] max-w-[220px] rounded-lg border border-slate-600 bg-slate-950 px-2.5 py-1.5"
+            className="pointer-events-none fixed z-[1100] max-w-[220px] rounded-lg border border-border bg-popover px-2.5 py-1.5 text-popover-foreground shadow-md"
             style={{
                 left: tip.x,
                 top: tip.y,
@@ -235,15 +235,15 @@ const ChartTooltip = ({ tip }: { tip: ChartTip | null }) => {
                     className="h-2 w-2 shrink-0 rounded-full"
                     style={{ background: tip.color }}
                 />
-                <p className="truncate text-[11px] font-semibold text-white">
+                <p className="truncate text-[11px] font-semibold">
                     {tip.label}
                 </p>
             </div>
-            <p className="mt-0.5 text-xs font-bold tabular-nums text-cyan-200">
+            <p className="mt-0.5 text-xs font-bold tabular-nums">
                 {tip.value}
             </p>
             {tip.detail ? (
-                <p className="mt-0.5 text-[10px] text-slate-400">{tip.detail}</p>
+                <p className="mt-0.5 text-[10px] text-muted-foreground">{tip.detail}</p>
             ) : null}
         </div>
     );
@@ -254,7 +254,7 @@ const EmptyChart = ({
 }: {
     label?: string;
 }) => (
-    <p className="flex h-36 items-center justify-center text-xs text-slate-500">
+    <p className="flex h-36 items-center justify-center text-xs text-muted-foreground">
         {label}
     </p>
 );
@@ -268,13 +268,13 @@ const Card = ({
     subtitle?: string;
     children: ReactNode;
 }) => (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+    <div className="rounded-xl border border-border bg-card p-4 shadow-xs">
         <div className="mb-3 flex items-baseline justify-between gap-2">
-            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+            <h3 className="text-sm font-semibold text-foreground">
                 {title}
             </h3>
             {subtitle ? (
-                <span className="text-[11px] font-medium text-slate-500">
+                <span className="text-[11px] font-medium text-muted-foreground">
                     {subtitle}
                 </span>
             ) : null}
@@ -296,7 +296,7 @@ const SelectFilter = ({
     options: { value: string; label: string }[];
     disabled?: boolean;
 }) => (
-    <label className="flex min-w-0 flex-1 flex-col gap-1 text-[11px] font-medium text-slate-500">
+    <label className="flex min-w-0 flex-1 flex-col gap-1 text-[11px] font-medium text-muted-foreground">
         {label}
         <select
             value={value}
@@ -304,7 +304,7 @@ const SelectFilter = ({
             onChange={(e: ChangeEvent<HTMLSelectElement>) =>
                 onChange(e.target.value)
             }
-            className="min-h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-sm text-slate-900 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+            className="min-h-9 w-full rounded-lg border border-input bg-background px-2.5 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-70"
         >
             {options.map((o) => (
                 <option key={o.value || 'all'} value={o.value}>
@@ -321,7 +321,7 @@ const LoadingSkeleton = () => (
             {Array.from({ length: 4 }).map((_, i) => (
                 <div
                     key={i}
-                    className="h-20 animate-pulse rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800"
+                    className="h-20 animate-pulse rounded-xl border border-border bg-muted"
                 />
             ))}
         </div>
@@ -329,7 +329,7 @@ const LoadingSkeleton = () => (
             {Array.from({ length: 4 }).map((_, i) => (
                 <div
                     key={i}
-                    className="h-56 animate-pulse rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800"
+                    className="h-56 animate-pulse rounded-xl border border-border bg-muted"
                 />
             ))}
         </div>
@@ -341,7 +341,7 @@ const StatusLegend = () => (
         {PROJECT_STATUSES.map((s) => (
             <li
                 key={s}
-                className="inline-flex items-center gap-1.5 text-[10px] text-slate-500"
+                className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground"
             >
                 <span
                     className="h-2 w-2 rounded-full"
@@ -401,7 +401,7 @@ const DonutChart = ({
                     cy="60"
                     r={r}
                     fill="none"
-                    className="stroke-slate-300 dark:stroke-slate-800"
+                    className="stroke-muted"
                     strokeWidth="16"
                 />
                 {rows.map((row) => {
@@ -439,7 +439,7 @@ const DonutChart = ({
                     textAnchor="middle"
                     fontSize="16"
                     fontWeight="700"
-                    className="fill-slate-800 dark:fill-slate-200"
+                    className="fill-foreground"
                     transform="rotate(90 60 60)"
                 >
                     {hovered
@@ -453,7 +453,7 @@ const DonutChart = ({
                     fontSize="7"
                     fontWeight="600"
                     letterSpacing="0.08em"
-                    className="fill-slate-500"
+                    className="fill-muted-foreground"
                     transform="rotate(90 60 60)"
                 >
                     {hovered
@@ -480,8 +480,8 @@ const DonutChart = ({
                                 className={[
                                     'flex w-full min-h-8 items-center justify-between gap-2 rounded-md px-1.5 py-1 text-left text-xs transition duration-[180ms]',
                                     active
-                                        ? 'bg-blue-50 text-blue-900 dark:bg-slate-800 dark:text-cyan-100'
-                                        : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
+                                        ? 'bg-muted text-foreground'
+                                        : 'text-foreground/80 hover:bg-muted',
                                 ].join(' ')}
                             >
                                 <span className="flex min-w-0 items-center gap-2">
@@ -491,8 +491,8 @@ const DonutChart = ({
                                     />
                                     <span className="truncate">{row.label}</span>
                                 </span>
-                                <span className="shrink-0 tabular-nums text-slate-500">
-                                    <span className="font-bold text-slate-900 dark:text-slate-100">
+                                <span className="shrink-0 tabular-nums text-muted-foreground">
+                                    <span className="font-bold text-foreground">
                                         {formatValue(row.value, format)}
                                     </span>{' '}
                                     <span>({pct}%)</span>
@@ -542,9 +542,9 @@ const ColumnChart = ({
                         onMouseEnter={showTip}
                         onMouseMove={showTip}
                         onMouseLeave={() => setTip(null)}
-                        className="group flex min-w-0 flex-1 flex-col items-center gap-1.5 rounded-md outline-none transition duration-[180ms] hover:bg-slate-100 dark:hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-cyan-500"
+                        className="group flex min-w-0 flex-1 flex-col items-center gap-1.5 rounded-md outline-none transition duration-[180ms] hover:bg-muted focus-visible:ring-2 focus-visible:ring-foreground/30"
                     >
-                        <span className="text-[11px] font-bold tabular-nums text-slate-800 dark:text-slate-200">
+                        <span className="text-[11px] font-bold tabular-nums text-foreground">
                             {formatValue(row.value, format)}
                         </span>
                         <div className="flex h-36 w-full items-end justify-center">
@@ -556,7 +556,7 @@ const ColumnChart = ({
                                 }}
                             />
                         </div>
-                        <span className="line-clamp-2 text-center text-[10px] leading-tight text-slate-400">
+                        <span className="line-clamp-2 text-center text-[10px] leading-tight text-muted-foreground">
                             {row.label}
                         </span>
                     </button>
@@ -613,12 +613,12 @@ const AreaLineChart = ({ rows }: { rows: Row[] }) => {
                         type="button"
                         onClick={() => setStart((s) => Math.max(0, s - 1))}
                         disabled={!canPrev}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 text-slate-600 transition duration-[180ms] hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-35 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition duration-[180ms] hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35"
                         aria-label="Earlier years"
                     >
                         <HiChevronLeft className="h-5 w-5" aria-hidden />
                     </button>
-                    <p className="text-[11px] font-medium tabular-nums text-slate-500">
+                    <p className="text-[11px] font-medium tabular-nums text-muted-foreground">
                         {rangeLabel}
                     </p>
                     <button
@@ -627,7 +627,7 @@ const AreaLineChart = ({ rows }: { rows: Row[] }) => {
                             setStart((s) => Math.min(maxStart, s + 1))
                         }
                         disabled={!canNext}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 text-slate-600 transition duration-[180ms] hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-35 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition duration-[180ms] hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35"
                         aria-label="Later years"
                     >
                         <HiChevronRight className="h-5 w-5" aria-hidden />
@@ -647,7 +647,7 @@ const AreaLineChart = ({ rows }: { rows: Row[] }) => {
                         x2={W - padX}
                         y1={H - padBottom - g * (H - padTop - padBottom)}
                         y2={H - padBottom - g * (H - padTop - padBottom)}
-                        className="stroke-slate-200 dark:stroke-slate-700"
+                        className="stroke-border"
                         strokeWidth="1"
                     />
                 ))}
@@ -688,7 +688,7 @@ const AreaLineChart = ({ rows }: { rows: Row[] }) => {
                                 cx={p[0]}
                                 cy={p[1]}
                                 r="4"
-                                fill="#0f172a"
+                                className="fill-background"
                                 stroke={BRAND}
                                 strokeWidth="2.5"
                                 pointerEvents="none"
@@ -699,7 +699,7 @@ const AreaLineChart = ({ rows }: { rows: Row[] }) => {
                                 textAnchor="middle"
                                 fontSize="9"
                                 fontWeight="700"
-                                className="fill-black dark:fill-white"
+                                className="fill-foreground"
                                 pointerEvents="none"
                             >
                                 {row.value}
@@ -712,7 +712,7 @@ const AreaLineChart = ({ rows }: { rows: Row[] }) => {
                 {visible.map((row, i) => (
                     <span
                         key={row.key}
-                        className="absolute top-0 -translate-x-1/2 text-[10px] tabular-nums leading-none text-slate-500"
+                        className="absolute top-0 -translate-x-1/2 text-[10px] tabular-nums leading-none text-muted-foreground"
                         style={{ left: `${(x(i) / W) * 100}%` }}
                     >
                         {row.label}
@@ -761,7 +761,7 @@ const BarChart = ({
                         onMouseEnter={showTip}
                         onMouseMove={showTip}
                         onMouseLeave={() => setTip(null)}
-                        className="group w-full rounded-md px-1 py-1 text-left transition duration-[180ms] hover:bg-slate-100 dark:hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-cyan-500"
+                        className="group w-full rounded-md px-1 py-1 text-left transition duration-[180ms] hover:bg-muted focus-visible:ring-2 focus-visible:ring-foreground/30"
                     >
                         <div className="mb-1 flex min-h-6 items-center justify-between gap-2 text-xs">
                             {badges?.[i] ? (
@@ -771,15 +771,15 @@ const BarChart = ({
                                     {row.label}
                                 </span>
                             ) : (
-                                <span className="truncate font-semibold text-slate-800 dark:text-slate-200">
+                                <span className="truncate font-semibold text-foreground">
                                     {row.label}
                                 </span>
                             )}
-                            <span className="shrink-0 font-bold tabular-nums text-slate-900 dark:text-slate-100">
+                            <span className="shrink-0 font-bold tabular-nums text-foreground">
                                 {formatValue(row.value, format)}
                             </span>
                         </div>
-                        <div className="h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                        <div className="h-2.5 overflow-hidden rounded-full bg-muted">
                             <div
                                 className="h-full rounded-full transition-[width] duration-500 ease-out"
                                 style={{
@@ -818,7 +818,7 @@ const StackedBarChart = ({
                 {series.map((ser) => (
                     <li
                         key={ser.key}
-                        className="inline-flex items-center gap-1.5 text-[10px] text-slate-500"
+                        className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground"
                     >
                         <span
                             className="h-2 w-2 rounded-full"
@@ -833,14 +833,14 @@ const StackedBarChart = ({
                 return (
                     <div key={row.key}>
                         <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-                            <span className="truncate font-semibold text-slate-800 dark:text-slate-200">
+                            <span className="truncate font-semibold text-foreground">
                                 {row.label}
                             </span>
-                            <span className="shrink-0 font-bold tabular-nums text-slate-900 dark:text-slate-100">
+                            <span className="shrink-0 font-bold tabular-nums text-foreground">
                                 {total}
                             </span>
                         </div>
-                        <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                        <div className="flex h-3 w-full overflow-hidden rounded-full bg-muted">
                             {series.map((ser) => {
                                 const v = row.values[ser.key] ?? 0;
                                 if (v <= 0) return null;
@@ -937,16 +937,21 @@ const Chip = ({
     <button
         type="button"
         onClick={onClick}
+        aria-pressed={active}
         className={[
-            'rounded-lg border px-3 py-1.5 text-xs font-semibold transition',
-            active && !color
-                ? 'border-cyan-600 bg-cyan-600 text-white'
-                : !active
-                  ? 'border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800'
-                  : 'border-transparent text-white',
+            'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:outline-none',
+            active
+                ? 'border-transparent bg-primary text-primary-foreground'
+                : 'border-border text-foreground/80 hover:bg-muted hover:text-foreground',
         ].join(' ')}
-        style={active && color ? { background: color, borderColor: color } : undefined}
     >
+        {color ? (
+            <span
+                className="h-2 w-2 shrink-0 rounded-full"
+                style={{ background: color }}
+                aria-hidden
+            />
+        ) : null}
         {children}
     </button>
 );
@@ -954,7 +959,7 @@ const Chip = ({
 const StatTiles = ({
     items,
 }: {
-    items: { label: string; value: string; accent?: string }[];
+    items: { label: string; value: string }[];
 }) => (
     <div
         className={`grid gap-2.5 ${items.length > 4 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6' : 'grid-cols-2 sm:grid-cols-4'}`}
@@ -962,15 +967,16 @@ const StatTiles = ({
         {items.map((t) => (
             <div
                 key={t.label}
-                className="rounded-xl border border-slate-200 bg-white p-3 text-center dark:border-slate-700 dark:bg-slate-900"
+                className="rounded-xl border border-border bg-card p-3.5 shadow-xs"
             >
+                <p className="truncate text-[11px] font-medium text-muted-foreground">
+                    {t.label}
+                </p>
                 <p
-                    className={`truncate text-base font-bold tabular-nums sm:text-lg ${t.accent ?? 'text-slate-900 dark:text-white'}`}
+                    title={t.value}
+                    className="mt-1 truncate text-lg font-semibold tracking-tight text-foreground tabular-nums sm:text-xl"
                 >
                     {t.value}
-                </p>
-                <p className="mt-1 text-[11px] font-medium text-slate-500">
-                    {t.label}
                 </p>
             </div>
         ))}
@@ -1268,20 +1274,20 @@ const RegionSummaryGraphs = () => {
                     <div>
                         <Link
                             href={programs.url()}
-                            className="inline-flex min-h-9 items-center gap-2 text-sm font-medium text-slate-600 transition duration-[180ms] hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                            className="inline-flex min-h-9 items-center gap-2 text-sm font-medium text-muted-foreground transition duration-[180ms] hover:text-foreground"
                         >
                             <HiArrowLeft className="h-4 w-4" aria-hidden />
                             Back to Programs
                         </Link>
 
                         <header className="mt-4">
-                            <p className="text-xs font-medium text-slate-500">
+                            <p className="text-xs font-medium text-muted-foreground">
                                 MIMAROPA · DOST
                             </p>
-                            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+                            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                                 Summary graphs
                             </h1>
-                            <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-500">
+                            <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted-foreground">
                                 Browse one level at a time, then let TARA explain
                                 what the charts are saying.
                             </p>
@@ -1290,7 +1296,7 @@ const RegionSummaryGraphs = () => {
 
                     {/* Step tabs */}
                     <nav
-                        className="sticky top-0 z-20 -mx-1 rounded-xl border border-slate-200 bg-white p-1.5 dark:border-slate-700 dark:bg-slate-900"
+                        className="sticky top-0 z-20 -mx-1 rounded-xl border border-border bg-card p-1.5"
                         aria-label="Analytics level"
                     >
                         <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
@@ -1304,8 +1310,8 @@ const RegionSummaryGraphs = () => {
                                         className={[
                                             'rounded-lg px-2.5 py-2.5 text-left transition',
                                             on
-                                                ? 'bg-cyan-600 text-white'
-                                                : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800',
+                                                ? 'bg-primary text-primary-foreground shadow-xs'
+                                                : 'text-foreground/80 hover:bg-muted',
                                         ].join(' ')}
                                     >
                                         <span className="block text-xs font-bold sm:text-sm">
@@ -1315,8 +1321,8 @@ const RegionSummaryGraphs = () => {
                                             className={[
                                                 'mt-0.5 hidden text-[10px] leading-snug sm:block',
                                                 on
-                                                    ? 'text-cyan-100'
-                                                    : 'text-slate-500',
+                                                    ? 'text-primary-foreground/70'
+                                                    : 'text-muted-foreground',
                                             ].join(' ')}
                                         >
                                             {t.hint}
@@ -1328,16 +1334,16 @@ const RegionSummaryGraphs = () => {
                     </nav>
 
                     {/* Context + year only */}
-                    <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3.5 dark:border-slate-700 dark:bg-slate-900 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3.5 sm:flex-row sm:items-end sm:justify-between">
                         <div className="min-w-0">
-                            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
+                            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                                 Now viewing
                             </p>
-                            <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                            <p className="truncate text-sm font-semibold text-foreground">
                                 {activeTab.label.replace(/^\d+\.\s*/, '')} ·{' '}
                                 {contextLabel}
                             </p>
-                            <p className="mt-0.5 text-xs text-slate-500">
+                            <p className="mt-0.5 text-xs text-muted-foreground">
                                 {filtered.length} project
                                 {filtered.length === 1 ? '' : 's'} in this view
                                 {year ? ` (year ${year})` : ''}
@@ -1360,7 +1366,7 @@ const RegionSummaryGraphs = () => {
                                 <button
                                     type="button"
                                     onClick={() => setYear(ALL)}
-                                    className="min-h-9 rounded-lg border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+                                    className="min-h-9 rounded-lg border border-border px-3 text-sm font-medium text-foreground hover:bg-muted"
                                 >
                                     Clear year
                                 </button>
@@ -1390,14 +1396,12 @@ const RegionSummaryGraphs = () => {
                                                 value: String(
                                                     regional.summary.total,
                                                 ),
-                                                accent: 'text-blue-700 dark:text-cyan-300',
                                             },
                                             {
                                                 label: 'Total funding',
                                                 value: formatPeso(
                                                     regional.summary.funding,
                                                 ),
-                                                accent: 'text-cyan-700 dark:text-cyan-200',
                                             },
                                             {
                                                 label: 'Beneficiaries',
@@ -1405,28 +1409,24 @@ const RegionSummaryGraphs = () => {
                                                     regional.summary
                                                         .beneficiaries,
                                                 ),
-                                                accent: 'text-emerald-700 dark:text-emerald-300',
                                             },
                                             {
                                                 label: 'Ongoing',
                                                 value: String(
                                                     regional.summary.active,
                                                 ),
-                                                accent: 'text-sky-700 dark:text-sky-300',
                                             },
                                             {
                                                 label: 'Completed',
                                                 value: String(
                                                     regional.summary.completed,
                                                 ),
-                                                accent: 'text-emerald-700 dark:text-emerald-300',
                                             },
                                             {
                                                 label: 'On hold',
                                                 value: String(
                                                     regional.summary.onHold,
                                                 ),
-                                                accent: 'text-amber-700 dark:text-amber-300',
                                             },
                                         ]}
                                     />
@@ -1492,8 +1492,8 @@ const RegionSummaryGraphs = () => {
                                         </Card>
                                     </div>
 
-                                    <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 dark:border-slate-700 dark:bg-slate-900">
-                                        <p className="mb-1.5 text-[11px] font-medium text-slate-500">
+                                    <div className="rounded-xl border border-border bg-card px-3.5 py-2.5">
+                                        <p className="mb-1.5 text-[11px] font-medium text-muted-foreground">
                                             Status colors
                                         </p>
                                         <StatusLegend />
@@ -1504,7 +1504,7 @@ const RegionSummaryGraphs = () => {
                             {tab === 'province' ? (
                                 <div className="space-y-4">
                                     <div>
-                                        <p className="mb-2 text-[11px] font-medium text-slate-500">
+                                        <p className="mb-2 text-[11px] font-medium text-muted-foreground">
                                             Choose province
                                         </p>
                                         <div className="flex flex-wrap gap-2">
@@ -1605,7 +1605,7 @@ const RegionSummaryGraphs = () => {
                             {tab === 'municipality' ? (
                                 <div className="space-y-4">
                                     <div>
-                                        <p className="mb-2 text-[11px] font-medium text-slate-500">
+                                        <p className="mb-2 text-[11px] font-medium text-muted-foreground">
                                             First pick province, then see LGU
                                             ranks
                                         </p>
@@ -1671,7 +1671,7 @@ const RegionSummaryGraphs = () => {
                             {tab === 'program' ? (
                                 <div className="space-y-4">
                                     <div>
-                                        <p className="mb-2 text-[11px] font-medium text-slate-500">
+                                        <p className="mb-2 text-[11px] font-medium text-muted-foreground">
                                             Choose program
                                         </p>
                                         <div className="flex flex-wrap gap-2">
@@ -1760,7 +1760,7 @@ const RegionSummaryGraphs = () => {
                         </>
                     )}
 
-                    <p className="text-center text-xs text-slate-500">
+                    <p className="text-center text-xs text-muted-foreground">
                         Information &amp; Monitoring of Projects, Services and
                         S&amp;T Interventions · DOST-MIMAROPA
                     </p>

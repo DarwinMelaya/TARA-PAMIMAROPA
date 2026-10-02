@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Psto;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Psto\ImportProjectsRequest;
+use App\Models\DropdownOption;
 use App\Models\Project;
 use App\Services\ProjectExcelExporter;
 use App\Services\ProjectExcelImporter;
@@ -27,6 +28,7 @@ class ProgramController extends Controller
                 : collect(),
             'lockedProvince' => $province,
             'nextCodeSequence' => Project::nextCodeSequence(),
+            'dropdownOptions' => DropdownOption::labelsByCategory(),
         ]);
     }
 

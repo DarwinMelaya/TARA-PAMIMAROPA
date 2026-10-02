@@ -82,8 +82,7 @@ export const STATUS_META: Record<
     ongoing: {
         label: 'Ongoing',
         className: 'bg-blue-500/20 text-blue-100 ring-blue-400/40',
-        classNameLight:
-            'border border-blue-500 bg-blue-600 text-white ring-0',
+        classNameLight: 'border border-blue-500 bg-blue-600 text-white ring-0',
     },
     completed: {
         label: 'Completed',
@@ -94,8 +93,7 @@ export const STATUS_META: Record<
     delayed: {
         label: 'Delayed',
         className: 'bg-red-500/20 text-red-100 ring-red-400/40',
-        classNameLight:
-            'border border-red-600 bg-red-600 text-white ring-0',
+        classNameLight: 'border border-red-600 bg-red-600 text-white ring-0',
     },
     on_hold: {
         label: 'On hold',
@@ -106,8 +104,7 @@ export const STATUS_META: Record<
     cancelled: {
         label: 'Cancelled',
         className: 'bg-rose-500/20 text-rose-100 ring-rose-400/40',
-        classNameLight:
-            'border border-rose-600 bg-rose-600 text-white ring-0',
+        classNameLight: 'border border-rose-600 bg-rose-600 text-white ring-0',
     },
 };
 
@@ -421,8 +418,7 @@ export const MOCK_TARA_PROJECTS: TaraProject[] = [
     {
         id: 'tara-008',
         name: 'GIA Seaweed Dryer – Looc',
-        description:
-            'Mechanical dryer and quality lab for seaweed farmers.',
+        description: 'Mechanical dryer and quality lab for seaweed farmers.',
         beneficiary: 'Looc Seaweed Growers Coop',
         program: 'GIA',
         sector: 'Agriculture',
@@ -444,8 +440,7 @@ export const MOCK_TARA_PROJECTS: TaraProject[] = [
     {
         id: 'tara-009',
         name: 'STARBOOKS Hub – San Jose',
-        description:
-            'Municipal STARBOOKS hub with public access terminals.',
+        description: 'Municipal STARBOOKS hub with public access terminals.',
         beneficiary: 'San Jose Municipal Library',
         program: 'STARBOOKS',
         sector: 'Education',
@@ -694,14 +689,16 @@ export const PROVINCE_CLUSTER: Record<Province, number> = {
 };
 
 /** Default map centers for PSTO coordinate picker. */
-export const PROVINCE_MAP_CENTER: Record<Province, { lat: number; lng: number }> =
-    {
-        'Occidental Mindoro': { lat: 12.85, lng: 120.92 },
-        'Oriental Mindoro': { lat: 13.0, lng: 121.2 },
-        Marinduque: { lat: 13.38, lng: 121.95 },
-        Romblon: { lat: 12.55, lng: 122.27 },
-        Palawan: { lat: 9.75, lng: 118.75 },
-    };
+export const PROVINCE_MAP_CENTER: Record<
+    Province,
+    { lat: number; lng: number }
+> = {
+    'Occidental Mindoro': { lat: 12.85, lng: 120.92 },
+    'Oriental Mindoro': { lat: 13.0, lng: 121.2 },
+    Marinduque: { lat: 13.38, lng: 121.95 },
+    Romblon: { lat: 12.55, lng: 122.27 },
+    Palawan: { lat: 9.75, lng: 118.75 },
+};
 
 /** Preview / match imported layout: QR-TTC-C{n}-{district}-{yy}-{seq}. */
 export const buildProjectCode = (
@@ -712,7 +709,10 @@ export const buildProjectCode = (
 ): string => {
     const cluster = PROVINCE_CLUSTER[province] ?? 5;
     const districtMatch = (district ?? '').match(/(\d+)/);
-    const districtNum = Math.max(1, districtMatch ? Number(districtMatch[1]) : 1);
+    const districtNum = Math.max(
+        1,
+        districtMatch ? Number(districtMatch[1]) : 1,
+    );
     const year =
         yearApproved && yearApproved >= 1990
             ? yearApproved
@@ -731,24 +731,68 @@ export const projectType = (project: TaraProject): string => {
     return PROGRAM_TO_TYPE[project.program];
 };
 
-/** Short label + accent color per project type (dark enough for white text). */
-export const projectTypeMeta = (
-    type: string,
-): { short: string; color: string } => {
+/** Built-in short label + accent color per project type (dark enough for white text). */
+const baseTypeMeta = (type: string): { short: string; color: string } => {
     const t = type.trim().toLowerCase();
 
     if (t.startsWith('setup')) return { short: 'SETUP', color: '#16823c' };
     if (t.startsWith('sscp')) return { short: 'SSCP', color: '#7f23d0' };
     if (t.startsWith('cest')) return { short: 'CEST', color: '#c9440b' };
     if (t.startsWith('roll')) return { short: 'Roll-out', color: '#a16207' };
-    if (t.startsWith('tapi')) return { short: 'TAPI-assisted', color: '#be185d' };
+    if (t.startsWith('tapi'))
+        return { short: 'TAPI-assisted', color: '#be185d' };
     if (t.includes('gia')) {
-        if (t.includes('extern')) return { short: 'GIA · External', color: '#4338ca' };
-        if (t.includes('intern')) return { short: 'GIA · Internal', color: '#0e7490' };
+        if (t.includes('extern'))
+            return { short: 'GIA · External', color: '#4338ca' };
+        if (t.includes('intern'))
+            return { short: 'GIA · Internal', color: '#0e7490' };
         return { short: 'GIA · Community', color: '#1d51db' };
     }
 
     return { short: type.trim() || 'Other', color: '#475569' };
+};
+
+/** Super Admin colors (Dropdown Management), matched by exact label then by short label. */
+const typeColorsByLabel = new Map<string, string>();
+const typeColorsByShort = new Map<string, string>();
+
+export const setTypeColors = (colors?: Record<string, string> | null) => {
+    typeColorsByLabel.clear();
+    typeColorsByShort.clear();
+
+    for (const [label, color] of Object.entries(colors ?? {})) {
+        typeColorsByLabel.set(label.trim().toLowerCase(), color);
+        const short = baseTypeMeta(label).short;
+        if (!typeColorsByShort.has(short)) typeColorsByShort.set(short, color);
+    }
+};
+
+const sectorColorsByLabel = new Map<string, string>();
+
+export const setSectorColors = (colors?: Record<string, string> | null) => {
+    sectorColorsByLabel.clear();
+
+    for (const [label, color] of Object.entries(colors ?? {})) {
+        sectorColorsByLabel.set(label.trim().toLowerCase(), color);
+    }
+};
+
+/** Super Admin color for a sector label, or null when none is set. */
+export const sectorColor = (sector?: string | null): string | null =>
+    sector
+        ? (sectorColorsByLabel.get(sector.trim().toLowerCase()) ?? null)
+        : null;
+
+export const projectTypeMeta = (
+    type: string,
+): { short: string; color: string } => {
+    const base = baseTypeMeta(type);
+    const color =
+        typeColorsByLabel.get(type.trim().toLowerCase()) ??
+        typeColorsByShort.get(base.short) ??
+        base.color;
+
+    return { short: base.short, color };
 };
 
 /** Normalized type label used by type filters (groups Excel spelling variants). */
@@ -774,9 +818,7 @@ export const projectTypeOptions = (projects: TaraProject[]): string[] => {
         return i === -1 ? TYPE_FILTER_ORDER.length : i;
     };
 
-    return [...labels].sort(
-        (a, b) => rank(a) - rank(b) || a.localeCompare(b),
-    );
+    return [...labels].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
 };
 
 export const projectYear = (project: TaraProject): number => {
@@ -808,7 +850,9 @@ export const AI_INSIGHTS = [
 /** Build insight blurbs from the current project list (DB / filters). */
 export const buildLiveInsights = (projects: TaraProject[]): string[] => {
     if (projects.length === 0) {
-        return ['No projects loaded yet. Import the Excel list on Programs to populate analytics.'];
+        return [
+            'No projects loaded yet. Import the Excel list on Programs to populate analytics.',
+        ];
     }
 
     const stats = summarizeProjects(projects);
@@ -856,7 +900,9 @@ export const buildLiveInsights = (projects: TaraProject[]): string[] => {
         lines.push(`Most common type: ${topType[0]} (${topType[1]} projects).`);
     }
     if (stats.delayed > 0) {
-        lines.push(`${stats.delayed} delayed project${stats.delayed === 1 ? '' : 's'} need review.`);
+        lines.push(
+            `${stats.delayed} delayed project${stats.delayed === 1 ? '' : 's'} need review.`,
+        );
     } else {
         lines.push('No delayed projects in the current filter.');
     }

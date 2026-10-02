@@ -1,6 +1,7 @@
 import L from "leaflet";
 import {
   PROGRAM_META,
+  projectTypeMeta,
   type TaraProject,
 } from "../../constants/taraProjects";
 
@@ -27,6 +28,7 @@ export type MapProject = Pick<
   | "id"
   | "name"
   | "program"
+  | "type"
   | "province"
   | "status"
   | "progress"
@@ -105,7 +107,12 @@ export const buildProjectPinHtml = (
   isActive: boolean,
 ): string => {
   const meta = PROGRAM_META[project.program];
-  const colors = pinColorsFor(project.program);
+  const typeColor = project.type?.trim()
+    ? projectTypeMeta(project.type).color
+    : null;
+  const colors = typeColor
+    ? { fill: typeColor, soft: typeColor }
+    : pinColorsFor(project.program);
   const glyph = meta?.short ?? "PRJ";
   const classes = [
     "project-pin",

@@ -50,15 +50,15 @@ const RegionGraphsAiPanel = ({
     ];
 
     return (
-        <div className="space-y-4 rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/80 p-4 shadow-sm dark:border-slate-700 dark:from-slate-900 dark:to-slate-950/60 sm:p-5">
+        <div className="space-y-4 rounded-2xl border border-border bg-card p-4 shadow-xs sm:p-5">
             <div>
-                <p className="text-xs font-medium tracking-wide text-cyan-700 uppercase dark:text-cyan-300">
+                <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                     TARA helper
                 </p>
-                <h2 className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">
+                <h2 className="mt-1 text-lg font-semibold text-foreground">
                     Understand your numbers
                 </h2>
-                <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500">
+                <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
                     Ask questions, get chart notes, or pull planning ideas — written
                     for everyone on the team.
                 </p>
@@ -76,8 +76,8 @@ const RegionGraphsAiPanel = ({
                             className={[
                                 'rounded-xl border px-3 py-3 text-left transition',
                                 on
-                                    ? 'border-cyan-500 bg-cyan-600 text-white shadow-sm'
-                                    : 'border-slate-200 bg-white text-slate-700 hover:border-cyan-200 hover:bg-cyan-50/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800',
+                                    ? 'border-transparent bg-primary text-primary-foreground shadow-xs'
+                                    : 'border-border bg-background text-foreground/80 hover:bg-muted hover:text-foreground',
                             ].join(' ')}
                         >
                             <span className="flex items-center gap-2 text-sm font-semibold">
@@ -87,7 +87,7 @@ const RegionGraphsAiPanel = ({
                             <span
                                 className={[
                                     'mt-1 block text-xs leading-snug',
-                                    on ? 'text-cyan-50' : 'text-slate-500',
+                                    on ? 'text-primary-foreground/70' : 'text-muted-foreground',
                                 ].join(' ')}
                             >
                                 {item.hint}
@@ -117,7 +117,7 @@ const RegionGraphsAiPanel = ({
                     <button
                         type="button"
                         onClick={() => setChatOpen(true)}
-                        className="min-h-10 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
+                        className="min-h-10 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground hover:bg-muted"
                     >
                         Open chat
                     </button>
@@ -141,7 +141,7 @@ const RegionGraphsAiPanel = ({
                     <button
                         type="button"
                         onClick={() => setPlanOpen(true)}
-                        className="min-h-10 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
+                        className="min-h-10 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground hover:bg-muted"
                     >
                         Open planning notes
                     </button>

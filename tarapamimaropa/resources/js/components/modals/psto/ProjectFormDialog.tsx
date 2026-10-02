@@ -1,4 +1,4 @@
-import { Form } from '@inertiajs/react';
+import { Form, usePage } from '@inertiajs/react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { AlertCircle, XIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -47,6 +47,11 @@ type Props = {
 };
 
 type FieldErrors = Partial<Record<string, string>>;
+
+/** Super Admin–managed lists (System Settings › Dropdown Management). */
+type DropdownOptionsProp = {
+    dropdownOptions?: { type?: string[]; sector?: string[] };
+};
 
 const selectClassName =
     'border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:ring-[3px]';
@@ -313,7 +318,12 @@ const ProjectFormBody = ({
 
     const statusValue = project ? projectStatusLabel(project) : 'On-going';
     const typeValue = project ? projectType(project) : '';
+    const [type, setType] = useState(typeValue);
+    const isSetup = type.trim().toLowerCase().startsWith('setup');
     const sectorValue = project?.sector ?? '';
+    const { dropdownOptions } = usePage<DropdownOptionsProp>().props;
+    const typeOptions = dropdownOptions?.type ?? TARA_TYPES;
+    const sectorOptions = dropdownOptions?.sector ?? SECTORS;
 
     const id = (name: string) => `${idPrefix}-${name}`;
     const invalid = (errors: FieldErrors, name: string) =>
@@ -441,17 +451,21 @@ const ProjectFormBody = ({
                                         id={id('type')}
                                         name="type"
                                         className={selectClassName}
-                                        defaultValue={typeValue}
+                                        value={type}
+                                        onChange={(e) =>
+                                            setType(e.target.value)
+                                        }
                                         aria-invalid={invalid(errors, 'type')}
                                     >
                                         <option value="">Select type</option>
-                                        {withCurrent(TARA_TYPES, typeValue).map(
-                                            (type) => (
-                                                <option key={type} value={type}>
-                                                    {type}
-                                                </option>
-                                            ),
-                                        )}
+                                        {withCurrent(
+                                            typeOptions,
+                                            typeValue,
+                                        ).map((type) => (
+                                            <option key={type} value={type}>
+                                                {type}
+                                            </option>
+                                        ))}
                                     </select>
                                 </Field>
 
@@ -468,16 +482,14 @@ const ProjectFormBody = ({
                                         aria-invalid={invalid(errors, 'sector')}
                                     >
                                         <option value="">Select sector</option>
-                                        {withCurrent(SECTORS, sectorValue).map(
-                                            (sector) => (
-                                                <option
-                                                    key={sector}
-                                                    value={sector}
-                                                >
-                                                    {sector}
-                                                </option>
-                                            ),
-                                        )}
+                                        {withCurrent(
+                                            sectorOptions,
+                                            sectorValue,
+                                        ).map((sector) => (
+                                            <option key={sector} value={sector}>
+                                                {sector}
+                                            </option>
+                                        ))}
                                     </select>
                                 </Field>
 
@@ -643,63 +655,67 @@ const ProjectFormBody = ({
                                     />
                                 </Field>
 
-                                <Field
-                                    id={id('due')}
-                                    label="Amount due"
-                                    error={errors.amount_due}
-                                >
-                                    <AffixNumberInput
-                                        id={id('due')}
-                                        name="amount_due"
-                                        prefix="₱"
-                                        defaultValue={toInputValue(
-                                            project?.amount_due,
-                                        )}
-                                        aria-invalid={invalid(
-                                            errors,
-                                            'amount_due',
-                                        )}
-                                    />
-                                </Field>
+                                {isSetup ? (
+                                    <>
+                                        <Field
+                                            id={id('due')}
+                                            label="Amount due"
+                                            error={errors.amount_due}
+                                        >
+                                            <AffixNumberInput
+                                                id={id('due')}
+                                                name="amount_due"
+                                                prefix="₱"
+                                                defaultValue={toInputValue(
+                                                    project?.amount_due,
+                                                )}
+                                                aria-invalid={invalid(
+                                                    errors,
+                                                    'amount_due',
+                                                )}
+                                            />
+                                        </Field>
 
-                                <Field
-                                    id={id('refunded')}
-                                    label="Refunded"
-                                    error={errors.refunded}
-                                >
-                                    <AffixNumberInput
-                                        id={id('refunded')}
-                                        name="refunded"
-                                        prefix="₱"
-                                        defaultValue={toInputValue(
-                                            project?.refunded,
-                                        )}
-                                        aria-invalid={invalid(
-                                            errors,
-                                            'refunded',
-                                        )}
-                                    />
-                                </Field>
+                                        <Field
+                                            id={id('refunded')}
+                                            label="Refunded"
+                                            error={errors.refunded}
+                                        >
+                                            <AffixNumberInput
+                                                id={id('refunded')}
+                                                name="refunded"
+                                                prefix="₱"
+                                                defaultValue={toInputValue(
+                                                    project?.refunded,
+                                                )}
+                                                aria-invalid={invalid(
+                                                    errors,
+                                                    'refunded',
+                                                )}
+                                            />
+                                        </Field>
 
-                                <Field
-                                    id={id('rate')}
-                                    label="Refund rate"
-                                    error={errors.refund_rate}
-                                >
-                                    <AffixNumberInput
-                                        id={id('rate')}
-                                        name="refund_rate"
-                                        suffix="%"
-                                        max={100}
-                                        defaultValue={toInputValue(
-                                            project?.refund_rate,
-                                        )}
-                                        aria-invalid={invalid(
-                                            errors,
-                                            'refund_rate',
-                                        )}
-                                    />
-                                </Field>
+                                        <Field
+                                            id={id('rate')}
+                                            label="Refund rate"
+                                            error={errors.refund_rate}
+                                        >
+                                            <AffixNumberInput
+                                                id={id('rate')}
+                                                name="refund_rate"
+                                                suffix="%"
+                                                max={100}
+                                                defaultValue={toInputValue(
+                                                    project?.refund_rate,
+                                                )}
+                                                aria-invalid={invalid(
+                                                    errors,
+                                                    'refund_rate',
+                                                )}
+                                            />
+                                        </Field>
+                                    </>
+                                ) : null}
                             </Section>
                         </div>
 

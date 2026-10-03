@@ -219,137 +219,137 @@ const readPerfLite = () =>
 
 const UI = {
   light: {
-    page: "bg-[#f4f6f9] text-slate-900",
+    page: "bg-[#f4f6f9] text-[#070F1F]",
     panel:
-      "border-[#dce1e8] bg-white shadow-[0_4px_16px_rgba(15,23,42,0.08)]",
+      "border-[#e2e7ee] bg-white shadow-[0_4px_16px_rgba(15,23,42,0.08)]",
     chromeBtn:
-      "min-h-10 rounded-lg border border-[#c5cdd8] bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors duration-150 hover:border-[#0038a8] hover:text-[#0038a8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0038a8]/40 disabled:opacity-50",
-    badge: "border-[#c5cdd8] bg-white text-[#0038a8] shadow-sm",
-    title: "text-slate-900",
+      "min-h-10 rounded-lg border border-[#d5dce5] bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors duration-150 hover:border-[#1D4ED8] hover:text-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]/40 disabled:opacity-50",
+    badge: "border-[#d5dce5] bg-white text-[#1D4ED8] shadow-sm",
+    title: "text-[#070F1F]",
     subtitle: "text-slate-600",
-    meta: "text-slate-500",
+    meta: "text-[#4b5563]",
     select:
-      "min-h-10 cursor-pointer appearance-none rounded-lg border bg-white py-2 pl-8 pr-8 text-sm font-semibold text-slate-900 shadow-sm outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-[#0038a8]/40",
-    selectIdle: "border-[#c5cdd8] hover:border-[#0038a8]",
-    selectActive: "border-[#0038a8] bg-[#eef3fc]",
-    layerBar: "border-[#c5cdd8] bg-white shadow-sm",
-    layerIdle: "text-slate-500 hover:text-slate-900",
+      "min-h-10 cursor-pointer appearance-none rounded-lg border bg-white py-2 pl-8 pr-8 text-sm font-semibold text-[#070F1F] shadow-sm outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-[#1D4ED8]/40",
+    selectIdle: "border-[#d5dce5] hover:border-[#1D4ED8]",
+    selectActive: "border-[#1D4ED8] bg-[#eff4ff]",
+    layerBar: "border-[#d5dce5] bg-white shadow-sm",
+    layerIdle: "text-[#4b5563] hover:text-[#070F1F]",
     overlayDarkish: "",
     overlay3d: "",
     grid: "",
     fadeTop: "from-white/80 via-white/30",
     fadeBottom: "from-white/70 via-white/20",
-    mobileSheetBtn: "border-[#c5cdd8] bg-white text-slate-700 shadow-sm",
-    mobileSheetBtnOn: "border-[#0038a8] bg-[#0038a8] text-white",
-    scrim: "bg-slate-900/45",
-    modal: "border-[#dce1e8] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.18)]",
-    modalMuted: "text-slate-500",
+    mobileSheetBtn: "border-[#d5dce5] bg-white text-slate-700 shadow-sm",
+    mobileSheetBtnOn: "border-[#1D4ED8] bg-[#1D4ED8] text-white",
+    scrim: "bg-[#030A17]/50",
+    modal: "border-[#e2e7ee] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.18)]",
+    modalMuted: "text-[#4b5563]",
     modalBody: "text-slate-700",
-    modalHeading: "text-slate-900",
+    modalHeading: "text-[#070F1F]",
     feedItem:
-      "border-[#e5e9ef] bg-white hover:border-[#c5cdd8] hover:bg-[#f8fafc]",
-    feedItemOn: "border-[#0038a8] bg-[#eef3fc]",
+      "border-[#e8edf3] bg-white hover:border-[#d5dce5] hover:bg-[#f8fafc]",
+    feedItemOn: "border-[#1D4ED8] bg-[#eff4ff]",
     input:
-      "border-[#c5cdd8] bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#0038a8] focus:ring-2 focus:ring-[#0038a8]/20",
-    insight: "border-[#dce1e8] bg-white text-slate-800 shadow-sm",
+      "border-[#d5dce5] bg-white text-[#070F1F] placeholder:text-slate-500 focus:border-[#1D4ED8] focus:ring-2 focus:ring-[#1D4ED8]/20",
+    insight: "border-[#e2e7ee] bg-white text-slate-800 shadow-sm",
 
     chipIdle:
-      "border border-[#c5cdd8] bg-white text-slate-600 hover:border-[#0038a8] hover:text-[#0038a8]",
-    chipOn: "border border-[#0038a8] bg-[#0038a8] text-white",
-    chipOnAlt: "border border-[#0038a8] bg-[#0038a8] text-white",
-    panelDivider: "border-[#e5e9ef]",
-    panelLabel: "text-slate-500",
-    cell: "border-[#e5e9ef] bg-[#f8fafc]",
+      "border border-[#d5dce5] bg-white text-slate-600 hover:border-[#1D4ED8] hover:text-[#1D4ED8]",
+    chipOn: "border border-[#1D4ED8] bg-[#1D4ED8] text-white",
+    chipOnAlt: "border border-[#1D4ED8] bg-[#1D4ED8] text-white",
+    panelDivider: "border-[#e8edf3]",
+    panelLabel: "text-[#4b5563]",
+    cell: "border-[#e8edf3] bg-[#f8fafc]",
     closeBtn:
-      "rounded-lg border border-[#c5cdd8] p-2 text-slate-500 transition-colors duration-150 hover:bg-slate-50 hover:text-slate-900",
-    iconBtn: "text-slate-400 hover:text-slate-800",
+      "rounded-lg border border-[#d5dce5] p-2 text-[#4b5563] transition-colors duration-150 hover:bg-slate-50 hover:text-[#070F1F]",
+    iconBtn: "text-slate-500 hover:text-slate-800",
     searchPanel:
-      "border-[#dce1e8] bg-white shadow-[0_16px_48px_rgba(15,23,42,0.18)]",
-    searchDivider: "border-[#e5e9ef]",
+      "border-[#e2e7ee] bg-white shadow-[0_16px_48px_rgba(15,23,42,0.18)]",
+    searchDivider: "border-[#e8edf3]",
     avatarBox: "bg-slate-100 ring-slate-200",
-    emptyPhoto: "border-dashed border-[#c5cdd8] bg-[#f8fafc] text-slate-500",
+    emptyPhoto: "border-dashed border-[#d5dce5] bg-[#f8fafc] text-[#4b5563]",
     mutedBtn:
-      "border border-[#c5cdd8] text-slate-600 hover:border-[#0038a8] hover:text-[#0038a8]",
-    showMore: "border border-[#c5cdd8] text-[#0038a8] hover:bg-[#eef3fc]",
+      "border border-[#d5dce5] text-slate-600 hover:border-[#1D4ED8] hover:text-[#1D4ED8]",
+    showMore: "border border-[#d5dce5] text-[#1D4ED8] hover:bg-[#eff4ff]",
     ringOffset: "ring-offset-white",
     alert: "border-red-300 bg-white text-red-700",
-    insightLabel: "text-slate-500",
-    active: "border-[#0038a8] bg-[#eef3fc] text-[#0038a8]",
-    accentText: "text-[#0038a8]",
+    insightLabel: "text-[#4b5563]",
+    active: "border-[#1D4ED8] bg-[#eff4ff] text-[#1D4ED8]",
+    accentText: "text-[#1D4ED8]",
     primaryBtn:
-      "min-h-10 rounded-lg border border-[#0038a8] bg-[#0038a8] px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-[#002d87] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0038a8]/40 focus-visible:ring-offset-1 disabled:opacity-40",
-    heroCard: "border-[#dce1e8] bg-white/95 shadow-[0_4px_16px_rgba(15,23,42,0.08)]",
-    statCard: "border-[#e5e9ef] bg-white hover:border-[#c5cdd8]",
-    statIcon: "bg-[#eef3fc] text-[#0038a8]",
-    statValue: "text-slate-900",
-    countPill: "bg-[#eef3fc] text-[#0038a8]",
+      "min-h-10 rounded-lg border border-[#1D4ED8] bg-[#1D4ED8] px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-[#1E40AF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]/40 focus-visible:ring-offset-1 disabled:opacity-40",
+    heroCard: "border-[#e2e7ee] bg-white/95 shadow-[0_4px_16px_rgba(15,23,42,0.08)]",
+    statCard: "border-[#e8edf3] bg-white hover:border-[#d5dce5]",
+    statIcon: "bg-[#eff4ff] text-[#1D4ED8]",
+    statValue: "text-[#070F1F]",
+    countPill: "bg-[#eff4ff] text-[#1D4ED8]",
   },
   dark: {
-    page: "bg-slate-950 text-slate-100",
+    page: "bg-[#030A17] text-[#f1f1f1]",
     panel:
-      "border-slate-800 bg-slate-900/95 shadow-[0_8px_24px_rgba(0,0,0,0.4)] lg:backdrop-blur-md",
+      "border-white/10 bg-[#070F1F]/95 shadow-[0_8px_24px_rgba(0,0,0,0.4)] lg:backdrop-blur-md",
     chromeBtn:
-      "min-h-10 rounded-lg border border-slate-700 bg-slate-900/95 px-3 py-2 text-sm font-semibold text-slate-200 transition-colors duration-150 hover:border-blue-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 disabled:opacity-50 lg:backdrop-blur-md",
-    badge: "border-slate-700 bg-slate-900 text-blue-200",
+      "min-h-10 rounded-lg border border-white/15 bg-[#070F1F]/95 px-3 py-2 text-sm font-semibold text-[#f1f1f1] transition-colors duration-150 hover:border-[#93C5FD]/60 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/60 disabled:opacity-50 lg:backdrop-blur-md",
+    badge: "border-white/15 bg-[#070F1F] text-[#BFDBFE]",
     title: "text-white",
-    subtitle: "text-slate-300",
-    meta: "text-slate-400",
+    subtitle: "text-[#cfcfcf]",
+    meta: "text-[#a3acbd]",
     select:
-      "min-h-10 cursor-pointer appearance-none rounded-lg border bg-slate-900/95 py-2 pl-8 pr-8 text-sm font-semibold text-white outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-blue-400/60 lg:backdrop-blur-md",
-    selectIdle: "border-slate-700 hover:border-blue-400",
-    selectActive: "border-blue-500 bg-blue-950/60",
-    layerBar: "border-slate-700 bg-slate-900/95 lg:backdrop-blur-md",
-    layerIdle: "text-slate-400 hover:text-white",
+      "min-h-10 cursor-pointer appearance-none rounded-lg border bg-[#070F1F]/95 py-2 pl-8 pr-8 text-sm font-semibold text-white outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-[#93C5FD]/60 lg:backdrop-blur-md",
+    selectIdle: "border-white/15 hover:border-[#93C5FD]/60",
+    selectActive: "border-[#60A5FA] bg-[#0B1E4A]/60",
+    layerBar: "border-white/15 bg-[#070F1F]/95 lg:backdrop-blur-md",
+    layerIdle: "text-[#a3acbd] hover:text-white",
     overlayDarkish:
       "bg-[linear-gradient(to_bottom,rgba(2,6,23,0.05),rgba(2,6,23,0.35))]",
     overlay3d: "",
     grid: "",
-    fadeTop: "from-slate-950/90 via-slate-950/40",
-    fadeBottom: "from-slate-950/90 via-slate-950/40",
-    mobileSheetBtn: "border-slate-700 bg-slate-900 text-slate-200",
-    mobileSheetBtnOn: "border-blue-500 bg-blue-600 text-white",
-    scrim: "bg-slate-950/70",
-    modal: "border-slate-800 bg-slate-900 shadow-[0_16px_40px_rgba(0,0,0,0.5)]",
-    modalMuted: "text-slate-400",
-    modalBody: "text-slate-300",
+    fadeTop: "from-[#030A17]/90 via-[#030A17]/40",
+    fadeBottom: "from-[#030A17]/90 via-[#030A17]/40",
+    mobileSheetBtn: "border-white/15 bg-[#070F1F] text-[#f1f1f1]",
+    mobileSheetBtnOn: "border-[#60A5FA] bg-[#1D4ED8] text-white",
+    scrim: "bg-[#030A17]/70",
+    modal: "border-white/10 bg-[#070F1F] shadow-[0_16px_40px_rgba(0,0,0,0.5)]",
+    modalMuted: "text-[#a3acbd]",
+    modalBody: "text-[#cfcfcf]",
     modalHeading: "text-white",
     feedItem:
-      "border-slate-800 bg-slate-900 hover:border-slate-700 hover:bg-slate-800/60",
-    feedItemOn: "border-blue-500 bg-blue-950/50",
+      "border-white/10 bg-[#070F1F] hover:border-white/15 hover:bg-white/[0.04]",
+    feedItemOn: "border-[#60A5FA] bg-[#0B1E4A]/50",
     input:
-      "border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30",
-    insight: "border-slate-800 bg-slate-900/90 text-slate-200",
+      "border-white/15 bg-[#030A17] text-white placeholder:text-[#8b95a8] focus:border-[#60A5FA] focus:ring-2 focus:ring-[#60A5FA]/30",
+    insight: "border-white/10 bg-[#070F1F]/90 text-[#f1f1f1]",
 
     chipIdle:
-      "border border-slate-700 text-slate-300 hover:border-blue-400 hover:text-white",
-    chipOn: "border border-blue-500 bg-blue-600 text-white",
-    chipOnAlt: "border border-blue-500 bg-blue-600 text-white",
-    panelDivider: "border-slate-800",
-    panelLabel: "text-slate-400",
-    cell: "border-slate-800 bg-slate-950/60",
+      "border border-white/15 text-[#cfcfcf] hover:border-[#93C5FD]/60 hover:text-white",
+    chipOn: "border border-[#60A5FA] bg-[#1D4ED8] text-white",
+    chipOnAlt: "border border-[#60A5FA] bg-[#1D4ED8] text-white",
+    panelDivider: "border-white/10",
+    panelLabel: "text-[#a3acbd]",
+    cell: "border-white/10 bg-[#030A17]/60",
     closeBtn:
-      "rounded-lg border border-slate-700 p-2 text-slate-400 transition-colors duration-150 hover:bg-slate-800 hover:text-white",
-    iconBtn: "text-slate-400 hover:text-white",
+      "rounded-lg border border-white/15 p-2 text-[#a3acbd] transition-colors duration-150 hover:bg-white/[0.06] hover:text-white",
+    iconBtn: "text-[#a3acbd] hover:text-white",
     searchPanel:
-      "border-slate-800 bg-slate-900 shadow-[0_16px_48px_rgba(0,0,0,0.6)]",
-    searchDivider: "border-slate-800",
-    avatarBox: "bg-slate-950/70 ring-slate-700/60",
-    emptyPhoto: "border-dashed border-slate-700 bg-slate-950/60 text-slate-500",
+      "border-white/10 bg-[#070F1F] shadow-[0_16px_48px_rgba(0,0,0,0.6)]",
+    searchDivider: "border-white/10",
+    avatarBox: "bg-[#030A17]/70 ring-white/15",
+    emptyPhoto: "border-dashed border-white/15 bg-[#030A17]/60 text-[#8b95a8]",
     mutedBtn:
-      "border border-slate-700 text-slate-300 hover:border-blue-400 hover:text-white",
-    showMore: "border border-slate-700 text-blue-300 hover:bg-blue-500/10",
-    ringOffset: "ring-offset-slate-900",
-    alert: "border-red-500/40 bg-slate-900 text-red-300",
-    insightLabel: "text-slate-400",
-    active: "border-blue-500 bg-blue-950/60 text-blue-100",
-    accentText: "text-blue-300",
+      "border border-white/15 text-[#cfcfcf] hover:border-[#93C5FD]/60 hover:text-white",
+    showMore: "border border-white/15 text-[#93C5FD] hover:bg-[#60A5FA]/10",
+    ringOffset: "ring-offset-[#070F1F]",
+    alert: "border-red-500/40 bg-[#070F1F] text-red-300",
+    insightLabel: "text-[#a3acbd]",
+    active: "border-[#60A5FA] bg-[#0B1E4A]/60 text-[#DBEAFE]",
+    accentText: "text-[#93C5FD]",
     primaryBtn:
-      "min-h-10 rounded-lg border border-blue-500 bg-blue-600 px-3.5 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900 disabled:opacity-40",
-    heroCard: "border-slate-800 bg-slate-900/90 shadow-[0_8px_24px_rgba(0,0,0,0.4)] backdrop-blur-md",
-    statCard: "border-slate-800 bg-slate-950/40 hover:border-slate-700",
-    statIcon: "bg-blue-500/15 text-blue-300",
+      "min-h-10 rounded-lg border border-[#60A5FA] bg-[#1D4ED8] px-3.5 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/60 focus-visible:ring-offset-1 focus-visible:ring-offset-[#070F1F] disabled:opacity-40",
+    heroCard: "border-white/10 bg-[#070F1F]/90 shadow-[0_8px_24px_rgba(0,0,0,0.4)] backdrop-blur-md",
+    statCard: "border-white/10 bg-[#030A17]/40 hover:border-white/15",
+    statIcon: "bg-[#60A5FA]/15 text-[#93C5FD]",
     statValue: "text-white",
-    countPill: "bg-blue-500/15 text-blue-200",
+    countPill: "bg-[#60A5FA]/15 text-[#BFDBFE]",
   },
 } as const satisfies Record<ThemeMode, Record<string, string>>;
 
@@ -626,7 +626,7 @@ const CommandMapWorkspace = ({
             ) : null}
             <h1
               className={[
-                "font-bold tracking-tight",
+                "font-sei-display font-extrabold tracking-tight",
                 isPublic ? "mt-1 text-xl sm:text-2xl" : "text-xl sm:text-3xl",
                 ui.title,
               ].join(" ")}
@@ -1093,7 +1093,7 @@ const CommandMapWorkspace = ({
         <div className="pointer-events-auto absolute inset-0 z-40 flex items-start justify-center p-3 pt-24 sm:pt-28">
           <button
             type="button"
-            className={`absolute inset-0 cursor-default ${theme === "light" ? "bg-slate-900/25" : "bg-slate-950/55 lg:bg-slate-950/40 lg:backdrop-blur-[2px]"}`}
+            className={`absolute inset-0 cursor-default ${theme === "light" ? "bg-[#030A17]/25" : "bg-[#030A17]/55 lg:bg-[#030A17]/40 lg:backdrop-blur-[2px]"}`}
             onClick={() => setSearchOpen(false)}
             aria-label="Close search"
           />
@@ -1538,7 +1538,7 @@ const CommandMapWorkspace = ({
               <button
                 type="button"
                 onClick={handleCloseDetail}
-                className={`absolute right-3 top-3 grid h-10 w-10 place-items-center ${ui.closeBtn} ${theme === "light" ? "bg-white" : "bg-slate-900"}`}
+                className={`absolute right-3 top-3 grid h-10 w-10 place-items-center ${ui.closeBtn} ${theme === "light" ? "bg-white" : "bg-[#070F1F]"}`}
                 aria-label="Close project details"
               >
                 <HiXMark className="h-5 w-5" aria-hidden />

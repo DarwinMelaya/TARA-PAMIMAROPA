@@ -677,11 +677,14 @@ const ProgramsWorkspace = ({
       <div className="mx-auto max-w-6xl">
         <header className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="min-w-0">
-            <p className={`text-xs font-semibold uppercase tracking-wider ${ui.muted}`}>
+            <p className="text-xs font-medium uppercase tracking-[0.22em] text-primary">
               {provinceLocked ? "PSTO programs" : "Regional programs"}
             </p>
-            <h1 className={`mt-1 text-2xl font-semibold tracking-tight sm:text-3xl ${ui.heading}`}>
-              {scopeLabel} projects
+            <h1 className="font-sei-display mt-2 text-3xl font-extrabold uppercase leading-tight tracking-tight sm:text-5xl">
+              <span className="text-sei-gradient">{scopeLabel}</span>{" "}
+              <span className={`font-sei-title font-medium ${ui.heading}`}>
+                projects
+              </span>
             </h1>
             <p className={`mt-1.5 max-w-prose text-sm leading-relaxed ${ui.soft}`}>
               {provinceLocked

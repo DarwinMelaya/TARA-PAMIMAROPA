@@ -16,6 +16,16 @@ export default defineConfig({
                 bunny('Instrument Sans', {
                     weights: [400, 500, 600],
                 }),
+                bunny('Montserrat', {
+                    weights: [600, 700, 800],
+                }),
+                bunny('Raleway', {
+                    weights: [300, 500],
+                    preload: false,
+                }),
+                bunny('Hanken Grotesk', {
+                    weights: [400, 500, 600],
+                }),
             ],
         }),
         inertia(),

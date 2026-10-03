@@ -20,15 +20,15 @@ export default function DeleteUser() {
     const passwordInput = useRef<HTMLInputElement>(null);
 
     return (
-        <div className="space-y-6">
+        <div className="bg-card space-y-5 rounded-2xl border px-5 py-6 sm:px-6">
             <Heading
                 variant="small"
                 title="Delete account"
                 description="Delete your account and all of its resources"
             />
-            <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
-                <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
-                    <p className="font-medium">Warning</p>
+            <div className="flex flex-col gap-4 rounded-xl border border-red-200 bg-red-50 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-red-500/25 dark:bg-red-500/10">
+                <div className="space-y-0.5 text-red-700 dark:text-red-200">
+                    <p className="font-semibold">Warning</p>
                     <p className="text-sm">
                         Please proceed with caution, this cannot be undone.
                     </p>
@@ -38,6 +38,7 @@ export default function DeleteUser() {
                     <DialogTrigger asChild>
                         <Button
                             variant="destructive"
+                            className="h-11 shrink-0 cursor-pointer rounded-lg px-5 font-semibold"
                             data-test="delete-user-button"
                         >
                             Delete account

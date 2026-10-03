@@ -45,106 +45,110 @@ type PageProps = {
 
 const UI = {
     light: {
-        page: 'bg-[#f4f6f9] text-slate-800',
-        card: 'border-[#c5cdd8] bg-white',
-        cardHeader: 'border-[#dce1e8] bg-[#f8fafc]',
-        eyebrow: 'text-[#0038a8]',
-        muted: 'text-slate-500',
-        focus: 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0038a8]/40 focus-visible:ring-offset-1 focus-visible:ring-offset-white',
+        page: 'bg-[#f4f6f9] text-[#1a1f29]',
+        gradient:
+            'bg-linear-to-r from-[#0284C7] via-[#2563EB] to-[#1E3A8A] bg-clip-text text-transparent',
+        kpiValue: 'text-[#030A17]',
+        card: 'border-[#d5dce5] bg-white',
+        cardHeader: 'border-[#e2e7ee] bg-[#f8fafc]',
+        eyebrow: 'text-[#1D4ED8]',
+        muted: 'text-[#4b5563]',
+        focus: 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]/50 focus-visible:ring-offset-1 focus-visible:ring-offset-white',
         ghostBtn:
-            'border-[#c5cdd8] bg-white text-slate-700 hover:border-[#0038a8] hover:text-[#0038a8] active:bg-slate-50',
+            'border-[#d5dce5] bg-white text-[#1a1f29] hover:border-[#1D4ED8] hover:text-[#1D4ED8] active:bg-slate-50',
         primaryBtn:
-            'border-[#0038a8] bg-[#0038a8] text-white hover:bg-[#002d87] active:bg-[#00246d]',
-        groupDivider: 'border-[#c5cdd8]',
-        chip: 'border-[#c5cdd8] bg-white text-slate-700 hover:border-[#0038a8] hover:text-[#0038a8]',
-        chipActive: 'border-[#0038a8] bg-[#0038a8] text-white',
-        field: 'border-[#c5cdd8] bg-white text-slate-800 placeholder:text-slate-400 focus:border-[#0038a8] focus:ring-2 focus:ring-[#0038a8]/20',
-        laneLabel: 'text-slate-500',
-        thead: 'border-[#dce1e8] bg-[#f8fafc] text-slate-500',
+            'border-[#1D4ED8] bg-[#1D4ED8] text-white hover:bg-[#1E40AF] active:bg-[#1E3A8A]',
+        groupDivider: 'border-[#d5dce5]',
+        chip: 'border-[#d5dce5] bg-white text-[#374151] hover:border-[#1D4ED8] hover:text-[#1D4ED8]',
+        chipActive: 'border-[#1D4ED8] bg-[#1D4ED8] text-white',
+        field: 'border-[#d5dce5] bg-white text-[#1a1f29] placeholder:text-slate-500 focus:border-[#1D4ED8] focus:ring-2 focus:ring-[#1D4ED8]/20',
+        laneLabel: 'text-[#4b5563]',
+        thead: 'border-[#e2e7ee] bg-[#f8fafc] text-[#4b5563]',
         rowBorder: 'border-[#eef1f5]',
-        rowActive: 'bg-[#e8eef8]',
-        rowHover: 'hover:bg-[#f4f7fb]',
-        name: 'text-slate-900',
-        location: 'text-slate-700',
-        cost: 'text-slate-900',
+        rowActive: 'bg-[#60A5FA]/15',
+        rowHover: 'hover:bg-[#eff4ff]',
+        name: 'text-[#030A17]',
+        location: 'text-[#374151]',
+        cost: 'text-[#030A17]',
         track: 'bg-slate-200',
         mobileBase: 'bg-white active:bg-slate-50',
-        emptyIcon: 'bg-slate-100 text-slate-400',
-        footer: 'border-[#002d87] bg-[#0038a8]',
-        footerMuted: 'text-blue-100',
-        footerLabel: 'text-blue-200',
-        footerLink: 'text-blue-100 hover:text-white',
-        footerBottom: 'border-[#002d87] bg-[#002d87] text-blue-200',
-        scrim: 'bg-slate-900/50',
-        modalPanel: 'border-[#c5cdd8] bg-white',
-        modalTitle: 'text-slate-900',
+        emptyIcon: 'bg-slate-100 text-slate-500',
+        scrim: 'bg-[#030A17]/60',
+        modalPanel: 'border-[#d5dce5] bg-white',
+        modalTitle: 'text-[#030A17]',
         modalClose:
-            'border-[#c5cdd8] text-slate-500 hover:bg-slate-50 hover:text-slate-800',
-        modalImg: 'border-[#dce1e8] bg-slate-100',
-        modalBody: 'text-slate-600',
-        modalDt: 'text-slate-500',
-        modalDd: 'text-slate-900',
-        modalFacts: 'border-[#dce1e8] bg-[#f8fafc]',
-        kpiCard: 'border-[#dce1e8] bg-white',
-        kpiFeature: 'border-[#0038a8] bg-[#0038a8] text-white',
-        kpiFeatureMuted: 'text-blue-100',
-        bar: 'bg-[#0038a8]',
-        rowBtn: 'hover:bg-[#f4f7fb]',
+            'border-[#d5dce5] text-slate-600 hover:bg-slate-50 hover:text-[#030A17]',
+        modalImg: 'border-[#e2e7ee] bg-slate-100',
+        modalBody: 'text-[#374151]',
+        modalDt: 'text-[#4b5563]',
+        modalDd: 'text-[#030A17]',
+        modalFacts: 'border-[#e2e7ee] bg-[#f8fafc]',
+        kpiCard: 'border-[#d5dce5] bg-white',
+        kpiFeature:
+            'border-[#1D4ED8] bg-linear-to-br from-[#1D4ED8] to-[#1E3A8A] text-white',
+        kpiFeatureMuted: 'text-[#93C5FD]',
+        bar: 'bg-linear-to-r from-[#60A5FA] via-[#2563EB] to-[#1E3A8A]',
+        rowBtn: 'hover:bg-[#eff4ff]',
     },
     dark: {
-        page: 'bg-slate-950 text-slate-200',
-        card: 'border-slate-800 bg-slate-900',
-        cardHeader: 'border-slate-800 bg-slate-950/60',
-        eyebrow: 'text-blue-300',
-        muted: 'text-slate-400',
-        focus: 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900',
+        page: 'bg-[#030A17] text-[#f1f1f1] [color-scheme:dark]',
+        gradient:
+            'bg-linear-to-r from-[#BFDBFE] via-[#60A5FA] to-[#1D4ED8] bg-clip-text text-transparent',
+        kpiValue:
+            'bg-linear-to-r from-[#DBEAFE] to-[#60A5FA] bg-clip-text text-transparent',
+        card: 'border-white/10 bg-[#070F1F]/80 backdrop-blur-sm',
+        cardHeader: 'border-white/10 bg-[#050c1a]/80',
+        eyebrow: 'text-[#93C5FD]',
+        muted: 'text-[#cfcfcf]/80',
+        focus: 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-1 focus-visible:ring-offset-[#030A17]',
         ghostBtn:
-            'border-slate-700 bg-slate-900 text-slate-200 hover:border-blue-400 hover:text-blue-200 active:bg-slate-800',
+            'border-white/15 bg-white/[0.03] text-[#f1f1f1] hover:border-[#93C5FD]/60 hover:text-[#93C5FD] active:bg-white/[0.06]',
         primaryBtn:
-            'border-blue-500 bg-blue-600 text-white hover:bg-blue-500 active:bg-blue-700',
-        groupDivider: 'border-slate-700',
-        chip: 'border-slate-700 bg-slate-900 text-slate-300 hover:border-blue-400 hover:text-blue-200',
-        chipActive: 'border-blue-500 bg-blue-600 text-white',
-        field: 'border-slate-700 bg-slate-950 text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30',
-        laneLabel: 'text-slate-500',
-        thead: 'border-slate-800 bg-slate-950/60 text-slate-400',
-        rowBorder: 'border-slate-800',
-        rowActive: 'bg-blue-950/50',
-        rowHover: 'hover:bg-slate-800/60',
-        name: 'text-white',
-        location: 'text-slate-300',
-        cost: 'text-slate-100',
-        track: 'bg-slate-800',
-        mobileBase: 'bg-slate-900 active:bg-slate-800',
-        emptyIcon: 'bg-slate-800 text-slate-500',
-        footer: 'border-slate-800 bg-slate-950',
-        footerMuted: 'text-slate-400',
-        footerLabel: 'text-slate-500',
-        footerLink: 'text-slate-400 hover:text-white',
-        footerBottom: 'border-slate-800 bg-black/40 text-slate-500',
-        scrim: 'bg-slate-950/70',
-        modalPanel: 'border-slate-700 bg-slate-900',
-        modalTitle: 'text-white',
+            'border-[#60A5FA]/40 bg-[#1D4ED8] text-white hover:bg-[#2563EB] active:bg-[#1E40AF]',
+        groupDivider: 'border-white/15',
+        chip: 'border-white/15 bg-white/[0.03] text-[#cfcfcf] hover:border-[#93C5FD]/60 hover:text-[#93C5FD]',
+        chipActive: 'border-[#60A5FA] bg-[#60A5FA] text-[#030A17]',
+        field: 'border-white/15 bg-[#050c1a] text-[#f1f1f1] placeholder:text-white/50 focus:border-[#60A5FA] focus:ring-2 focus:ring-[#60A5FA]/30',
+        laneLabel: 'text-[#cfcfcf]/70',
+        thead: 'border-white/10 bg-[#050c1a]/80 text-[#cfcfcf]/80',
+        rowBorder: 'border-white/[0.06]',
+        rowActive: 'bg-[#1D4ED8]/30',
+        rowHover: 'hover:bg-white/[0.04]',
+        name: 'text-[#f1f1f1]',
+        location: 'text-[#cfcfcf]',
+        cost: 'text-[#f1f1f1]',
+        track: 'bg-white/10',
+        mobileBase: 'bg-transparent active:bg-white/[0.04]',
+        emptyIcon: 'bg-white/[0.06] text-[#cfcfcf]/70',
+        scrim: 'bg-[#030A17]/75',
+        modalPanel: 'border-white/15 bg-[#070F1F]',
+        modalTitle: 'text-[#f1f1f1]',
         modalClose:
-            'border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white',
-        modalImg: 'border-slate-700 bg-slate-800',
-        modalBody: 'text-slate-300',
-        modalDt: 'text-slate-400',
-        modalDd: 'text-white',
-        modalFacts: 'border-slate-800 bg-slate-950/60',
-        kpiCard: 'border-slate-800 bg-slate-900',
-        kpiFeature: 'border-blue-500/50 bg-blue-600 text-white',
-        kpiFeatureMuted: 'text-blue-100',
-        bar: 'bg-blue-400',
-        rowBtn: 'hover:bg-slate-800/60',
+            'border-white/15 text-[#cfcfcf] hover:bg-white/10 hover:text-white',
+        modalImg: 'border-white/10 bg-[#0c1526]',
+        modalBody: 'text-[#cfcfcf]',
+        modalDt: 'text-[#cfcfcf]/70',
+        modalDd: 'text-[#f1f1f1]',
+        modalFacts: 'border-white/10 bg-[#050c1a]',
+        kpiCard: 'border-white/10 bg-[#070F1F]/80 backdrop-blur-sm',
+        kpiFeature:
+            'border-[#60A5FA]/30 bg-linear-to-br from-[#1D4ED8] to-[#0B1E4A] text-white',
+        kpiFeatureMuted: 'text-[#93C5FD]',
+        bar: 'bg-linear-to-r from-[#BFDBFE] via-[#60A5FA] to-[#1D4ED8]',
+        rowBtn: 'hover:bg-white/[0.04]',
     },
 } as const satisfies Record<ThemeMode, Record<string, string>>;
 
 const BTN_BASE =
-    'inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border px-3.5 text-sm font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40';
+    'inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border px-3.5 font-sei-body text-sm font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-40';
 
 const CHIP_BASE =
-    'inline-flex min-h-9 items-center rounded-full border px-3 text-xs font-semibold transition-colors duration-150';
+    'inline-flex min-h-9 cursor-pointer items-center rounded-full border px-3 font-sei-body text-xs font-semibold transition-colors duration-200';
+
+const EYEBROW = 'font-sei-body text-xs font-medium uppercase tracking-[0.22em]';
+
+const SECTION_TITLE =
+    'mt-2 font-sei-display text-3xl font-extrabold uppercase leading-tight tracking-tight sm:text-5xl';
 
 type SortKey = 'name' | 'progress' | 'budget' | 'province';
 
@@ -378,7 +382,8 @@ const LandingPage = () => {
         () =>
             projects.filter(
                 (p) =>
-                    (provinceFilter === 'all' || p.province === provinceFilter) &&
+                    (provinceFilter === 'all' ||
+                        p.province === provinceFilter) &&
                     (typeFilter === 'all' ||
                         projectTypeLabel(p) === typeFilter) &&
                     (statusFilter === 'all' ||
@@ -505,7 +510,7 @@ const LandingPage = () => {
             : `${sorted.length.toLocaleString()} project${sorted.length === 1 ? '' : 's'} matching current filters`;
 
     return (
-        <div className={`min-h-svh ${t.page}`}>
+        <div className={`font-sei-body min-h-svh ${t.page}`}>
             <div id="top" className="relative h-svh w-full">
                 <CommandMapWorkspace
                     projects={projects}
@@ -515,828 +520,906 @@ const LandingPage = () => {
                 />
             </div>
 
-            <section
-                aria-labelledby="overview-title"
-                className="mx-auto max-w-[96rem] px-3 pt-12 sm:px-6 lg:px-8"
-            >
-                <p
-                    className={`text-xs font-bold uppercase tracking-[0.14em] ${t.eyebrow}`}
-                >
-                    Regional overview
-                </p>
-                <h2
-                    id="overview-title"
-                    className={`mt-1 text-2xl font-bold tracking-tight sm:text-3xl ${t.name}`}
-                >
-                    MIMAROPA at a glance
-                </h2>
-                <p className={`mt-1.5 max-w-2xl text-sm ${t.muted}`}>
-                    DOST-MIMAROPA projects across five provinces, updated as
-                    offices report progress.
-                </p>
-
-                <div className="mt-6 grid gap-4 lg:grid-cols-12">
-                    <dl className="grid grid-cols-2 gap-4 lg:col-span-7">
+            <div className="relative isolate overflow-hidden">
+                {isDark ? (
+                    <>
                         <div
-                            className={`col-span-2 rounded-2xl border p-5 sm:col-span-1 ${t.kpiFeature}`}
-                        >
-                            <dt
-                                className={`text-sm font-medium ${t.kpiFeatureMuted}`}
-                            >
-                                Total investment
-                            </dt>
-                            <dd className="mt-2 text-3xl font-bold tracking-tight tabular-nums sm:text-4xl">
-                                ₱{formatCompact(overview.funding)}
-                            </dd>
-                            <dd
-                                className={`mt-1 text-xs ${t.kpiFeatureMuted}`}
-                            >
-                                {formatPeso(overview.funding)} in approved
-                                project cost
-                            </dd>
-                        </div>
-                        {(
-                            [
-                                [
-                                    'Projects',
-                                    overview.total.toLocaleString(),
-                                    `${overview.active.toLocaleString()} currently active`,
-                                ],
-                                overview.beneficiaries > 0
-                                    ? [
-                                          'Beneficiaries reached',
-                                          formatCompact(overview.beneficiaries),
-                                          `${overview.partners.toLocaleString()} partner organizations`,
-                                      ]
-                                    : [
-                                          'Municipalities reached',
-                                          overview.municipalities.toLocaleString(),
-                                          `${overview.partners.toLocaleString()} partner organizations`,
-                                      ],
-                                [
-                                    'Completion rate',
-                                    `${completionRate}%`,
-                                    `${overview.completed.toLocaleString()} of ${overview.total.toLocaleString()} completed`,
-                                ],
-                            ] as const
-                        ).map(([label, value, sub], index) => (
-                            <div
-                                key={label}
-                                className={`rounded-2xl border p-5 ${index === 2 ? 'col-span-2 sm:col-span-1' : ''} ${t.kpiCard}`}
-                            >
-                                <dt className={`text-sm font-medium ${t.muted}`}>
-                                    {label}
-                                </dt>
-                                <dd
-                                    className={`mt-2 text-3xl font-bold tracking-tight tabular-nums ${t.name}`}
-                                >
-                                    {value}
-                                </dd>
-                                <dd className={`mt-1 text-xs ${t.muted}`}>
-                                    {sub}
-                                </dd>
-                            </div>
-                        ))}
-                    </dl>
-
-                    <div
-                        className={`rounded-2xl border p-5 lg:col-span-5 ${t.kpiCard}`}
-                    >
-                        <div className="flex items-baseline justify-between gap-3">
-                            <h3 className={`text-base font-semibold ${t.name}`}>
-                                Projects by province
-                            </h3>
-                            <p className={`text-xs ${t.muted}`}>
-                                Select to filter the list
-                            </p>
-                        </div>
-                        <ul className="mt-4 space-y-1">
-                            {provinceStats.map((row) => {
-                                const active = provinceFilter === row.province;
-                                return (
-                                    <li key={row.province}>
-                                        <button
-                                            type="button"
-                                            aria-pressed={active}
-                                            onClick={() => {
-                                                setProvinceFilter(row.province);
-                                                scrollToResults();
-                                            }}
-                                            className={`grid w-full grid-cols-[minmax(0,9rem)_1fr_auto] items-center gap-3 rounded-lg px-2 py-2.5 text-left transition-colors duration-150 ${active ? t.rowActive : t.rowBtn} ${t.focus}`}
-                                        >
-                                            <span
-                                                className={`truncate text-sm font-semibold ${t.name}`}
-                                            >
-                                                {row.province}
-                                            </span>
-                                            <span
-                                                className={`h-2 overflow-hidden rounded-full ${t.track}`}
-                                                aria-hidden
-                                            >
-                                                <span
-                                                    className={`block h-full rounded-full ${t.bar}`}
-                                                    style={{
-                                                        width: `${Math.max(4, row.share * 100)}%`,
-                                                    }}
-                                                />
-                                            </span>
-                                            <span className="text-right">
-                                                <span
-                                                    className={`block text-sm font-semibold tabular-nums ${t.name}`}
-                                                >
-                                                    {row.count.toLocaleString()}
-                                                </span>
-                                                <span
-                                                    className={`block text-xs tabular-nums ${t.muted}`}
-                                                >
-                                                    ₱{formatCompact(row.budget)}
-                                                </span>
-                                            </span>
-                                        </button>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    </div>
-                </div>
-            </section>
-
-            <section
-                id="project-results"
-                ref={resultsRef}
-                aria-labelledby="project-results-title"
-                className="mx-auto max-w-[96rem] scroll-mt-6 px-3 py-10 sm:px-6 lg:px-8"
-            >
-                <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-                    <div className="min-w-0">
-                        <p
-                            className={`text-xs font-bold uppercase tracking-[0.14em] ${t.eyebrow}`}
-                        >
-                            Full portfolio
-                        </p>
-                        <h2
-                            id="project-results-title"
-                            className={`mt-1 text-2xl font-bold tracking-tight sm:text-3xl ${t.name}`}
-                        >
-                            Browse all projects
-                        </h2>
-                        <p
-                            className={`mt-1.5 text-sm ${t.muted}`}
-                            aria-live="polite"
-                        >
-                            {sorted.length === 0
-                                ? 'No projects match these filters.'
-                                : `Showing ${pageStart}–${pageEnd} of ${sorted.length.toLocaleString()} projects`}
-                        </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                        <a
-                            href="#top"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }}
-                            className={`${BTN_BASE} ${t.ghostBtn} ${t.focus}`}
-                        >
-                            <HiMapPin className="h-4 w-4" aria-hidden />
-                            Back to map
-                        </a>
+                            aria-hidden
+                            className="pointer-events-none absolute -top-64 -right-64 -z-10 h-[56rem] w-[56rem] bg-[radial-gradient(circle,_#0B1E4A_0%,_transparent_60%)] opacity-80"
+                        />
                         <div
-                            role="group"
-                            aria-label="Export filtered projects"
-                            className={`inline-flex overflow-hidden rounded-lg border ${t.groupDivider}`}
-                        >
-                            <button
-                                type="button"
-                                disabled={sorted.length === 0}
-                                onClick={exportPdf}
-                                title={exportTitle}
-                                className={`${BTN_BASE} rounded-none border-0 ${t.ghostBtn} ${t.focus}`}
-                            >
-                                <HiDocumentText
-                                    className="h-4 w-4"
-                                    aria-hidden
-                                />
-                                Export PDF
-                            </button>
-                            <button
-                                type="button"
-                                disabled={sorted.length === 0}
-                                onClick={exportCsv}
-                                title={exportTitle}
-                                className={`${BTN_BASE} rounded-none border-0 border-l ${t.groupDivider} ${t.ghostBtn} ${t.focus}`}
-                            >
-                                <HiArrowDownTray
-                                    className="h-4 w-4"
-                                    aria-hidden
-                                />
-                                Export CSV
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {exportError ? (
-                    <p
-                        role="alert"
-                        className="mb-4 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300"
-                    >
-                        {exportError}
-                    </p>
+                            aria-hidden
+                            className="pointer-events-none absolute top-[40rem] -left-72 -z-10 h-[56rem] w-[56rem] bg-[radial-gradient(circle,_#0c1f4a_0%,_transparent_60%)] opacity-50"
+                        />
+                    </>
                 ) : null}
 
-                <div className={`overflow-hidden rounded-2xl border ${t.card}`}>
-                    <div
-                        className={`flex flex-col gap-4 border-b p-4 sm:p-5 ${t.cardHeader}`}
+                <section
+                    aria-labelledby="overview-title"
+                    className="mx-auto max-w-[96rem] px-3 pt-16 sm:px-6 lg:px-8"
+                >
+                    <p className={`${EYEBROW} ${t.eyebrow}`}>
+                        Regional overview
+                    </p>
+                    <h2 id="overview-title" className={SECTION_TITLE}>
+                        <span className={t.gradient}>MIMAROPA</span>{' '}
+                        <span
+                            className={`font-sei-title font-medium ${t.name}`}
+                        >
+                            at a glance
+                        </span>
+                    </h2>
+                    <p
+                        className={`mt-3 max-w-2xl text-sm tracking-wide uppercase sm:text-base ${t.muted}`}
                     >
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                            <div className="relative min-w-0 flex-1 sm:max-w-md">
-                                <label
-                                    htmlFor="project-search"
-                                    className="sr-only"
-                                >
-                                    Search projects
-                                </label>
-                                <HiMagnifyingGlass
-                                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-                                    aria-hidden
-                                />
-                                <input
-                                    id="project-search"
-                                    type="search"
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                    placeholder="Project, municipality, sector…"
-                                    className={`min-h-10 w-full rounded-lg border py-2 pl-9 pr-9 text-sm outline-none transition-colors duration-150 [&::-webkit-search-cancel-button]:hidden ${t.field}`}
-                                />
-                                {query ? (
-                                    <button
-                                        type="button"
-                                        onClick={() => setQuery('')}
-                                        aria-label="Clear search"
-                                        className={`absolute right-1.5 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md ${t.muted} hover:bg-slate-500/10 ${t.focus}`}
-                                    >
-                                        <HiXMark
-                                            className="h-4 w-4"
-                                            aria-hidden
-                                        />
-                                    </button>
-                                ) : null}
-                            </div>
-                            <div className="flex items-center gap-2 sm:ml-auto">
-                                <label
-                                    htmlFor="project-sort"
-                                    className={`text-sm font-medium ${t.laneLabel}`}
-                                >
-                                    Sort by
-                                </label>
-                                <select
-                                    id="project-sort"
-                                    value={sortKey}
-                                    onChange={(e) =>
-                                        setSortKey(e.target.value as SortKey)
-                                    }
-                                    className={`min-h-10 rounded-lg border px-3 text-sm font-semibold outline-none transition-colors duration-150 ${t.field}`}
-                                >
-                                    {SORT_OPTIONS.map((opt) => (
-                                        <option key={opt.id} value={opt.id}>
-                                            {opt.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
+                        DOST-MIMAROPA projects across five provinces, updated as
+                        offices report progress.
+                    </p>
 
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
-                            <p
-                                id="province-filter-label"
-                                className={`shrink-0 pt-2 text-xs font-bold uppercase tracking-[0.1em] sm:w-20 ${t.laneLabel}`}
-                            >
-                                Province
-                            </p>
+                    <div className="mt-8 grid gap-4 lg:grid-cols-12">
+                        <dl className="grid grid-cols-2 gap-4 lg:col-span-7">
                             <div
-                                role="group"
-                                aria-labelledby="province-filter-label"
-                                className="flex flex-wrap gap-2"
+                                className={`col-span-2 rounded-2xl border p-5 sm:col-span-1 ${t.kpiFeature}`}
                             >
-                                {(['all', ...PROVINCES] as const).map(
-                                    (province) => {
-                                        const active =
-                                            provinceFilter === province;
-                                        return (
+                                <dt
+                                    className={`text-xs font-medium tracking-[0.18em] uppercase ${t.kpiFeatureMuted}`}
+                                >
+                                    Total investment
+                                </dt>
+                                <dd className="font-sei-display mt-3 text-4xl leading-none font-bold tracking-tight tabular-nums sm:text-5xl">
+                                    ₱{formatCompact(overview.funding)}
+                                </dd>
+                                <dd
+                                    className={`mt-1 text-xs ${t.kpiFeatureMuted}`}
+                                >
+                                    {formatPeso(overview.funding)} in approved
+                                    project cost
+                                </dd>
+                            </div>
+                            {(
+                                [
+                                    [
+                                        'Projects',
+                                        overview.total.toLocaleString(),
+                                        `${overview.active.toLocaleString()} currently active`,
+                                    ],
+                                    overview.beneficiaries > 0
+                                        ? [
+                                              'Beneficiaries reached',
+                                              formatCompact(
+                                                  overview.beneficiaries,
+                                              ),
+                                              `${overview.partners.toLocaleString()} partner organizations`,
+                                          ]
+                                        : [
+                                              'Municipalities reached',
+                                              overview.municipalities.toLocaleString(),
+                                              `${overview.partners.toLocaleString()} partner organizations`,
+                                          ],
+                                    [
+                                        'Completion rate',
+                                        `${completionRate}%`,
+                                        `${overview.completed.toLocaleString()} of ${overview.total.toLocaleString()} completed`,
+                                    ],
+                                ] as const
+                            ).map(([label, value, sub], index) => (
+                                <div
+                                    key={label}
+                                    className={`rounded-2xl border p-5 ${index === 2 ? 'col-span-2 sm:col-span-1' : ''} ${t.kpiCard}`}
+                                >
+                                    <dt
+                                        className={`text-xs font-medium tracking-[0.18em] uppercase ${t.muted}`}
+                                    >
+                                        {label}
+                                    </dt>
+                                    <dd
+                                        className={`font-sei-display mt-3 text-4xl leading-none font-bold tracking-tight tabular-nums ${t.kpiValue}`}
+                                    >
+                                        {value}
+                                    </dd>
+                                    <dd className={`mt-1 text-xs ${t.muted}`}>
+                                        {sub}
+                                    </dd>
+                                </div>
+                            ))}
+                        </dl>
+
+                        <div
+                            className={`rounded-2xl border p-5 lg:col-span-5 ${t.kpiCard}`}
+                        >
+                            <div className="flex items-baseline justify-between gap-3">
+                                <h3
+                                    className={`font-sei-display text-sm font-bold tracking-[0.12em] uppercase ${t.name}`}
+                                >
+                                    Projects by province
+                                </h3>
+                                <p className={`text-xs ${t.muted}`}>
+                                    Select to filter the list
+                                </p>
+                            </div>
+                            <ul className="mt-4 space-y-1">
+                                {provinceStats.map((row) => {
+                                    const active =
+                                        provinceFilter === row.province;
+                                    return (
+                                        <li key={row.province}>
                                             <button
-                                                key={province}
                                                 type="button"
                                                 aria-pressed={active}
-                                                onClick={() =>
+                                                onClick={() => {
                                                     setProvinceFilter(
-                                                        active &&
-                                                            province !== 'all'
-                                                            ? 'all'
-                                                            : province,
-                                                    )
-                                                }
-                                                className={`${CHIP_BASE} ${active ? t.chipActive : t.chip} ${t.focus}`}
+                                                        row.province,
+                                                    );
+                                                    scrollToResults();
+                                                }}
+                                                className={`grid w-full grid-cols-[minmax(0,9rem)_1fr_auto] items-center gap-3 rounded-lg px-2 py-2.5 text-left transition-colors duration-150 ${active ? t.rowActive : t.rowBtn} ${t.focus}`}
                                             >
-                                                {province === 'all'
-                                                    ? 'All'
-                                                    : province}
-                                            </button>
-                                        );
-                                    },
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
-                            <p
-                                id="type-filter-label"
-                                className={`shrink-0 pt-2 text-xs font-bold uppercase tracking-[0.1em] sm:w-20 ${t.laneLabel}`}
-                            >
-                                Type
-                            </p>
-                            <div
-                                role="group"
-                                aria-labelledby="type-filter-label"
-                                className="flex flex-wrap gap-2"
-                            >
-                                {(['all', ...typeOptions] as const).map(
-                                    (type) => {
-                                        const active = typeFilter === type;
-                                        return (
-                                            <button
-                                                key={type}
-                                                type="button"
-                                                aria-pressed={active}
-                                                onClick={() =>
-                                                    setTypeFilter(
-                                                        active && type !== 'all'
-                                                            ? 'all'
-                                                            : type,
-                                                    )
-                                                }
-                                                className={`${CHIP_BASE} ${active ? t.chipActive : t.chip} ${t.focus}`}
-                                            >
-                                                {type === 'all' ? 'All' : type}
-                                            </button>
-                                        );
-                                    },
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
-                            <p
-                                id="status-filter-label"
-                                className={`shrink-0 pt-2 text-xs font-bold uppercase tracking-[0.1em] sm:w-20 ${t.laneLabel}`}
-                            >
-                                Status
-                            </p>
-                            <div
-                                role="group"
-                                aria-labelledby="status-filter-label"
-                                className="flex flex-1 flex-wrap items-center gap-2"
-                            >
-                                <button
-                                    type="button"
-                                    aria-pressed={statusFilter === 'all'}
-                                    onClick={() => setStatusFilter('all')}
-                                    className={`${CHIP_BASE} ${statusFilter === 'all' ? t.chipActive : t.chip} ${t.focus}`}
-                                >
-                                    All
-                                </button>
-                                {statusOptions.map((status) => {
-                                    const active = statusFilter === status;
-                                    const sample = active
-                                        ? projects.find(
-                                              (p) =>
-                                                  projectStatusLabel(p) ===
-                                                  status,
-                                          )
-                                        : undefined;
-                                    return (
-                                        <button
-                                            key={status}
-                                            type="button"
-                                            aria-pressed={active}
-                                            onClick={() =>
-                                                setStatusFilter(
-                                                    active ? 'all' : status,
-                                                )
-                                            }
-                                            className={`${CHIP_BASE} ${
-                                                sample
-                                                    ? projectStatusClass(
-                                                          sample,
-                                                          statusMode,
-                                                      )
-                                                    : t.chip
-                                            } ${t.focus}`}
-                                        >
-                                            {status}
-                                        </button>
-                                    );
-                                })}
-                                {hasFilters ? (
-                                    <button
-                                        type="button"
-                                        onClick={clearFilters}
-                                        className={`inline-flex min-h-9 items-center gap-1 rounded-full px-3 text-xs font-semibold ${t.eyebrow} hover:underline underline-offset-2 sm:ml-auto ${t.focus}`}
-                                    >
-                                        <HiXMark
-                                            className="h-3.5 w-3.5"
-                                            aria-hidden
-                                        />
-                                        Clear all filters
-                                    </button>
-                                ) : null}
-                            </div>
-                        </div>
-                    </div>
-
-                    {sorted.length === 0 ? (
-                        <div className="flex flex-col items-center px-6 py-16 text-center">
-                            <span
-                                className={`grid h-12 w-12 place-items-center rounded-full ${t.emptyIcon}`}
-                            >
-                                <HiMagnifyingGlass
-                                    className="h-6 w-6"
-                                    aria-hidden
-                                />
-                            </span>
-                            <h3
-                                className={`mt-4 text-base font-semibold ${t.name}`}
-                            >
-                                No projects match these filters
-                            </h3>
-                            <p className={`mt-1 max-w-sm text-sm ${t.muted}`}>
-                                Try a different keyword, or widen the province
-                                and status filters.
-                            </p>
-                            {hasFilters ? (
-                                <button
-                                    type="button"
-                                    onClick={clearFilters}
-                                    className={`${BTN_BASE} mt-5 ${t.primaryBtn} ${t.focus}`}
-                                >
-                                    Clear all filters
-                                </button>
-                            ) : null}
-                        </div>
-                    ) : (
-                        <>
-                            <div className="hidden overflow-x-auto md:block">
-                                <table className="w-full min-w-[760px] border-collapse text-left text-sm">
-                                    <thead>
-                                        <tr
-                                            className={`border-b text-xs uppercase tracking-wide ${t.thead}`}
-                                        >
-                                            <th
-                                                scope="col"
-                                                className="px-5 py-3 font-semibold"
-                                            >
-                                                Project
-                                            </th>
-                                            <th
-                                                scope="col"
-                                                className="px-3 py-3 font-semibold"
-                                            >
-                                                Program
-                                            </th>
-                                            <th
-                                                scope="col"
-                                                className="px-3 py-3 font-semibold"
-                                            >
-                                                Location
-                                            </th>
-                                            <th
-                                                scope="col"
-                                                className="px-3 py-3 font-semibold"
-                                            >
-                                                Status
-                                            </th>
-                                            <th
-                                                scope="col"
-                                                className="px-5 py-3 text-right font-semibold"
-                                            >
-                                                Budget
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {pageItems.map((project) => {
-                                            const active =
-                                                selectedId === project.id;
-                                            const progress = clampProgress(
-                                                project.progress,
-                                            );
-                                            return (
-                                                <tr
-                                                    key={project.id}
-                                                    onClick={() =>
-                                                        openProject(project)
-                                                    }
-                                                    onKeyDown={(e) => {
-                                                        if (
-                                                            e.key === 'Enter' ||
-                                                            e.key === ' '
-                                                        ) {
-                                                            e.preventDefault();
-                                                            openProject(
-                                                                project,
-                                                            );
-                                                        }
-                                                    }}
-                                                    tabIndex={0}
-                                                    aria-label={`View ${project.name}`}
-                                                    className={[
-                                                        'cursor-pointer border-b transition-colors duration-150 last:border-b-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/50',
-                                                        t.rowBorder,
-                                                        active
-                                                            ? t.rowActive
-                                                            : t.rowHover,
-                                                    ].join(' ')}
+                                                <span
+                                                    className={`truncate text-sm font-semibold ${t.name}`}
                                                 >
-                                                    <td className="max-w-[340px] px-5 py-3.5">
-                                                        <p
-                                                            className={`truncate font-semibold ${t.name}`}
-                                                        >
-                                                            {project.name}
-                                                        </p>
-                                                        <p
-                                                            className={`mt-0.5 truncate text-xs ${t.muted}`}
-                                                        >
-                                                            {
-                                                                project.beneficiary
-                                                            }
-                                                        </p>
-                                                    </td>
-                                                    <td className="px-3 py-3.5">
-                                                        <span
-                                                            className={`inline-flex items-center gap-1.5 text-xs font-semibold ${t.location}`}
-                                                        >
-                                                            <span
-                                                                className="h-2 w-2 shrink-0 rounded-full"
-                                                                style={{
-                                                                    backgroundColor:
-                                                                        programColor(
-                                                                            project.program,
-                                                                        ),
-                                                                }}
-                                                                aria-hidden
-                                                            />
-                                                            {project.program}
-                                                        </span>
-                                                    </td>
-                                                    <td
-                                                        className={`px-3 py-3.5 ${t.location}`}
-                                                    >
-                                                        <span className="block truncate">
-                                                            {
-                                                                project.municipality
-                                                            }
-                                                        </span>
-                                                        <span
-                                                            className={`block text-xs ${t.muted}`}
-                                                        >
-                                                            {project.province}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-3 py-3.5">
-                                                        <span
-                                                            className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold ${projectStatusClass(project, statusMode)}`}
-                                                        >
-                                                            {projectStatusLabel(
-                                                                project,
-                                                            )}
-                                                        </span>
-                                                        <div className="mt-1.5 flex items-center gap-2">
-                                                            <div
-                                                                className={`h-1.5 w-20 overflow-hidden rounded-full ${t.track}`}
-                                                                role="progressbar"
-                                                                aria-valuenow={
-                                                                    progress
-                                                                }
-                                                                aria-valuemin={
-                                                                    0
-                                                                }
-                                                                aria-valuemax={
-                                                                    100
-                                                                }
-                                                                aria-label="Progress"
-                                                            >
-                                                                <div
-                                                                    className="h-full rounded-full"
-                                                                    style={{
-                                                                        width: `${progress}%`,
-                                                                        backgroundColor:
-                                                                            programColor(
-                                                                                project.program,
-                                                                            ),
-                                                                    }}
-                                                                />
-                                                            </div>
-                                                            <span
-                                                                className={`text-xs tabular-nums ${t.muted}`}
-                                                            >
-                                                                {progress}%
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    <td
-                                                        className={`whitespace-nowrap px-5 py-3.5 text-right font-semibold tabular-nums ${t.cost}`}
-                                                    >
-                                                        {formatPeso(
-                                                            project.budget,
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <ul className={`divide-y md:hidden ${t.rowBorder}`}>
-                                {pageItems.map((project) => {
-                                    const active = selectedId === project.id;
-                                    return (
-                                        <li key={project.id}>
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    openProject(project)
-                                                }
-                                                className={[
-                                                    'flex w-full flex-col gap-2 px-4 py-4 text-left transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/50',
-                                                    active
-                                                        ? t.rowActive
-                                                        : t.mobileBase,
-                                                ].join(' ')}
-                                            >
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <p
-                                                        className={`min-w-0 text-sm font-semibold leading-snug ${t.name}`}
-                                                    >
-                                                        {project.name}
-                                                    </p>
-                                                    <span
-                                                        className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold ${projectStatusClass(project, statusMode)}`}
-                                                    >
-                                                        {projectStatusLabel(
-                                                            project,
-                                                        )}
-                                                    </span>
-                                                </div>
-                                                <p
-                                                    className={`flex items-center gap-1.5 text-xs ${t.muted}`}
+                                                    {row.province}
+                                                </span>
+                                                <span
+                                                    className={`h-2 overflow-hidden rounded-full ${t.track}`}
+                                                    aria-hidden
                                                 >
                                                     <span
-                                                        className="h-2 w-2 shrink-0 rounded-full"
+                                                        className={`block h-full rounded-full ${t.bar}`}
                                                         style={{
-                                                            backgroundColor:
-                                                                programColor(
-                                                                    project.program,
-                                                                ),
+                                                            width: `${Math.max(4, row.share * 100)}%`,
                                                         }}
-                                                        aria-hidden
                                                     />
-                                                    <span className="font-semibold">
-                                                        {project.program}
+                                                </span>
+                                                <span className="text-right">
+                                                    <span
+                                                        className={`block text-sm font-semibold tabular-nums ${t.name}`}
+                                                    >
+                                                        {row.count.toLocaleString()}
                                                     </span>
-                                                    <span aria-hidden>·</span>
-                                                    <span className="truncate">
-                                                        {project.municipality},{' '}
-                                                        {project.province}
+                                                    <span
+                                                        className={`block text-xs tabular-nums ${t.muted}`}
+                                                    >
+                                                        ₱
+                                                        {formatCompact(
+                                                            row.budget,
+                                                        )}
                                                     </span>
-                                                </p>
-                                                <p
-                                                    className={`text-sm font-semibold tabular-nums ${t.cost}`}
-                                                >
-                                                    {formatPeso(project.budget)}
-                                                </p>
+                                                </span>
                                             </button>
                                         </li>
                                     );
                                 })}
                             </ul>
+                        </div>
+                    </div>
+                </section>
 
-                            {totalPages > 1 && (
-                                <nav
-                                    aria-label="Project list pages"
-                                    className={`flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3 sm:px-5 ${t.cardHeader}`}
+                <section
+                    id="project-results"
+                    ref={resultsRef}
+                    aria-labelledby="project-results-title"
+                    className="mx-auto max-w-[96rem] scroll-mt-6 px-3 py-16 sm:px-6 lg:px-8"
+                >
+                    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+                        <div className="min-w-0">
+                            <p className={`${EYEBROW} ${t.eyebrow}`}>
+                                Full portfolio
+                            </p>
+                            <h2
+                                id="project-results-title"
+                                className={SECTION_TITLE}
+                            >
+                                <span className={t.gradient}>Browse</span>{' '}
+                                <span
+                                    className={`font-sei-title font-medium ${t.name}`}
                                 >
-                                    <p className={`text-sm ${t.muted}`}>
-                                        Page{' '}
-                                        <span
-                                            className={`font-semibold ${t.name}`}
-                                        >
-                                            {safePage}
-                                        </span>{' '}
-                                        of {totalPages}
-                                    </p>
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            type="button"
-                                            disabled={safePage <= 1}
-                                            onClick={() =>
-                                                goToPage(safePage - 1)
-                                            }
-                                            className={`${BTN_BASE} ${t.ghostBtn} ${t.focus}`}
-                                        >
-                                            <HiChevronLeft
-                                                className="h-4 w-4"
-                                                aria-hidden
-                                            />
-                                            Previous
-                                        </button>
-                                        <button
-                                            type="button"
-                                            disabled={safePage >= totalPages}
-                                            onClick={() =>
-                                                goToPage(safePage + 1)
-                                            }
-                                            className={`${BTN_BASE} ${t.ghostBtn} ${t.focus}`}
-                                        >
-                                            Next
-                                            <HiChevronRight
-                                                className="h-4 w-4"
-                                                aria-hidden
-                                            />
-                                        </button>
-                                    </div>
-                                </nav>
-                            )}
-                        </>
-                    )}
-                </div>
-            </section>
-
-            <footer className={`border-t ${t.footer}`}>
-                <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-[1.4fr_1fr_1fr] sm:px-6">
-                    <div>
-                        <div className="flex items-center gap-2.5">
-                            <span className="grid h-9 w-9 place-items-center rounded-lg bg-white text-sm font-black text-[#0038a8]">
-                                T
-                            </span>
-                            <p className="text-base font-black tracking-tight text-white">
-                                TARAMIMAROPA
+                                    all projects
+                                </span>
+                            </h2>
+                            <p
+                                className={`mt-3 text-sm ${t.muted}`}
+                                aria-live="polite"
+                            >
+                                {sorted.length === 0
+                                    ? 'No projects match these filters.'
+                                    : `Showing ${pageStart}–${pageEnd} of ${sorted.length.toLocaleString()} projects`}
                             </p>
                         </div>
-                        <p
-                            className={`mt-3 max-w-sm text-sm leading-relaxed ${t.footerMuted}`}
-                        >
-                            Tracking of Accomplishments and Results of
-                            Activities and Programs across MIMAROPA. A
-                            transparency initiative of DOST-MIMAROPA.
-                        </p>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <a
+                                href="#top"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    window.scrollTo({
+                                        top: 0,
+                                        behavior: 'smooth',
+                                    });
+                                }}
+                                className={`${BTN_BASE} ${t.ghostBtn} ${t.focus}`}
+                            >
+                                <HiMapPin className="h-4 w-4" aria-hidden />
+                                Back to map
+                            </a>
+                            <div
+                                role="group"
+                                aria-label="Export filtered projects"
+                                className={`inline-flex overflow-hidden rounded-lg border ${t.groupDivider}`}
+                            >
+                                <button
+                                    type="button"
+                                    disabled={sorted.length === 0}
+                                    onClick={exportPdf}
+                                    title={exportTitle}
+                                    className={`${BTN_BASE} rounded-none border-0 ${t.ghostBtn} ${t.focus}`}
+                                >
+                                    <HiDocumentText
+                                        className="h-4 w-4"
+                                        aria-hidden
+                                    />
+                                    Export PDF
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={sorted.length === 0}
+                                    onClick={exportCsv}
+                                    title={exportTitle}
+                                    className={`${BTN_BASE} rounded-none border-0 border-l ${t.groupDivider} ${t.ghostBtn} ${t.focus}`}
+                                >
+                                    <HiArrowDownTray
+                                        className="h-4 w-4"
+                                        aria-hidden
+                                    />
+                                    Export CSV
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <nav aria-labelledby="footer-provinces">
+
+                    {exportError ? (
                         <p
-                            id="footer-provinces"
-                            className={`text-xs font-bold uppercase tracking-[0.14em] ${t.footerLabel}`}
+                            role="alert"
+                            className="mb-4 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300"
                         >
-                            Projects by province
+                            {exportError}
                         </p>
-                        <ul className="mt-3 space-y-1">
-                            {PROVINCES.map((province) => (
-                                <li key={province}>
+                    ) : null}
+
+                    <div
+                        className={`overflow-hidden rounded-2xl border ${t.card}`}
+                    >
+                        <div
+                            className={`flex flex-col gap-4 border-b p-4 sm:p-5 ${t.cardHeader}`}
+                        >
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                                <div className="relative min-w-0 flex-1 sm:max-w-md">
+                                    <label
+                                        htmlFor="project-search"
+                                        className="sr-only"
+                                    >
+                                        Search projects
+                                    </label>
+                                    <HiMagnifyingGlass
+                                        className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400"
+                                        aria-hidden
+                                    />
+                                    <input
+                                        id="project-search"
+                                        type="search"
+                                        value={query}
+                                        onChange={(e) =>
+                                            setQuery(e.target.value)
+                                        }
+                                        placeholder="Project, municipality, sector…"
+                                        className={`min-h-10 w-full rounded-lg border py-2 pr-9 pl-9 text-sm transition-colors duration-150 outline-none [&::-webkit-search-cancel-button]:hidden ${t.field}`}
+                                    />
+                                    {query ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => setQuery('')}
+                                            aria-label="Clear search"
+                                            className={`absolute top-1/2 right-1.5 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md ${t.muted} hover:bg-slate-500/10 ${t.focus}`}
+                                        >
+                                            <HiXMark
+                                                className="h-4 w-4"
+                                                aria-hidden
+                                            />
+                                        </button>
+                                    ) : null}
+                                </div>
+                                <div className="flex items-center gap-2 sm:ml-auto">
+                                    <label
+                                        htmlFor="project-sort"
+                                        className={`text-sm font-medium ${t.laneLabel}`}
+                                    >
+                                        Sort by
+                                    </label>
+                                    <select
+                                        id="project-sort"
+                                        value={sortKey}
+                                        onChange={(e) =>
+                                            setSortKey(
+                                                e.target.value as SortKey,
+                                            )
+                                        }
+                                        className={`min-h-10 rounded-lg border px-3 text-sm font-semibold transition-colors duration-150 outline-none ${t.field}`}
+                                    >
+                                        {SORT_OPTIONS.map((opt) => (
+                                            <option key={opt.id} value={opt.id}>
+                                                {opt.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
+                                <p
+                                    id="province-filter-label"
+                                    className={`shrink-0 pt-2 text-xs font-bold tracking-[0.1em] uppercase sm:w-20 ${t.laneLabel}`}
+                                >
+                                    Province
+                                </p>
+                                <div
+                                    role="group"
+                                    aria-labelledby="province-filter-label"
+                                    className="flex flex-wrap gap-2"
+                                >
+                                    {(['all', ...PROVINCES] as const).map(
+                                        (province) => {
+                                            const active =
+                                                provinceFilter === province;
+                                            return (
+                                                <button
+                                                    key={province}
+                                                    type="button"
+                                                    aria-pressed={active}
+                                                    onClick={() =>
+                                                        setProvinceFilter(
+                                                            active &&
+                                                                province !==
+                                                                    'all'
+                                                                ? 'all'
+                                                                : province,
+                                                        )
+                                                    }
+                                                    className={`${CHIP_BASE} ${active ? t.chipActive : t.chip} ${t.focus}`}
+                                                >
+                                                    {province === 'all'
+                                                        ? 'All'
+                                                        : province}
+                                                </button>
+                                            );
+                                        },
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
+                                <p
+                                    id="type-filter-label"
+                                    className={`shrink-0 pt-2 text-xs font-bold tracking-[0.1em] uppercase sm:w-20 ${t.laneLabel}`}
+                                >
+                                    Type
+                                </p>
+                                <div
+                                    role="group"
+                                    aria-labelledby="type-filter-label"
+                                    className="flex flex-wrap gap-2"
+                                >
+                                    {(['all', ...typeOptions] as const).map(
+                                        (type) => {
+                                            const active = typeFilter === type;
+                                            return (
+                                                <button
+                                                    key={type}
+                                                    type="button"
+                                                    aria-pressed={active}
+                                                    onClick={() =>
+                                                        setTypeFilter(
+                                                            active &&
+                                                                type !== 'all'
+                                                                ? 'all'
+                                                                : type,
+                                                        )
+                                                    }
+                                                    className={`${CHIP_BASE} ${active ? t.chipActive : t.chip} ${t.focus}`}
+                                                >
+                                                    {type === 'all'
+                                                        ? 'All'
+                                                        : type}
+                                                </button>
+                                            );
+                                        },
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
+                                <p
+                                    id="status-filter-label"
+                                    className={`shrink-0 pt-2 text-xs font-bold tracking-[0.1em] uppercase sm:w-20 ${t.laneLabel}`}
+                                >
+                                    Status
+                                </p>
+                                <div
+                                    role="group"
+                                    aria-labelledby="status-filter-label"
+                                    className="flex flex-1 flex-wrap items-center gap-2"
+                                >
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            setProvinceFilter(province);
-                                            scrollToResults();
-                                        }}
-                                        className={`inline-flex min-h-8 items-center rounded text-sm transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${t.footerLink}`}
+                                        aria-pressed={statusFilter === 'all'}
+                                        onClick={() => setStatusFilter('all')}
+                                        className={`${CHIP_BASE} ${statusFilter === 'all' ? t.chipActive : t.chip} ${t.focus}`}
                                     >
-                                        {province}
+                                        All
                                     </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </nav>
-                    <div>
-                        <p
-                            className={`text-xs font-bold uppercase tracking-[0.14em] ${t.footerLabel}`}
-                        >
-                            Agency
-                        </p>
-                        <address
-                            className={`mt-3 text-sm not-italic leading-relaxed ${t.footerMuted}`}
-                        >
-                            Department of Science and Technology
-                            <br />
-                            MIMAROPA Regional Office
-                            <br />
-                            Republic of the Philippines
-                        </address>
+                                    {statusOptions.map((status) => {
+                                        const active = statusFilter === status;
+                                        const sample = active
+                                            ? projects.find(
+                                                  (p) =>
+                                                      projectStatusLabel(p) ===
+                                                      status,
+                                              )
+                                            : undefined;
+                                        return (
+                                            <button
+                                                key={status}
+                                                type="button"
+                                                aria-pressed={active}
+                                                onClick={() =>
+                                                    setStatusFilter(
+                                                        active ? 'all' : status,
+                                                    )
+                                                }
+                                                className={`${CHIP_BASE} ${
+                                                    sample
+                                                        ? projectStatusClass(
+                                                              sample,
+                                                              statusMode,
+                                                          )
+                                                        : t.chip
+                                                } ${t.focus}`}
+                                            >
+                                                {status}
+                                            </button>
+                                        );
+                                    })}
+                                    {hasFilters ? (
+                                        <button
+                                            type="button"
+                                            onClick={clearFilters}
+                                            className={`inline-flex min-h-9 items-center gap-1 rounded-full px-3 text-xs font-semibold ${t.eyebrow} underline-offset-2 hover:underline sm:ml-auto ${t.focus}`}
+                                        >
+                                            <HiXMark
+                                                className="h-3.5 w-3.5"
+                                                aria-hidden
+                                            />
+                                            Clear all filters
+                                        </button>
+                                    ) : null}
+                                </div>
+                            </div>
+                        </div>
+
+                        {sorted.length === 0 ? (
+                            <div className="flex flex-col items-center px-6 py-16 text-center">
+                                <span
+                                    className={`grid h-12 w-12 place-items-center rounded-full ${t.emptyIcon}`}
+                                >
+                                    <HiMagnifyingGlass
+                                        className="h-6 w-6"
+                                        aria-hidden
+                                    />
+                                </span>
+                                <h3
+                                    className={`mt-4 text-base font-semibold ${t.name}`}
+                                >
+                                    No projects match these filters
+                                </h3>
+                                <p
+                                    className={`mt-1 max-w-sm text-sm ${t.muted}`}
+                                >
+                                    Try a different keyword, or widen the
+                                    province and status filters.
+                                </p>
+                                {hasFilters ? (
+                                    <button
+                                        type="button"
+                                        onClick={clearFilters}
+                                        className={`${BTN_BASE} mt-5 ${t.primaryBtn} ${t.focus}`}
+                                    >
+                                        Clear all filters
+                                    </button>
+                                ) : null}
+                            </div>
+                        ) : (
+                            <>
+                                <div className="hidden overflow-x-auto md:block">
+                                    <table className="w-full min-w-[760px] border-collapse text-left text-sm">
+                                        <thead>
+                                            <tr
+                                                className={`border-b text-xs tracking-wide uppercase ${t.thead}`}
+                                            >
+                                                <th
+                                                    scope="col"
+                                                    className="px-5 py-3 font-semibold"
+                                                >
+                                                    Project
+                                                </th>
+                                                <th
+                                                    scope="col"
+                                                    className="px-3 py-3 font-semibold"
+                                                >
+                                                    Program
+                                                </th>
+                                                <th
+                                                    scope="col"
+                                                    className="px-3 py-3 font-semibold"
+                                                >
+                                                    Location
+                                                </th>
+                                                <th
+                                                    scope="col"
+                                                    className="px-3 py-3 font-semibold"
+                                                >
+                                                    Status
+                                                </th>
+                                                <th
+                                                    scope="col"
+                                                    className="px-5 py-3 text-right font-semibold"
+                                                >
+                                                    Budget
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {pageItems.map((project) => {
+                                                const active =
+                                                    selectedId === project.id;
+                                                const progress = clampProgress(
+                                                    project.progress,
+                                                );
+                                                return (
+                                                    <tr
+                                                        key={project.id}
+                                                        onClick={() =>
+                                                            openProject(project)
+                                                        }
+                                                        onKeyDown={(e) => {
+                                                            if (
+                                                                e.key ===
+                                                                    'Enter' ||
+                                                                e.key === ' '
+                                                            ) {
+                                                                e.preventDefault();
+                                                                openProject(
+                                                                    project,
+                                                                );
+                                                            }
+                                                        }}
+                                                        tabIndex={0}
+                                                        aria-label={`View ${project.name}`}
+                                                        className={[
+                                                            'cursor-pointer border-b transition-colors duration-150 last:border-b-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/50',
+                                                            t.rowBorder,
+                                                            active
+                                                                ? t.rowActive
+                                                                : t.rowHover,
+                                                        ].join(' ')}
+                                                    >
+                                                        <td className="max-w-[340px] px-5 py-3.5">
+                                                            <p
+                                                                className={`truncate font-semibold ${t.name}`}
+                                                            >
+                                                                {project.name}
+                                                            </p>
+                                                            <p
+                                                                className={`mt-0.5 truncate text-xs ${t.muted}`}
+                                                            >
+                                                                {
+                                                                    project.beneficiary
+                                                                }
+                                                            </p>
+                                                        </td>
+                                                        <td className="px-3 py-3.5">
+                                                            <span
+                                                                className={`inline-flex items-center gap-1.5 text-xs font-semibold ${t.location}`}
+                                                            >
+                                                                <span
+                                                                    className="h-2 w-2 shrink-0 rounded-full"
+                                                                    style={{
+                                                                        backgroundColor:
+                                                                            programColor(
+                                                                                project.program,
+                                                                            ),
+                                                                    }}
+                                                                    aria-hidden
+                                                                />
+                                                                {
+                                                                    project.program
+                                                                }
+                                                            </span>
+                                                        </td>
+                                                        <td
+                                                            className={`px-3 py-3.5 ${t.location}`}
+                                                        >
+                                                            <span className="block truncate">
+                                                                {
+                                                                    project.municipality
+                                                                }
+                                                            </span>
+                                                            <span
+                                                                className={`block text-xs ${t.muted}`}
+                                                            >
+                                                                {
+                                                                    project.province
+                                                                }
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-3 py-3.5">
+                                                            <span
+                                                                className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold ${projectStatusClass(project, statusMode)}`}
+                                                            >
+                                                                {projectStatusLabel(
+                                                                    project,
+                                                                )}
+                                                            </span>
+                                                            <div className="mt-1.5 flex items-center gap-2">
+                                                                <div
+                                                                    className={`h-1.5 w-20 overflow-hidden rounded-full ${t.track}`}
+                                                                    role="progressbar"
+                                                                    aria-valuenow={
+                                                                        progress
+                                                                    }
+                                                                    aria-valuemin={
+                                                                        0
+                                                                    }
+                                                                    aria-valuemax={
+                                                                        100
+                                                                    }
+                                                                    aria-label="Progress"
+                                                                >
+                                                                    <div
+                                                                        className="h-full rounded-full"
+                                                                        style={{
+                                                                            width: `${progress}%`,
+                                                                            backgroundColor:
+                                                                                programColor(
+                                                                                    project.program,
+                                                                                ),
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                                <span
+                                                                    className={`text-xs tabular-nums ${t.muted}`}
+                                                                >
+                                                                    {progress}%
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td
+                                                            className={`px-5 py-3.5 text-right font-semibold whitespace-nowrap tabular-nums ${t.cost}`}
+                                                        >
+                                                            {formatPeso(
+                                                                project.budget,
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <ul
+                                    className={`divide-y md:hidden ${t.rowBorder}`}
+                                >
+                                    {pageItems.map((project) => {
+                                        const active =
+                                            selectedId === project.id;
+                                        return (
+                                            <li key={project.id}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        openProject(project)
+                                                    }
+                                                    className={[
+                                                        'flex w-full flex-col gap-2 px-4 py-4 text-left transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/50',
+                                                        active
+                                                            ? t.rowActive
+                                                            : t.mobileBase,
+                                                    ].join(' ')}
+                                                >
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <p
+                                                            className={`min-w-0 text-sm leading-snug font-semibold ${t.name}`}
+                                                        >
+                                                            {project.name}
+                                                        </p>
+                                                        <span
+                                                            className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold ${projectStatusClass(project, statusMode)}`}
+                                                        >
+                                                            {projectStatusLabel(
+                                                                project,
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                    <p
+                                                        className={`flex items-center gap-1.5 text-xs ${t.muted}`}
+                                                    >
+                                                        <span
+                                                            className="h-2 w-2 shrink-0 rounded-full"
+                                                            style={{
+                                                                backgroundColor:
+                                                                    programColor(
+                                                                        project.program,
+                                                                    ),
+                                                            }}
+                                                            aria-hidden
+                                                        />
+                                                        <span className="font-semibold">
+                                                            {project.program}
+                                                        </span>
+                                                        <span aria-hidden>
+                                                            ·
+                                                        </span>
+                                                        <span className="truncate">
+                                                            {
+                                                                project.municipality
+                                                            }
+                                                            , {project.province}
+                                                        </span>
+                                                    </p>
+                                                    <p
+                                                        className={`text-sm font-semibold tabular-nums ${t.cost}`}
+                                                    >
+                                                        {formatPeso(
+                                                            project.budget,
+                                                        )}
+                                                    </p>
+                                                </button>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+
+                                {totalPages > 1 && (
+                                    <nav
+                                        aria-label="Project list pages"
+                                        className={`flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3 sm:px-5 ${t.cardHeader}`}
+                                    >
+                                        <p className={`text-sm ${t.muted}`}>
+                                            Page{' '}
+                                            <span
+                                                className={`font-semibold ${t.name}`}
+                                            >
+                                                {safePage}
+                                            </span>{' '}
+                                            of {totalPages}
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                disabled={safePage <= 1}
+                                                onClick={() =>
+                                                    goToPage(safePage - 1)
+                                                }
+                                                className={`${BTN_BASE} ${t.ghostBtn} ${t.focus}`}
+                                            >
+                                                <HiChevronLeft
+                                                    className="h-4 w-4"
+                                                    aria-hidden
+                                                />
+                                                Previous
+                                            </button>
+                                            <button
+                                                type="button"
+                                                disabled={
+                                                    safePage >= totalPages
+                                                }
+                                                onClick={() =>
+                                                    goToPage(safePage + 1)
+                                                }
+                                                className={`${BTN_BASE} ${t.ghostBtn} ${t.focus}`}
+                                            >
+                                                Next
+                                                <HiChevronRight
+                                                    className="h-4 w-4"
+                                                    aria-hidden
+                                                />
+                                            </button>
+                                        </div>
+                                    </nav>
+                                )}
+                            </>
+                        )}
                     </div>
-                </div>
+                </section>
+            </div>
+
+            <footer className="font-sei-body relative isolate overflow-hidden bg-[#030A17] text-[#f1f1f1]">
                 <div
-                    className={`border-t px-4 py-4 text-center text-xs ${t.footerBottom}`}
-                >
-                    © {new Date().getFullYear()} DOST-MIMAROPA · All rights
-                    reserved · Powered by TARAMIMAROPA
+                    aria-hidden
+                    className="pointer-events-none absolute -top-80 -right-80 -z-10 h-[64rem] w-[64rem] bg-[radial-gradient(circle,_#3D5D94_0%,_transparent_60%)] opacity-40"
+                />
+
+                <div className="mx-auto flex w-[90%] max-w-6xl flex-col items-center pt-20 text-center sm:pt-28">
+                    <p className="font-sei-title text-xl font-medium text-white uppercase sm:text-3xl md:text-5xl">
+                        Science for MIMAROPA,{' '}
+                        <span className="font-sei-display block bg-linear-to-r from-[#BFDBFE] via-[#60A5FA] to-[#1D4ED8] bg-clip-text text-5xl font-extrabold text-transparent sm:text-7xl md:text-8xl">
+                            together
+                        </span>
+                    </p>
+                    <p className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs font-light tracking-[0.2em] text-[#f1f1f1] uppercase md:text-base">
+                        <span>Transparent</span>
+                        <span aria-hidden>•</span>
+                        <span>Data-Driven</span>
+                        <span aria-hidden>•</span>
+                        <span>People-Centered</span>
+                    </p>
+                </div>
+
+                <div className="relative mt-20 bg-[#0c0c0F] sm:rounded-t-[50%_6rem]">
+                    <div className="mx-auto grid w-[90%] max-w-6xl gap-8 pt-14 pb-10 text-sm sm:grid-cols-[1.4fr_1fr_1fr] sm:pt-20">
+                        <div>
+                            <div className="flex items-center gap-2.5">
+                                <span className="font-sei-display grid h-9 w-9 place-items-center rounded-lg bg-linear-to-br from-[#BFDBFE] via-[#60A5FA] to-[#1D4ED8] text-sm font-extrabold text-[#030A17]">
+                                    T
+                                </span>
+                                <p className="font-sei-display text-base font-extrabold tracking-wide text-white uppercase">
+                                    TARAMIMAROPA
+                                </p>
+                            </div>
+                            <p className="mt-3 max-w-sm text-xs leading-relaxed text-[#cfcfcf]">
+                                Tracking of Accomplishments and Results of
+                                Activities and Programs across MIMAROPA. A
+                                transparency initiative of DOST-MIMAROPA.
+                            </p>
+                        </div>
+                        <nav aria-labelledby="footer-provinces">
+                            <p
+                                id="footer-provinces"
+                                className="text-sm font-semibold uppercase"
+                            >
+                                Projects by province
+                            </p>
+                            <ul className="mt-3 space-y-1">
+                                {PROVINCES.map((province) => (
+                                    <li key={province}>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setProvinceFilter(province);
+                                                scrollToResults();
+                                            }}
+                                            className="inline-flex min-h-8 cursor-pointer items-center rounded text-xs text-[#cfcfcf] transition-colors duration-200 hover:text-[#93C5FD] focus-visible:ring-2 focus-visible:ring-[#93C5FD]/70 focus-visible:outline-none"
+                                        >
+                                            {province}
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </nav>
+                        <div>
+                            <p className="text-sm font-semibold uppercase">
+                                Agency
+                            </p>
+                            <address className="mt-3 text-xs leading-relaxed text-[#cfcfcf] not-italic">
+                                Department of Science and Technology
+                                <br />
+                                MIMAROPA Regional Office
+                                <br />
+                                Republic of the Philippines
+                            </address>
+                        </div>
+                    </div>
+                    <div className="border-t border-white/10 px-4 py-4 text-center text-xs text-[#cfcfcf]/80">
+                        © {new Date().getFullYear()} DOST-MIMAROPA · All rights
+                        reserved · Powered by TARAMIMAROPA
+                    </div>
                 </div>
             </footer>
 
@@ -1349,7 +1432,7 @@ const LandingPage = () => {
                         role="dialog"
                         aria-modal="true"
                         aria-labelledby="project-dialog-title"
-                        className={`max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border shadow-[0_16px_40px_rgba(0,0,0,0.2)] sm:rounded-2xl [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] ${t.modalPanel}`}
+                        className={`max-h-[92vh] w-full max-w-lg overflow-y-auto [overscroll-behavior:contain] rounded-t-2xl border shadow-[0_16px_40px_rgba(0,0,0,0.2)] [-webkit-overflow-scrolling:touch] sm:rounded-2xl ${t.modalPanel}`}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="relative">
@@ -1366,7 +1449,7 @@ const LandingPage = () => {
                                 ref={closeBtnRef}
                                 type="button"
                                 onClick={() => setViewing(null)}
-                                className={`absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-lg border backdrop-blur-sm transition-colors duration-150 ${t.modalClose} ${t.modalPanel} ${t.focus}`}
+                                className={`absolute top-3 right-3 grid h-10 w-10 place-items-center rounded-lg border backdrop-blur-sm transition-colors duration-150 ${t.modalClose} ${t.modalPanel} ${t.focus}`}
                                 aria-label="Close project details"
                             >
                                 <HiXMark className="h-5 w-5" aria-hidden />
@@ -1375,7 +1458,7 @@ const LandingPage = () => {
 
                         <div className="p-5">
                             <p
-                                className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.14em]"
+                                className="inline-flex items-center gap-1.5 text-xs font-bold tracking-[0.14em] uppercase"
                                 style={{
                                     color: programColor(viewing.program),
                                 }}
@@ -1394,7 +1477,7 @@ const LandingPage = () => {
                             </p>
                             <h2
                                 id="project-dialog-title"
-                                className={`mt-1.5 text-lg font-semibold leading-snug ${t.modalTitle}`}
+                                className={`font-sei-display mt-1.5 text-lg leading-snug font-bold ${t.modalTitle}`}
                             >
                                 {viewing.name}
                             </h2>

@@ -12,8 +12,8 @@ export default function Heading({
             <h2
                 className={
                     variant === 'small'
-                        ? 'mb-0.5 text-base font-medium'
-                        : 'text-xl font-semibold tracking-tight'
+                        ? 'font-sei-display mb-1 text-sm font-bold tracking-[0.12em] uppercase'
+                        : 'font-sei-display text-xl font-extrabold tracking-tight uppercase'
                 }
             >
                 {title}

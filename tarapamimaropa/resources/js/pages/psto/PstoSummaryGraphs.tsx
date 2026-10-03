@@ -173,11 +173,14 @@ const PstoSummaryGraphs = () => {
                         </Link>
 
                         <header className="mt-4">
-                            <p className="text-xs font-medium text-muted-foreground">
+                            <p className="text-xs font-medium tracking-[0.22em] text-primary uppercase">
                                 {province} · DOST PSTO
                             </p>
-                            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-                                Summary graphs
+                            <h1 className="font-sei-display mt-2 text-3xl leading-tight font-extrabold tracking-tight uppercase sm:text-5xl">
+                                <span className="text-sei-gradient">Summary</span>{' '}
+                                <span className="font-sei-title font-medium text-foreground">
+                                    graphs
+                                </span>
                             </h1>
                             <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted-foreground">
                                 See projects per municipality and barangay. Click

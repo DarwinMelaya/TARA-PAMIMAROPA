@@ -12,6 +12,9 @@
         'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
+    --font-sei-display: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+    --font-sei-title: 'Raleway', ui-sans-serif, system-ui, sans-serif;
+    --font-sei-body: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -132,9 +135,121 @@
     --sidebar-ring: oklch(0.439 0 0);
 }
 
+@utility text-sei-gradient {
+    background-image: linear-gradient(to right, #0284c7, #2563eb, #1e3a8a);
+    background-clip: text;
+    color: transparent;
+
+    @variant dark {
+        background-image: linear-gradient(to right, #bfdbfe, #60a5fa, #1d4ed8);
+    }
+}
+
+.theme-sei {
+    --background: #f4f6f9;
+    --foreground: #030a17;
+    --card: #ffffff;
+    --card-foreground: #030a17;
+    --popover: #ffffff;
+    --popover-foreground: #030a17;
+    --primary: #1d4ed8;
+    --primary-foreground: #ffffff;
+    --secondary: #eff4ff;
+    --secondary-foreground: #1e3a8a;
+    --muted: #eef2f7;
+    --muted-foreground: #4b5563;
+    --accent: #eff4ff;
+    --accent-foreground: #1e3a8a;
+    --border: #d5dce5;
+    --input: #d5dce5;
+    --ring: #2563eb;
+    --sidebar: #ffffff;
+    --sidebar-foreground: #030a17;
+    --sidebar-primary: #1d4ed8;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #eff4ff;
+    --sidebar-accent-foreground: #1e3a8a;
+    --sidebar-border: #d5dce5;
+    --sidebar-ring: #2563eb;
+
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+
+    font-family: var(
+        --font-sei-body,
+        'Hanken Grotesk',
+        ui-sans-serif,
+        system-ui,
+        sans-serif
+    );
+}
+
+.dark .theme-sei,
+.dark.theme-sei {
+    --background: #030a17;
+    --foreground: #f1f1f1;
+    --card: #070f1f;
+    --card-foreground: #f1f1f1;
+    --popover: #070f1f;
+    --popover-foreground: #f1f1f1;
+    --primary: #60a5fa;
+    --primary-foreground: #030a17;
+    --secondary: #0c1830;
+    --secondary-foreground: #f1f1f1;
+    --muted: #0c1526;
+    --muted-foreground: #a3acbd;
+    --accent: #0f1d38;
+    --accent-foreground: #f1f1f1;
+    --border: #1a2333;
+    --input: #1f2a3d;
+    --ring: #60a5fa;
+    --sidebar: #050c1a;
+    --sidebar-foreground: #f1f1f1;
+    --sidebar-primary: #60a5fa;
+    --sidebar-primary-foreground: #030a17;
+    --sidebar-accent: #0f1d38;
+    --sidebar-accent-foreground: #f1f1f1;
+    --sidebar-border: #1a2333;
+    --sidebar-ring: #60a5fa;
+    color-scheme: dark;
+}
+
 @layer base {
     * {
         @apply border-border;
+    }
+
+    .theme-sei :is(h1, h2, h3) {
+        font-family: var(
+            --font-sei-display,
+            'Montserrat',
+            ui-sans-serif,
+            system-ui,
+            sans-serif
+        );
     }
 
     body {

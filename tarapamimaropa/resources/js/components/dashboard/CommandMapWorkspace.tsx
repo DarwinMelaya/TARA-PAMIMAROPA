@@ -599,10 +599,11 @@ const CommandMapWorkspace = ({
           ) : null}
         </>
       ) : null}
-      <div className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-gradient-to-b to-transparent lg:h-28 ${ui.fadeTop}`} />
+      <div className={`pointer-events-none absolute inset-x-0 z-10 h-20 bg-gradient-to-b to-transparent lg:h-28 ${isPublic ? "top-16" : "top-0"} ${ui.fadeTop}`} />
       <div className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 bg-gradient-to-t to-transparent lg:h-36 ${ui.fadeBottom}`} />
 
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-20 p-3 sm:p-5">
+      {/* Public variant sits under the landing page's 4rem glass navbar */}
+      <header className={`pointer-events-none absolute inset-x-0 top-0 z-20 p-3 sm:p-5 ${isPublic ? "pt-[4.75rem] sm:pt-[5.25rem]" : ""}`}>
         <div
           className={[
             isPublic
@@ -615,31 +616,22 @@ const CommandMapWorkspace = ({
             className={[
               "pointer-events-none min-w-0",
               isPublic
-                ? `max-w-md rounded-2xl border p-3 sm:p-4 ${ui.heroCard}`
+                ? `max-w-md shrink-0 self-start rounded-2xl border p-3 sm:p-4 ${ui.heroCard}`
                 : "max-w-xl lg:max-w-2xl",
             ].join(" ")}
           >
-            {isPublic ? (
-              <p className={`text-xs font-bold uppercase tracking-[0.14em] ${ui.accentText}`}>
-                DOST-MIMAROPA · Project map
-              </p>
-            ) : null}
             <h1
-              className={[
-                "font-sei-display font-extrabold tracking-tight",
-                isPublic ? "mt-1 text-xl sm:text-2xl" : "text-xl sm:text-3xl",
-                ui.title,
-              ].join(" ")}
+              className={
+                isPublic
+                  ? "sr-only"
+                  : `font-sei-display text-xl font-extrabold tracking-tight sm:text-3xl ${ui.title}`
+              }
             >
               TARA PAMIMAROPA
             </h1>
             {isPublic ? (
               <>
-                <p className={`mt-1 hidden text-sm leading-snug sm:block ${ui.subtitle}`}>
-                  Tracking of Accomplishments and Results of Activities and
-                  Programs across MIMAROPA
-                </p>
-                <dl className={`mt-3 hidden gap-4 border-t pt-3 text-xs sm:flex ${ui.panelDivider}`}>
+                <dl className="hidden gap-5 whitespace-nowrap text-xs sm:flex">
                   {(
                     [
                       ["On map", filteredProjects.length],

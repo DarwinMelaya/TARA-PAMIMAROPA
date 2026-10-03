@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePage } from '@inertiajs/react';
 import {
+    HiBars3,
     HiChevronLeft,
     HiChevronRight,
     HiMagnifyingGlass,
@@ -12,6 +13,7 @@ import {
     HiXMark,
 } from 'react-icons/hi2';
 import CommandMapWorkspace from '@/components/dashboard/CommandMapWorkspace';
+import DostLogo from '@/components/dost-logo';
 import type { UserLocation } from '@/components/maps/mapTypes';
 import {
     PROGRAM_META,
@@ -37,6 +39,7 @@ import {
 } from '@/hooks/use-dashboard-project-stream';
 import { downloadProjectPdfReport } from '@/lib/project-print-report';
 import { useTheme, type ThemeMode } from '@/theme/ThemeProvider';
+import artboard from '../../../pic/Artboard.jpg';
 
 type PageProps = {
     projects?: TaraProject[];
@@ -316,6 +319,202 @@ const downloadFilteredPdf = (
 const clampProgress = (value: number) =>
     Math.max(0, Math.min(100, Number.isFinite(value) ? value : 0));
 
+const NAV_LINKS = [
+    { id: 'top', label: 'Home' },
+    { id: 'overview', label: 'Overview' },
+    { id: 'project-results', label: 'Projects' },
+    { id: 'about', label: 'About' },
+] as const;
+
+type NavId = (typeof NAV_LINKS)[number]['id'];
+
+const NAV_UI = {
+    light: {
+        bar: 'border-[#0f1f3d]/10 bg-white/55 text-[#030A17] shadow-[0_8px_28px_rgba(15,31,61,0.10)]',
+        divider: 'bg-[#030A17]/20',
+        brand: 'text-[#030A17]',
+        brandAccent: 'from-[#0284c7] via-[#2563eb] to-[#1e3a8a]',
+        tagline: 'text-[#4b5563]',
+        link: 'text-[#4b5563] hover:text-[#030A17]',
+        linkActive: 'text-[#030A17]',
+        underline: 'after:bg-[#2563EB]',
+        iconBtn: 'text-[#030A17] hover:bg-[#030A17]/5',
+        panel: 'border-[#0f1f3d]/10 bg-white/85 shadow-[0_16px_32px_rgba(15,31,61,0.15)]',
+        panelLink: 'text-[#4b5563] hover:bg-[#030A17]/5 hover:text-[#030A17]',
+        panelLinkActive: 'bg-[#2563EB]/10 text-[#1D4ED8]',
+        focus: 'focus-visible:ring-[#2563EB]/60 focus-visible:ring-offset-white',
+    },
+    dark: {
+        bar: 'border-white/10 bg-[#030A17]/45 text-[#f1f1f1] shadow-[0_8px_28px_rgba(3,10,23,0.35)]',
+        divider: 'bg-white/25',
+        brand: 'text-white',
+        brandAccent: 'from-[#BFDBFE] via-[#60A5FA] to-[#3B82F6]',
+        tagline: 'text-[#a3acbd]',
+        link: 'text-[#cfcfcf] hover:text-white',
+        linkActive: 'text-white',
+        underline: 'after:bg-[#60A5FA]',
+        iconBtn: 'text-white hover:bg-white/10',
+        panel: 'border-white/10 bg-[#030A17]/85 shadow-[0_16px_32px_rgba(3,10,23,0.5)]',
+        panelLink: 'text-[#cfcfcf] hover:bg-white/5 hover:text-white',
+        panelLinkActive: 'bg-[#1D4ED8]/25 text-white',
+        focus: 'focus-visible:ring-[#93C5FD]/70 focus-visible:ring-offset-[#030A17]',
+    },
+} satisfies Record<ThemeMode, Record<string, string>>;
+
+const LandingNavbar = () => {
+    const { theme } = useTheme();
+    const n = NAV_UI[theme];
+    const focus = `focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none ${n.focus}`;
+    const [open, setOpen] = useState(false);
+    const [current, setCurrent] = useState<NavId>('top');
+
+    useEffect(() => {
+        const sections = NAV_LINKS.map(({ id }) =>
+            document.getElementById(id),
+        ).filter((el): el is HTMLElement => el !== null);
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const visible = entries.find((entry) => entry.isIntersecting);
+                if (visible) setCurrent(visible.target.id as NavId);
+            },
+            { rootMargin: '-45% 0px -50% 0px' },
+        );
+        sections.forEach((el) => observer.observe(el));
+        return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+        if (!open) return;
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setOpen(false);
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [open]);
+
+    const goTo = (e: React.MouseEvent<HTMLAnchorElement>, id: NavId) => {
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+        setOpen(false);
+        const reduceMotion = window.matchMedia(
+            '(prefers-reduced-motion: reduce)',
+        ).matches;
+        target.scrollIntoView({
+            behavior: reduceMotion ? 'auto' : 'smooth',
+            block: 'start',
+        });
+        history.replaceState(null, '', `#${id}`);
+    };
+
+    return (
+        <header
+            className={`font-sei-body sticky top-0 z-[900] border-b backdrop-blur-xl backdrop-saturate-150 transition-colors duration-300 ${n.bar}`}
+        >
+            <nav
+                aria-label="Main navigation"
+                className="mx-auto flex h-16 max-w-[96rem] items-center justify-between gap-3 px-3 sm:px-6 lg:px-8"
+            >
+                <a
+                    href="#top"
+                    onClick={(e) => goTo(e, 'top')}
+                    aria-label="DOST TARA PAMIMAROPA — go to top"
+                    className={`flex shrink-0 items-center gap-2.5 rounded-md sm:gap-3.5 ${focus}`}
+                >
+                    <DostLogo
+                        onLight={theme === 'light'}
+                        className="h-6 sm:h-9"
+                    />
+                    <span
+                        aria-hidden
+                        className={`h-7 w-px shrink-0 sm:h-9 ${n.divider}`}
+                    />
+                    <span className="flex min-w-0 flex-col gap-1">
+                        <span
+                            className={`font-sei-display text-sm leading-none font-extrabold tracking-wide whitespace-nowrap uppercase sm:text-lg ${n.brand}`}
+                        >
+                            TARA{' '}
+                            <span
+                                className={`bg-linear-to-r bg-clip-text text-transparent ${n.brandAccent}`}
+                            >
+                                PAMIMAROPA
+                            </span>
+                        </span>
+                        <span
+                            className={`hidden max-w-[17rem] text-[11px] leading-tight font-medium sm:block ${n.tagline}`}
+                        >
+                            Tracking of Accomplishments and Results of
+                            Activities and Programs across MIMAROPA
+                        </span>
+                    </span>
+                </a>
+
+                <ul className="hidden items-center gap-0.5 lg:flex">
+                    {NAV_LINKS.map(({ id, label }) => {
+                        const active = current === id;
+                        return (
+                            <li key={id}>
+                                <a
+                                    href={`#${id}`}
+                                    onClick={(e) => goTo(e, id)}
+                                    aria-current={
+                                        active ? 'location' : undefined
+                                    }
+                                    className={`relative inline-flex min-h-11 items-center rounded-md px-3.5 text-sm font-semibold transition-colors duration-200 after:absolute after:inset-x-3.5 after:bottom-2 after:h-0.5 after:rounded-full after:transition-transform after:duration-200 motion-reduce:transition-none ${n.underline} ${active ? `${n.linkActive} after:scale-x-100` : `${n.link} after:scale-x-0`} ${focus}`}
+                                >
+                                    {label}
+                                </a>
+                            </li>
+                        );
+                    })}
+                </ul>
+
+                <button
+                    type="button"
+                    onClick={() => setOpen((v) => !v)}
+                    aria-expanded={open}
+                    aria-controls="landing-mobile-nav"
+                    aria-label={open ? 'Close menu' : 'Open menu'}
+                    className={`grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-md transition-colors duration-200 lg:hidden ${n.iconBtn} ${focus}`}
+                >
+                    {open ? (
+                        <HiXMark className="h-6 w-6" aria-hidden />
+                    ) : (
+                        <HiBars3 className="h-6 w-6" aria-hidden />
+                    )}
+                </button>
+            </nav>
+
+            {open ? (
+                <div
+                    id="landing-mobile-nav"
+                    className={`absolute inset-x-0 top-full border-y backdrop-blur-xl backdrop-saturate-150 lg:hidden ${n.panel}`}
+                >
+                    <ul className="mx-auto flex max-w-[96rem] flex-col gap-1 px-3 py-3 sm:px-6">
+                        {NAV_LINKS.map(({ id, label }) => {
+                            const active = current === id;
+                            return (
+                                <li key={id}>
+                                    <a
+                                        href={`#${id}`}
+                                        onClick={(e) => goTo(e, id)}
+                                        aria-current={
+                                            active ? 'location' : undefined
+                                        }
+                                        className={`flex min-h-12 items-center rounded-lg px-3 text-base font-semibold transition-colors duration-200 ${active ? n.panelLinkActive : n.panelLink} ${focus}`}
+                                    >
+                                        {label}
+                                    </a>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </div>
+            ) : null}
+        </header>
+    );
+};
+
 const LandingPage = () => {
     const { theme, isDark } = useTheme();
     const t = UI[theme];
@@ -511,7 +710,9 @@ const LandingPage = () => {
 
     return (
         <div className={`font-sei-body min-h-svh ${t.page}`}>
-            <div id="top" className="relative h-svh w-full">
+            <LandingNavbar />
+
+            <div id="top" className="relative -mt-16 h-svh w-full">
                 <CommandMapWorkspace
                     projects={projects}
                     variant="public"
@@ -535,8 +736,9 @@ const LandingPage = () => {
                 ) : null}
 
                 <section
+                    id="overview"
                     aria-labelledby="overview-title"
-                    className="mx-auto max-w-[96rem] px-3 pt-16 sm:px-6 lg:px-8"
+                    className="mx-auto max-w-[96rem] scroll-mt-16 px-3 pt-16 sm:px-6 lg:px-8"
                 >
                     <p className={`${EYEBROW} ${t.eyebrow}`}>
                         Regional overview
@@ -698,7 +900,7 @@ const LandingPage = () => {
                     id="project-results"
                     ref={resultsRef}
                     aria-labelledby="project-results-title"
-                    className="mx-auto max-w-[96rem] scroll-mt-6 px-3 py-16 sm:px-6 lg:px-8"
+                    className="mx-auto max-w-[96rem] scroll-mt-16 px-3 py-16 sm:px-6 lg:px-8"
                 >
                     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
                         <div className="min-w-0">
@@ -1340,29 +1542,51 @@ const LandingPage = () => {
                 </section>
             </div>
 
-            <footer className="font-sei-body relative isolate overflow-hidden bg-[#030A17] text-[#f1f1f1]">
+            <footer
+                id="about"
+                className="font-sei-body relative isolate overflow-hidden bg-[#030A17] text-[#f1f1f1]"
+            >
                 <div
                     aria-hidden
                     className="pointer-events-none absolute -top-80 -right-80 -z-10 h-[64rem] w-[64rem] bg-[radial-gradient(circle,_#3D5D94_0%,_transparent_60%)] opacity-40"
                 />
 
-                <div className="mx-auto flex w-[90%] max-w-6xl flex-col items-center pt-20 text-center sm:pt-28">
-                    <p className="font-sei-title text-xl font-medium text-white uppercase sm:text-3xl md:text-5xl">
-                        Science for MIMAROPA,{' '}
-                        <span className="font-sei-display block bg-linear-to-r from-[#BFDBFE] via-[#60A5FA] to-[#1D4ED8] bg-clip-text text-5xl font-extrabold text-transparent sm:text-7xl md:text-8xl">
-                            together
-                        </span>
-                    </p>
-                    <p className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs font-light tracking-[0.2em] text-[#f1f1f1] uppercase md:text-base">
-                        <span>Transparent</span>
-                        <span aria-hidden>•</span>
-                        <span>Data-Driven</span>
-                        <span aria-hidden>•</span>
-                        <span>People-Centered</span>
-                    </p>
+                <div className="relative isolate">
+                    <img
+                        src={artboard}
+                        alt=""
+                        aria-hidden
+                        loading="lazy"
+                        decoding="async"
+                        className="absolute inset-0 -z-20 h-full w-full object-cover"
+                    />
+                    <div
+                        aria-hidden
+                        className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,rgba(3,10,23,0.88)_0%,rgba(3,10,23,0.6)_45%,rgba(3,10,23,0.25)_100%)]"
+                    />
+                    <div
+                        aria-hidden
+                        className={`absolute inset-0 -z-10 bg-linear-to-b via-transparent to-[#0c0c0F] ${isDark ? 'from-[#030A17] via-40%' : 'from-[#f4f6f9] via-45%'}`}
+                    />
+
+                    <div className="mx-auto flex w-[90%] max-w-6xl flex-col items-center pt-28 pb-40 text-center sm:pt-36 sm:pb-52">
+                        <p className="font-sei-title text-xl font-medium text-white uppercase [text-shadow:0_2px_16px_rgba(3,10,23,0.8)] sm:text-3xl md:text-5xl">
+                            Science for MIMAROPA,{' '}
+                            <span className="font-sei-display block bg-linear-to-r from-[#DBEAFE] via-[#93C5FD] to-[#60A5FA] bg-clip-text text-5xl font-extrabold text-transparent drop-shadow-[0_4px_24px_rgba(3,10,23,0.9)] [text-shadow:none] sm:text-7xl md:text-8xl">
+                                together
+                            </span>
+                        </p>
+                        <p className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 rounded-full border border-white/15 bg-[#030A17]/60 px-5 py-2 text-xs font-medium tracking-[0.2em] text-[#f1f1f1] uppercase backdrop-blur-sm md:text-base">
+                            <span>Transparent</span>
+                            <span aria-hidden>•</span>
+                            <span>Data-Driven</span>
+                            <span aria-hidden>•</span>
+                            <span>People-Centered</span>
+                        </p>
+                    </div>
                 </div>
 
-                <div className="relative mt-20 bg-[#0c0c0F] sm:rounded-t-[50%_6rem]">
+                <div className="relative -mt-24 bg-[#0c0c0F] sm:rounded-t-[50%_6rem]">
                     <div className="mx-auto grid w-[90%] max-w-6xl gap-8 pt-14 pb-10 text-sm sm:grid-cols-[1.4fr_1fr_1fr] sm:pt-20">
                         <div>
                             <div className="flex items-center gap-2.5">

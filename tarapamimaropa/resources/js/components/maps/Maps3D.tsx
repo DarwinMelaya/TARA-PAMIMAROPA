@@ -14,6 +14,7 @@ import {
 import { buildProjectPinHtml } from './projectMapPins';
 import type { MapBaseLayer, UserLocation } from './mapTypes';
 import mimaropaProvinces from './mimaropaProvinces.json';
+import mimaropaMunicipalities from './mimaropaMunicipalities.json';
 import { placeKey, resolveProjectMapCoords } from './mimaropaPlaceCoords';
 
 setWorkerUrl(maplibreWorkerUrl);
@@ -315,6 +316,28 @@ const buildTooltipContent = (project: TaraProject) => {
   `;
 };
 
+const buildTownTooltipContent = (
+    name: string,
+    province: string,
+    projectCount: number,
+) => `
+    <div class="project-map-tooltip__inner">
+      <strong>${escapeHtml(name)}</strong>
+      <span>${escapeHtml(province)}</span>
+      <p>${projectCount} ${projectCount === 1 ? 'project' : 'projects'}</p>
+    </div>
+  `;
+
+const countProjectsByTown = (projects: TaraProject[]) => {
+    const counts = new Map<string, number>();
+    projects.forEach((project) => {
+        if (!project.municipality) return;
+        const key = placeKey(project.province, project.municipality);
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+    });
+    return counts;
+};
+
 const projectDotColor = (project: TaraProject) =>
     projectTypeMeta(projectType(project)).color;
 
@@ -359,6 +382,10 @@ const MIMAROPA_FILL = 'mimaropa-provinces-fill';
 const MIMAROPA_LINE_CASING = 'mimaropa-provinces-line-casing';
 const MIMAROPA_LINE = 'mimaropa-provinces-line';
 const MIMAROPA_LABEL = 'mimaropa-provinces-label';
+const TOWN_SOURCE = 'mimaropa-towns';
+const TOWN_FILL = 'mimaropa-towns-fill';
+const TOWN_LINE = 'mimaropa-towns-line';
+const TOWN_HOVER_LINE = 'mimaropa-towns-hover-line';
 
 /** One label point per province (MultiPolygon would stamp name on every island). */
 const MIMAROPA_LABEL_POINTS: GeoJSON.FeatureCollection = {
@@ -393,9 +420,12 @@ const MIMAROPA_LABEL_POINTS: GeoJSON.FeatureCollection = {
 };
 
 const mimaropaLayerIds = [
+    TOWN_FILL,
     MIMAROPA_FILL,
+    TOWN_LINE,
     MIMAROPA_LINE_CASING,
     MIMAROPA_LINE,
+    TOWN_HOVER_LINE,
     MIMAROPA_LABEL,
 ] as const;
 
@@ -468,6 +498,90 @@ const ensureMimaropaOutlines = (map: maplibregl.Map, isDark: boolean) => {
         } else {
             map.setPaintProperty(MIMAROPA_FILL, 'fill-color', fillColor);
             map.setPaintProperty(MIMAROPA_FILL, 'fill-opacity', fillOpacity);
+        }
+    });
+
+    addOrUpdate(() => {
+        if (!map.getSource(TOWN_SOURCE)) {
+            map.addSource(TOWN_SOURCE, {
+                type: 'geojson',
+                data: mimaropaMunicipalities as GeoJSON.FeatureCollection,
+            });
+        }
+    });
+
+    const townHoverOpacity = isDark ? 0.32 : 0.22;
+    const townFillOpacity = [
+        'case',
+        ['boolean', ['feature-state', 'hover'], false],
+        townHoverOpacity,
+        0,
+    ] as maplibregl.ExpressionSpecification;
+
+    addOrUpdate(() => {
+        if (!map.getLayer(TOWN_FILL)) {
+            map.addLayer({
+                id: TOWN_FILL,
+                type: 'fill',
+                source: TOWN_SOURCE,
+                paint: {
+                    'fill-color': fillColor,
+                    'fill-opacity': townFillOpacity,
+                },
+            });
+        } else {
+            map.setPaintProperty(TOWN_FILL, 'fill-color', fillColor);
+            map.setPaintProperty(TOWN_FILL, 'fill-opacity', townFillOpacity);
+        }
+    });
+
+    addOrUpdate(() => {
+        if (!map.getLayer(TOWN_LINE)) {
+            map.addLayer({
+                id: TOWN_LINE,
+                type: 'line',
+                source: TOWN_SOURCE,
+                layout: { 'line-join': 'round' },
+                paint: {
+                    'line-color': lineColor,
+                    'line-width': 0.6,
+                    'line-opacity': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        6,
+                        0,
+                        7.5,
+                        isDark ? 0.35 : 0.3,
+                    ],
+                    'line-dasharray': [2, 2],
+                },
+            });
+        } else {
+            map.setPaintProperty(TOWN_LINE, 'line-color', lineColor);
+        }
+    });
+
+    addOrUpdate(() => {
+        if (!map.getLayer(TOWN_HOVER_LINE)) {
+            map.addLayer({
+                id: TOWN_HOVER_LINE,
+                type: 'line',
+                source: TOWN_SOURCE,
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: {
+                    'line-color': lineColor,
+                    'line-width': 2.4,
+                    'line-opacity': [
+                        'case',
+                        ['boolean', ['feature-state', 'hover'], false],
+                        1,
+                        0,
+                    ],
+                },
+            });
+        } else {
+            map.setPaintProperty(TOWN_HOVER_LINE, 'line-color', lineColor);
         }
     });
 
@@ -630,6 +744,10 @@ const Maps3D = ({
     >(null);
     const enterHandlerRef = useRef<(() => void) | null>(null);
     const leaveHandlerRef = useRef<(() => void) | null>(null);
+    const townCountsRef = useRef<{
+        source: TaraProject[];
+        counts: Map<string, number>;
+    } | null>(null);
     const [overviewHint, setOverviewHint] = useState(true);
 
     onViewProjectRef.current = onViewProject;
@@ -915,6 +1033,17 @@ const Maps3D = ({
         return { valid, positioned };
     };
 
+    const townProjectCount = (province: string, name: string) => {
+        const list = projectsRef.current ?? [];
+        if (townCountsRef.current?.source !== list) {
+            townCountsRef.current = {
+                source: list,
+                counts: countProjectsByTown(list),
+            };
+        }
+        return townCountsRef.current.counts.get(placeKey(province, name)) ?? 0;
+    };
+
     paintRef.current = () => {
         const map = mapRef.current;
         if (!map || !readyRef.current) return;
@@ -988,6 +1117,37 @@ const Maps3D = ({
         let moveTimer: number | null = null;
         let onZoomEnd: (() => void) | null = null;
         let onMoveEnd: (() => void) | null = null;
+        let onTownMove: ((e: maplibregl.MapLayerMouseEvent) => void) | null =
+            null;
+        let onTownLeave: (() => void) | null = null;
+        let hoveredTownId: string | number | null = null;
+        const townPopup = new maplibregl.Popup({
+            closeButton: false,
+            closeOnClick: false,
+            offset: 14,
+            className: 'project-maplibre-popup town-hover-popup',
+        });
+
+        const setTownHover = (id: string | number | null) => {
+            if (!map || hoveredTownId === id) return;
+            try {
+                if (hoveredTownId != null) {
+                    map.setFeatureState(
+                        { source: TOWN_SOURCE, id: hoveredTownId },
+                        { hover: false },
+                    );
+                }
+                if (id != null) {
+                    map.setFeatureState(
+                        { source: TOWN_SOURCE, id },
+                        { hover: true },
+                    );
+                }
+            } catch {
+                // Source may be gone mid style swap.
+            }
+            hoveredTownId = id;
+        };
 
         const resizeMap = () => {
             map?.resize();
@@ -1079,6 +1239,37 @@ const Maps3D = ({
             map.on('zoomend', onZoomEnd);
             map.on('moveend', onMoveEnd);
 
+            onTownMove = (e) => {
+                if (!map) return;
+                const target = e.originalEvent.target as Element | null;
+                const overPin = !!target?.closest?.('.maplibregl-marker');
+                const town = e.features?.[0];
+                if (overPin || !town || town.id == null) {
+                    setTownHover(null);
+                    townPopup.remove();
+                    return;
+                }
+                setTownHover(town.id);
+                const name = String(town.properties?.name ?? '');
+                const province = String(town.properties?.province ?? '');
+                townPopup
+                    .setLngLat(e.lngLat)
+                    .setHTML(
+                        buildTownTooltipContent(
+                            name,
+                            province,
+                            townProjectCount(province, name),
+                        ),
+                    )
+                    .addTo(map);
+            };
+            onTownLeave = () => {
+                setTownHover(null);
+                townPopup.remove();
+            };
+            map.on('mousemove', TOWN_FILL, onTownMove);
+            map.on('mouseleave', TOWN_FILL, onTownLeave);
+
             ro = new ResizeObserver(() => {
                 resizeMap();
             });
@@ -1098,8 +1289,11 @@ const Maps3D = ({
             if (map) {
                 if (onZoomEnd) map.off('zoomend', onZoomEnd);
                 if (onMoveEnd) map.off('moveend', onMoveEnd);
+                if (onTownMove) map.off('mousemove', TOWN_FILL, onTownMove);
+                if (onTownLeave) map.off('mouseleave', TOWN_FILL, onTownLeave);
                 clearDotLayer(map);
             }
+            townPopup.remove();
             if (userMarkerRef.current) {
                 userMarkerRef.current.remove();
                 userMarkerRef.current = null;

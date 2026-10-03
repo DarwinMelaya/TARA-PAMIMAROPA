@@ -30,8 +30,14 @@ export type SummaryReport = {
     projects: TaraProject[] | null;
 };
 
-const fileStem = () =>
-    `tara-summary-report-${new Date().toISOString().slice(0, 10)}`;
+const fileStem = (report: SummaryReport) => {
+    const slug =
+        report.title
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '') || 'report';
+    return `tara-${slug}-${new Date().toISOString().slice(0, 10)}`;
+};
 
 /** Excel keeps the peso sign; the built-in PDF fonts cannot render it. */
 const formatAmount = (value: number, format: ReportFormat, peso: string) => {
@@ -107,7 +113,86 @@ export async function downloadSummaryExcel(report: SummaryReport) {
         throw new Error(data.message || 'Could not build the Excel file.');
     }
 
-    saveBlob(await response.blob(), `${fileStem()}.xlsx`);
+    saveBlob(await response.blob(), `${fileStem(report)}.xlsx`);
+}
+
+/* ── CSV (client-side, opens in any spreadsheet app) ────────────── */
+
+const CSV_PROJECT_COLUMNS: {
+    label: string;
+    value: (p: TaraProject) => string | number | null | undefined;
+}[] = [
+    { label: 'Code', value: (p) => p.code },
+    { label: 'Project', value: (p) => p.name },
+    { label: 'Program', value: (p) => p.program },
+    { label: 'Type', value: (p) => p.type },
+    { label: 'Province', value: (p) => p.province },
+    { label: 'Municipality', value: (p) => p.municipality },
+    { label: 'Barangay', value: (p) => p.barangay },
+    { label: 'Status', value: (p) => projectStatusLabel(p) },
+    { label: 'Year approved', value: (p) => p.year_approved },
+    { label: 'Progress %', value: (p) => p.progress },
+    { label: 'Cost (PHP)', value: (p) => p.budget },
+    { label: 'Beneficiary', value: (p) => p.beneficiary },
+    { label: 'Beneficiaries', value: (p) => p.beneficiaries },
+    { label: 'Funding source', value: (p) => p.funding_source },
+    { label: 'Partner agency', value: (p) => p.partner_agency },
+    { label: 'Start', value: (p) => p.start_date },
+    { label: 'End', value: (p) => p.end_date },
+];
+
+const csvCell = (value: unknown): string => {
+    const str = String(value ?? '');
+    return /[",\r\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+};
+
+const csvLine = (cells: unknown[]) => cells.map(csvCell).join(',');
+
+export function downloadSummaryCsv(report: SummaryReport) {
+    const lines: string[] = [
+        csvLine([`TARA PAMIMAROPA — ${report.title}`]),
+        csvLine([`Scope: ${report.scopeLabel}`]),
+        csvLine([`Generated: ${new Date().toLocaleString('en-PH')}`]),
+    ];
+
+    if (report.stats.length > 0) {
+        lines.push('', csvLine(['Key figures']), csvLine(['Metric', 'Value']));
+        report.stats.forEach((s) =>
+            lines.push(csvLine([s.label, Math.round(s.value)])),
+        );
+    }
+
+    report.sections.forEach((section) => {
+        lines.push(
+            '',
+            csvLine([section.title]),
+            csvLine([
+                'Label',
+                section.format === 'peso' ? 'Amount (PHP)' : 'Count',
+            ]),
+        );
+        section.rows.forEach((r) =>
+            lines.push(csvLine([r.label, Math.round(r.value)])),
+        );
+    });
+
+    if (report.projects && report.projects.length > 0) {
+        lines.push(
+            '',
+            csvLine([`Project list (${report.projects.length})`]),
+            csvLine(CSV_PROJECT_COLUMNS.map((c) => c.label)),
+        );
+        report.projects.forEach((p) =>
+            lines.push(csvLine(CSV_PROJECT_COLUMNS.map((c) => c.value(p)))),
+        );
+    }
+
+    saveBlob(
+        new Blob(['\ufeff' + lines.join('\r\n')], {
+            type: 'text/csv;charset=utf-8;',
+        }),
+        `${fileStem(report)}.csv`,
+    );
 }
 
 /* ── PDF (drawn as vectors with jsPDF) ──────────────────────────── */
@@ -433,5 +518,5 @@ export function downloadSummaryPdf(report: SummaryReport) {
         });
     }
 
-    doc.save(`${fileStem()}.pdf`);
+    doc.save(`${fileStem(report)}.pdf`);
 }

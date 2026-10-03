@@ -6,6 +6,7 @@ import {
     FileSpreadsheet,
     FileText,
     ListChecks,
+    Sheet,
     Table2,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -40,6 +41,7 @@ import {
 } from '@/constants/taraProjects';
 import { cn } from '@/lib/utils';
 import {
+    downloadSummaryCsv,
     downloadSummaryExcel,
     downloadSummaryPdf,
     type ReportChart,
@@ -47,15 +49,23 @@ import {
     type ReportStat,
 } from '@/lib/summary-report';
 
-type ExportFormat = 'pdf' | 'excel';
+export type ExportFormat = 'pdf' | 'excel' | 'csv';
 
 type Props = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    /** Projects after the page's year filter. */
+    /** Projects after the page's own filters. */
     projects: TaraProject[];
-    year: string;
-    defaultProvince: Province | typeof ALL;
+    /** Excel needs the regional export endpoint, so callers opt in. */
+    formats?: ExportFormat[];
+    defaultFormat?: ExportFormat;
+    /** Year fixed by the page filter. Omit to let the user pick a year here. */
+    year?: string;
+    defaultProvince?: Province | typeof ALL;
+    /** Page filters other than province and year, e.g. "Status: On-going". */
+    filterLabel?: string;
+    title?: string;
+    includeProjectsByDefault?: boolean;
 };
 
 const STATS_ID = 'stats';
@@ -86,7 +96,19 @@ const FORMATS: {
         hint: 'Editable charts with the data behind them',
         icon: FileSpreadsheet,
     },
+    {
+        id: 'csv',
+        label: 'CSV spreadsheet',
+        hint: 'Plain tables for any spreadsheet app',
+        icon: Sheet,
+    },
 ];
+
+const FORMAT_NAMES: Record<ExportFormat, string> = {
+    pdf: 'PDF',
+    excel: 'Excel',
+    csv: 'CSV',
+};
 
 const buildSections = (
     list: TaraProject[],
@@ -207,24 +229,52 @@ const ExportReportDialog = ({
     open,
     onOpenChange,
     projects,
-    year,
-    defaultProvince,
+    formats = ['pdf', 'excel', 'csv'],
+    defaultFormat,
+    year: fixedYear,
+    defaultProvince = ALL,
+    filterLabel = '',
+    title = 'Summary report',
+    includeProjectsByDefault = false,
 }: Props) => {
-    const [format, setFormat] = useState<ExportFormat>('pdf');
-    const [province, setProvince] = useState<Province | typeof ALL>(
-        defaultProvince,
+    const formatOptions = FORMATS.filter((f) => formats.includes(f.id));
+    const [format, setFormat] = useState<ExportFormat>(
+        defaultFormat && formats.includes(defaultFormat)
+            ? defaultFormat
+            : (formatOptions[0]?.id ?? 'pdf'),
     );
-    const [excluded, setExcluded] = useState<Set<string>>(
-        () => new Set([PROJECTS_ID]),
+    const provinceOptions = useMemo(() => {
+        const present = new Set(projects.map((p) => p.province));
+        return PROVINCES.filter((p) => present.has(p));
+    }, [projects]);
+    const [province, setProvince] = useState<Province | typeof ALL>(() =>
+        defaultProvince && provinceOptions.includes(defaultProvince)
+            ? defaultProvince
+            : ALL,
+    );
+    const pickYear = fixedYear === undefined;
+    const [chosenYear, setChosenYear] = useState(ALL);
+    const year = pickYear ? chosenYear : fixedYear;
+    const yearOptions = useMemo(() => {
+        const years = new Set<number>();
+        for (const p of projects) years.add(projectYear(p));
+        return [...years].sort((a, b) => b - a);
+    }, [projects]);
+    const [excluded, setExcluded] = useState<Set<string>>(() =>
+        includeProjectsByDefault ? new Set() : new Set([PROJECTS_ID]),
     );
     const [busy, setBusy] = useState(false);
 
     const scoped = useMemo(
         () =>
-            province
-                ? projects.filter((p) => p.province === province)
-                : projects,
-        [projects, province],
+            projects.filter(
+                (p) =>
+                    (!province || p.province === province) &&
+                    (!pickYear ||
+                        !chosenYear ||
+                        String(projectYear(p)) === chosenYear),
+            ),
+        [projects, province, pickYear, chosenYear],
     );
     const sections = useMemo(
         () => buildSections(scoped, province),
@@ -257,11 +307,17 @@ const ExportReportDialog = ({
             return next;
         });
 
-    const scopeLabel = `${province || 'MIMAROPA (all provinces)'} · ${year ? `Year ${year}` : 'All years'}`;
+    const scopeLabel = [
+        province || 'MIMAROPA (all provinces)',
+        year ? `Year ${year}` : 'All years',
+        filterLabel,
+    ]
+        .filter(Boolean)
+        .join(' · ');
 
     const download = async () => {
         const report = {
-            title: 'Summary graphs report',
+            title,
             scopeLabel,
             stats: isOn(STATS_ID) ? buildStats(scoped) : [],
             sections: sections.filter((s) => isOn(s.id)),
@@ -271,10 +327,9 @@ const ExportReportDialog = ({
         setBusy(true);
         try {
             if (format === 'pdf') downloadSummaryPdf(report);
+            else if (format === 'csv') downloadSummaryCsv(report);
             else await downloadSummaryExcel(report);
-            toast.success(
-                format === 'pdf' ? 'PDF report downloaded.' : 'Excel report downloaded.',
-            );
+            toast.success(`${FORMAT_NAMES[format]} report downloaded.`);
             onOpenChange(false);
         } catch (error) {
             toast.error(
@@ -289,12 +344,17 @@ const ExportReportDialog = ({
 
     return (
         <Dialog open={open} onOpenChange={busy ? undefined : onOpenChange}>
-            <DialogContent className="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-2xl">
+            <DialogContent
+                overlayClassName="z-[1000]"
+                className="z-[1000] flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-2xl"
+            >
                 <DialogHeader className="border-b px-6 pt-6 pb-4 pr-12">
                     <DialogTitle>Export report</DialogTitle>
                     <DialogDescription>
-                        Pick a format and what to include. The year filter on
-                        the page applies.
+                        Pick a format, coverage, and what to include.
+                        {filterLabel || !pickYear
+                            ? ' Filters on the page apply.'
+                            : ''}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -303,8 +363,17 @@ const ExportReportDialog = ({
                         <legend className="mb-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                             Format
                         </legend>
-                        <div className="grid gap-2 sm:grid-cols-2">
-                            {FORMATS.map((f) => {
+                        <div
+                            role="radiogroup"
+                            aria-label="Report format"
+                            className={cn(
+                                'grid gap-2',
+                                formatOptions.length === 3
+                                    ? 'sm:grid-cols-3'
+                                    : 'sm:grid-cols-2',
+                            )}
+                        >
+                            {formatOptions.map((f) => {
                                 const on = format === f.id;
                                 return (
                                     <button
@@ -352,7 +421,7 @@ const ExportReportDialog = ({
                             Coverage
                         </legend>
                         <div className="flex flex-wrap items-end gap-3">
-                            <div className="min-w-[220px] flex-1">
+                            <div className="min-w-[200px] flex-1">
                                 <SelectFilter
                                     label="Province"
                                     value={province}
@@ -362,20 +431,50 @@ const ExportReportDialog = ({
                                     options={[
                                         {
                                             value: ALL,
-                                            label: 'All provinces (MIMAROPA)',
+                                            label:
+                                                provinceOptions.length > 1
+                                                    ? 'All provinces (MIMAROPA)'
+                                                    : 'All in scope',
                                         },
-                                        ...PROVINCES.map((p) => ({
+                                        ...provinceOptions.map((p) => ({
                                             value: p,
                                             label: p,
                                         })),
                                     ]}
                                 />
                             </div>
-                            <p className="min-h-9 rounded-lg border border-dashed px-3 py-2 text-sm text-muted-foreground">
-                                {year ? `Year ${year}` : 'All years'} ·{' '}
-                                {scoped.length} projects
+                            {pickYear ? (
+                                <div className="min-w-[140px] flex-1">
+                                    <SelectFilter
+                                        label="Year approved"
+                                        value={chosenYear}
+                                        onChange={setChosenYear}
+                                        options={[
+                                            { value: ALL, label: 'All years' },
+                                            ...yearOptions.map((y) => ({
+                                                value: String(y),
+                                                label: String(y),
+                                            })),
+                                        ]}
+                                    />
+                                </div>
+                            ) : null}
+                            <p
+                                className="min-h-9 rounded-lg border border-dashed px-3 py-2 text-sm text-muted-foreground tabular-nums"
+                                aria-live="polite"
+                            >
+                                {pickYear
+                                    ? ''
+                                    : `${year ? `Year ${year}` : 'All years'} · `}
+                                {scoped.length.toLocaleString()}{' '}
+                                {scoped.length === 1 ? 'project' : 'projects'}
                             </p>
                         </div>
+                        {filterLabel ? (
+                            <p className="text-xs text-muted-foreground">
+                                Page filters: {filterLabel}
+                            </p>
+                        ) : null}
                     </fieldset>
 
                     <fieldset className="grid gap-2">
@@ -467,7 +566,7 @@ const ExportReportDialog = ({
                             ) : (
                                 <Download className="size-4" aria-hidden="true" />
                             )}
-                            Download {format === 'pdf' ? 'PDF' : 'Excel'}
+                            Download {FORMAT_NAMES[format]}
                         </Button>
                     </div>
                 </DialogFooter>

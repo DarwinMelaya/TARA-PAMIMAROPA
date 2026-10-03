@@ -19,6 +19,7 @@ const RegionPrograms = () => {
       allowExport
       exportTemplateUrl={exportTemplate.url()}
       summaryGraphsHref={summaryGraphs.url()}
+      reportFormats={['pdf', 'excel', 'csv']}
       homeHref={dashboard.url()}
       homeLabel="Command map"
       pageTitle="Programs"

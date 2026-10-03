@@ -7,7 +7,6 @@ import {
     HiBuildingOffice2,
     HiChartBar,
     HiDocumentArrowDown,
-    HiDocumentText,
     HiExclamationTriangle,
     HiFunnel,
     HiChevronDown,
@@ -48,7 +47,7 @@ import {
     type TaraProgram,
     type TaraProject,
 } from '@/constants/taraProjects';
-import { downloadProjectPdfReport } from '@/lib/project-print-report';
+import ExportReportDialog from '@/components/reports/ExportReportDialog';
 export type CommandMapVariant = "public" | "region";
 
 export type CommandMapWorkspaceProps = {
@@ -112,79 +111,23 @@ const openGoogleDirections = (
 };
 
 type ReportFilters = {
-  province: Province | "all";
   program: TaraProgram | "all";
   type: string | "all";
   status: string | "all";
   search: string;
 };
 
-const REPORT_COLUMNS: { key: keyof TaraProject; label: string }[] = [
-  { key: "id", label: "ID" },
-  { key: "name", label: "Project" },
-  { key: "program", label: "Program" },
-  { key: "province", label: "Province" },
-  { key: "municipality", label: "Municipality" },
-  { key: "barangay", label: "Barangay" },
-  { key: "status", label: "Status" },
-  { key: "progress", label: "Progress %" },
-  { key: "budget", label: "Budget (PHP)" },
-  { key: "funding_source", label: "Funding source" },
-  { key: "beneficiaries", label: "Beneficiaries" },
-  { key: "partner_agency", label: "Partner agency" },
-  { key: "start_date", label: "Start" },
-  { key: "end_date", label: "End" },
-  { key: "latest_accomplishment", label: "Latest accomplishment" },
-];
-
+/** Province is picked inside the report dialog, so it is left out here. */
 const describeFilters = (filters: ReportFilters): string => {
   const parts: string[] = [];
-  if (filters.province !== "all") parts.push(`Province: ${filters.province}`);
   if (filters.program !== "all") parts.push(`Program: ${filters.program}`);
   if (filters.type !== "all") parts.push(`Type: ${filters.type}`);
-  if (filters.status !== "all") parts.push(`Status: ${filters.status}`);
+  if (filters.status !== "all") {
+    const meta = STATUS_META[filters.status as ProjectStatus];
+    parts.push(`Status: ${meta ? meta.label : filters.status}`);
+  }
   if (filters.search.trim()) parts.push(`Search: "${filters.search.trim()}"`);
-  return parts.length ? parts.join(" · ") : "All projects (no filters)";
-};
-
-const escapeCsv = (value: string | number): string => {
-  const str = String(value ?? "");
-  return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
-};
-
-const downloadCsvReport = (
-  projects: TaraProject[],
-  filters: ReportFilters,
-) => {
-  const stamp = new Date();
-  const headerLines = [
-    `TARA PAMIMAROPA — Project Report`,
-    `Generated: ${stamp.toLocaleString("en-PH")}`,
-    `Scope: ${describeFilters(filters)}`,
-    `Projects: ${projects.length}`,
-    "",
-  ].map((line) => escapeCsv(line));
-
-  const header = REPORT_COLUMNS.map((c) => escapeCsv(c.label)).join(",");
-  const rows = projects.map((p) =>
-    REPORT_COLUMNS.map((c) => {
-      if (c.key === "status") return escapeCsv(projectStatusLabel(p));
-      return escapeCsv(p[c.key] as string | number);
-    }).join(","),
-  );
-
-  const csv = [...headerLines, header, ...rows].join("\r\n");
-  const blob = new Blob(["\ufeff" + csv], {
-    type: "text/csv;charset=utf-8;",
-  });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `tara-report-${stamp.toISOString().slice(0, 10)}.csv`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  return parts.join(" · ");
 };
 
 const countBy = <T extends string>(
@@ -199,14 +142,6 @@ const countBy = <T extends string>(
   return [...map.entries()]
     .map(([key, count]) => ({ key, count }))
     .sort((a, b) => b.count - a.count);
-};
-
-const printReport = (projects: TaraProject[], filters: ReportFilters) => {
-  downloadProjectPdfReport(projects, {
-    label: describeFilters(filters),
-    fileStem: `tara-report-${new Date().toISOString().slice(0, 10)}`,
-  });
-  return true;
 };
 
 const PERF_LITE_MQ = "(max-width: 1023px), (pointer: coarse)";
@@ -383,7 +318,6 @@ const CommandMapWorkspace = ({
   const [searchOpen, setSearchOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [snapshotOpen, setSnapshotOpen] = useState(false);
-  const [reportError, setReportError] = useState("");
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locateLoading, setLocateLoading] = useState(false);
   const [locateError, setLocateError] = useState("");
@@ -493,27 +427,10 @@ const CommandMapWorkspace = ({
   };
 
   const reportFilters: ReportFilters = {
-    province: provinceFilter,
     program: programFilter,
     type: typeFilter,
     status: statusFilter,
     search,
-  };
-
-  const handleDownloadCsv = () => {
-    setReportError("");
-    downloadCsvReport(filteredProjects, reportFilters);
-  };
-
-  const handlePrintReport = () => {
-    try {
-      printReport(filteredProjects, reportFilters);
-      setReportError("");
-    } catch {
-      setReportError(
-        "Could not generate the PDF. Try again or export CSV instead.",
-      );
-    }
   };
 
   const hasFilters =
@@ -834,15 +751,14 @@ const CommandMapWorkspace = ({
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setReportError("");
-                  setReportOpen(true);
-                }}
+                onClick={() => setReportOpen(true)}
                 className={[
                   "inline-flex shrink-0 items-center justify-center gap-2",
                   ui.chromeBtn,
+                  reportOpen ? ui.active : "",
                 ].join(" ")}
                 aria-label="Report"
+                aria-haspopup="dialog"
               >
                 <HiDocumentArrowDown className="h-4 w-4" aria-hidden />
                 <span className="hidden sm:inline">Report</span>
@@ -1045,10 +961,8 @@ const CommandMapWorkspace = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setReportError("");
-                    setReportOpen(true);
-                  }}
+                  onClick={() => setReportOpen(true)}
+                  aria-haspopup="dialog"
                   className={[
                     "inline-flex h-9 w-full items-center justify-start gap-2 px-2.5 text-xs",
                     ui.chromeBtn,
@@ -1627,98 +1541,16 @@ const CommandMapWorkspace = ({
       />
 
       {reportOpen ? (
-        <div
-          className={`pointer-events-auto absolute inset-0 z-40 flex items-end justify-center p-3 sm:items-center lg:backdrop-blur-sm ${ui.scrim}`}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Generate report"
-        >
-          <div className={`w-full max-w-md overflow-y-auto overscroll-contain rounded-2xl border p-4 [-webkit-overflow-scrolling:touch] sm:p-5 ${ui.modal}`}>
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className={`text-xs font-bold uppercase tracking-[0.14em] ${ui.accentText}`}>
-                  Generate report
-                </p>
-                <h2 className={`mt-1 text-lg font-semibold ${ui.modalHeading}`}>
-                  {filteredProjects.length} project
-                  {filteredProjects.length === 1 ? "" : "s"} in scope
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setReportOpen(false)}
-                className={ui.closeBtn}
-                aria-label="Close"
-              >
-                <HiXMark className="h-5 w-5" aria-hidden />
-              </button>
-            </div>
-
-            <div className={`mt-3 flex items-start gap-2 rounded-xl border p-3 ${ui.cell}`}>
-              <HiFunnel className={`mt-0.5 h-4 w-4 shrink-0 ${ui.accentText}`} aria-hidden />
-              <div className={`min-w-0 text-sm ${ui.modalBody}`}>
-                <p className={`font-semibold ${ui.modalHeading}`}>Current scope</p>
-                <p className={`mt-0.5 break-words ${ui.meta}`}>
-                  {describeFilters(reportFilters)}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-              {(
-                [
-                  ["Funding", `₱${formatCompact(filteredProjects.reduce((s, p) => s + p.budget, 0))}`],
-                  ["Beneficiaries", formatCompact(filteredProjects.reduce((s, p) => s + p.beneficiaries, 0))],
-                  ["Provinces", String(new Set(filteredProjects.map((p) => p.province)).size)],
-                ] as const
-              ).map(([label, value]) => (
-                <div key={label} className={`rounded-xl border p-3 ${ui.cell}`}>
-                  <p className={`text-xs font-medium ${ui.modalMuted}`}>{label}</p>
-                  <p className={`mt-1 text-base font-bold tabular-nums ${ui.modalHeading}`}>
-                    {value}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {reportError ? (
-              <p className={`mt-3 rounded-xl border px-3 py-2 text-xs ${
-                theme === "light"
-                  ? "border-red-300 bg-red-50 text-red-800"
-                  : "border-red-500/40 bg-red-500/10 text-red-300"
-              }`}>
-                {reportError}
-              </p>
-            ) : null}
-
-            <div className="mt-4 flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={handlePrintReport}
-                disabled={filteredProjects.length === 0}
-                className={`inline-flex min-h-11 items-center justify-center gap-2 ${ui.primaryBtn}`}
-              >
-                <HiDocumentArrowDown className="h-4 w-4" aria-hidden />
-                Download PDF report
-              </button>
-              <button
-                type="button"
-                onClick={handleDownloadCsv}
-                disabled={filteredProjects.length === 0}
-                className={`inline-flex min-h-11 items-center justify-center gap-2 ${ui.chromeBtn}`}
-              >
-                <HiTableCells className="h-4 w-4" aria-hidden />
-                Export spreadsheet (CSV)
-              </button>
-            </div>
-
-            <p className={`mt-3 flex items-center gap-1.5 text-xs ${ui.modalMuted}`}>
-              <HiDocumentText className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              Report reflects active filters. Clear filters for a region-wide
-              report.
-            </p>
-          </div>
-        </div>
+        <ExportReportDialog
+          open
+          onOpenChange={setReportOpen}
+          projects={filteredProjects}
+          formats={isPublic ? ["pdf", "csv"] : ["pdf", "excel", "csv"]}
+          defaultProvince={provinceFilter === "all" ? "" : provinceFilter}
+          filterLabel={describeFilters(reportFilters)}
+          title="Project report"
+          includeProjectsByDefault
+        />
       ) : null}
 
     </section>

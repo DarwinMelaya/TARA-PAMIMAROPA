@@ -15,6 +15,9 @@ import {
 import CommandMapWorkspace from '@/components/dashboard/CommandMapWorkspace';
 import DostLogo from '@/components/dost-logo';
 import type { UserLocation } from '@/components/maps/mapTypes';
+import ExportReportDialog, {
+    type ExportFormat,
+} from '@/components/reports/ExportReportDialog';
 import {
     PROGRAM_META,
     PROVINCES,
@@ -37,7 +40,6 @@ import {
     useDashboardProjectStream,
     type ProjectStreamMeta,
 } from '@/hooks/use-dashboard-project-stream';
-import { downloadProjectPdfReport } from '@/lib/project-print-report';
 import { useTheme, type ThemeMode } from '@/theme/ThemeProvider';
 import artboard from '../../../pic/Artboard.jpg';
 
@@ -204,52 +206,19 @@ const matchesQuery = (project: TaraProject, query: string) => {
 };
 
 type ExportScope = {
-    province: Province | 'all';
     type: string | 'all';
     status: string | 'all';
     search: string;
 };
 
-const EXPORT_COLUMNS: { key: keyof TaraProject; label: string }[] = [
-    { key: 'id', label: 'ID' },
-    { key: 'name', label: 'Project' },
-    { key: 'program', label: 'Program' },
-    { key: 'sector', label: 'Sector' },
-    { key: 'province', label: 'Province' },
-    { key: 'municipality', label: 'Municipality' },
-    { key: 'barangay', label: 'Barangay' },
-    { key: 'status', label: 'Status' },
-    { key: 'progress', label: 'Progress %' },
-    { key: 'budget', label: 'Budget (PHP)' },
-    { key: 'funding_source', label: 'Funding source' },
-    { key: 'beneficiaries', label: 'Beneficiaries' },
-    { key: 'beneficiary', label: 'Beneficiary' },
-    { key: 'partner_agency', label: 'Partner agency' },
-    { key: 'start_date', label: 'Start' },
-    { key: 'end_date', label: 'End' },
-    { key: 'latest_accomplishment', label: 'Latest accomplishment' },
-];
-
+/** Province is picked inside the report dialog, so it is left out here. */
 const describeExportScope = (scope: ExportScope): string => {
     const parts: string[] = [];
-    if (scope.province !== 'all') parts.push(`Province: ${scope.province}`);
     if (scope.type !== 'all') parts.push(`Type: ${scope.type}`);
     if (scope.status !== 'all') parts.push(`Status: ${scope.status}`);
     if (scope.search.trim()) parts.push(`Search: "${scope.search.trim()}"`);
-    return parts.length ? parts.join(' · ') : 'All projects (no filters)';
+    return parts.join(' · ');
 };
-
-const escapeCsv = (value: string | number): string => {
-    const str = String(value ?? '');
-    return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
-};
-
-const slugPart = (value: string) =>
-    value
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '')
-        .slice(0, 40) || 'all';
 
 const openGoogleDirections = (
     project: TaraProject,
@@ -265,57 +234,6 @@ const openGoogleDirections = (
     }
     window.open(url.toString(), '_blank', 'noopener,noreferrer');
 };
-
-/** Export currently filtered rows (search + province + type + status). */
-const downloadFilteredCsv = (projects: TaraProject[], scope: ExportScope) => {
-    const stamp = new Date();
-    const meta = [
-        'TARAMIMAROPA Public Project Export',
-        `Generated: ${stamp.toLocaleString('en-PH')}`,
-        `Scope: ${describeExportScope(scope)}`,
-        `Projects: ${projects.length}`,
-        '',
-    ].map((line) => escapeCsv(line));
-
-    const header = EXPORT_COLUMNS.map((c) => escapeCsv(c.label)).join(',');
-    const rows = projects.map((p) =>
-        EXPORT_COLUMNS.map((c) => {
-            if (c.key === 'status') {
-                return escapeCsv(projectStatusLabel(p));
-            }
-            return escapeCsv(p[c.key] as string | number);
-        }).join(','),
-    );
-
-    const csv = [...meta, header, ...rows].join('\r\n');
-    const blob = new Blob(['\ufeff' + csv], {
-        type: 'text/csv;charset=utf-8;',
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    const provinceSlug =
-        scope.province === 'all' ? 'mimaropa' : slugPart(scope.province);
-    link.href = url;
-    link.download = `tara-${provinceSlug}-${stamp.toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-};
-
-/** PDF download for currently filtered rows (no popup). */
-const downloadFilteredPdf = (
-    projects: TaraProject[],
-    scope: ExportScope,
-): void => {
-    const provinceSlug =
-        scope.province === 'all' ? 'mimaropa' : slugPart(scope.province);
-    downloadProjectPdfReport(projects, {
-        label: describeExportScope(scope),
-        fileStem: `tara-${provinceSlug}-${new Date().toISOString().slice(0, 10)}`,
-    });
-};
-
 const clampProgress = (value: number) =>
     Math.max(0, Math.min(100, Number.isFinite(value) ? value : 0));
 
@@ -537,7 +455,7 @@ const LandingPage = () => {
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
     const [locating, setLocating] = useState(false);
-    const [exportError, setExportError] = useState('');
+    const [exportOpen, setExportOpen] = useState<ExportFormat | null>(null);
 
     const resultsRef = useRef<HTMLElement | null>(null);
     const closeBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -636,7 +554,6 @@ const LandingPage = () => {
         query.trim().length > 0;
 
     const exportScope: ExportScope = {
-        province: provinceFilter,
         type: typeFilter,
         status: statusFilter,
         search: query,
@@ -664,22 +581,6 @@ const LandingPage = () => {
     const openProject = (project: TaraProject) => {
         setSelectedId(project.id);
         setViewing(project);
-    };
-
-    const exportPdf = () => {
-        setExportError('');
-        try {
-            downloadFilteredPdf(sorted, exportScope);
-        } catch {
-            setExportError(
-                'Could not generate the PDF. Try again or export CSV instead.',
-            );
-        }
-    };
-
-    const exportCsv = () => {
-        setExportError('');
-        downloadFilteredCsv(sorted, exportScope);
     };
 
     const locateMe = () => {
@@ -950,7 +851,8 @@ const LandingPage = () => {
                                 <button
                                     type="button"
                                     disabled={sorted.length === 0}
-                                    onClick={exportPdf}
+                                    onClick={() => setExportOpen('pdf')}
+                                    aria-haspopup="dialog"
                                     title={exportTitle}
                                     className={`${BTN_BASE} rounded-none border-0 ${t.ghostBtn} ${t.focus}`}
                                 >
@@ -963,7 +865,8 @@ const LandingPage = () => {
                                 <button
                                     type="button"
                                     disabled={sorted.length === 0}
-                                    onClick={exportCsv}
+                                    onClick={() => setExportOpen('csv')}
+                                    aria-haspopup="dialog"
                                     title={exportTitle}
                                     className={`${BTN_BASE} rounded-none border-0 border-l ${t.groupDivider} ${t.ghostBtn} ${t.focus}`}
                                 >
@@ -977,13 +880,22 @@ const LandingPage = () => {
                         </div>
                     </div>
 
-                    {exportError ? (
-                        <p
-                            role="alert"
-                            className="mb-4 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300"
-                        >
-                            {exportError}
-                        </p>
+                    {exportOpen ? (
+                        <ExportReportDialog
+                            open
+                            onOpenChange={(next) => {
+                                if (!next) setExportOpen(null);
+                            }}
+                            projects={sorted}
+                            formats={['pdf', 'csv']}
+                            defaultFormat={exportOpen}
+                            defaultProvince={
+                                provinceFilter === 'all' ? '' : provinceFilter
+                            }
+                            filterLabel={describeExportScope(exportScope)}
+                            title="Project report"
+                            includeProjectsByDefault
+                        />
                     ) : null}
 
                     <div

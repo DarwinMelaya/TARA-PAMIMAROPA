@@ -24,6 +24,9 @@ import {
 import AddProjectsModal from '@/components/modals/psto/AddProjectsModal';
 import EditProjectsModal from '@/components/modals/psto/EditProjectsModal';
 import QuickSnapshotModal from '@/components/modals/region/QuickSnapshotModal';
+import ExportReportDialog, {
+  type ExportFormat,
+} from '@/components/reports/ExportReportDialog';
 import {
   Dialog,
   DialogContent,
@@ -67,6 +70,8 @@ export type ProgramsWorkspaceProps = {
   nextCodeSequence?: number;
   /** Region: link to dedicated Summary graphs page. */
   summaryGraphsHref?: string;
+  /** Shows a "Download report" action with these formats. */
+  reportFormats?: ExportFormat[];
   homeHref: string;
   homeLabel?: string;
   pageTitle?: string;
@@ -340,6 +345,7 @@ const ProgramsWorkspace = ({
   allowMutate = false,
   nextCodeSequence = 1,
   summaryGraphsHref,
+  reportFormats,
   homeHref,
   homeLabel = "Dashboard",
   pageTitle = "Programs",
@@ -366,6 +372,7 @@ const ProgramsWorkspace = ({
   const [page, setPage] = useState(1);
   const [viewing, setViewing] = useState<TaraProject | null>(null);
   const [snapshotOpen, setSnapshotOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<TaraProject | null>(null);
@@ -633,6 +640,17 @@ const ProgramsWorkspace = ({
 
   const scopeLabel = provinceFilter === "all" ? "MIMAROPA" : provinceFilter;
 
+  const reportFilterLabel = [
+    statusFilter !== "all" && `Status: ${statusFilter}`,
+    typeFilter !== "all" && `Type: ${typeFilter}`,
+    sectorFilter !== "all" && `Sector: ${sectorFilter}`,
+    cityFilter !== "all" && `Municipality: ${cityFilter}`,
+    districtFilter !== "all" && `District: ${districtFilter}`,
+    search.trim() && `Search: "${search.trim()}"`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   const refundPct =
     totals.due > 0 ? Math.round((totals.refunded / totals.due) * 100) : null;
 
@@ -759,6 +777,22 @@ const ProgramsWorkspace = ({
                   </DropdownMenuContent>
                 </DropdownMenu>
               </>
+            ) : null}
+            {reportFormats?.length ? (
+              <button
+                type="button"
+                onClick={() => setReportOpen(true)}
+                disabled={filteredProjects.length === 0}
+                title={
+                  filteredProjects.length === 0
+                    ? "No projects match the current filters"
+                    : `Report on ${filteredProjects.length.toLocaleString()} filtered project${filteredProjects.length === 1 ? "" : "s"}`
+                }
+                className={`${ghostBtnClass} disabled:cursor-not-allowed`}
+              >
+                <HiDocumentArrowDown className="h-4 w-4" aria-hidden />
+                Download report
+              </button>
             ) : null}
             {summaryGraphsHref ? (
               <Link href={summaryGraphsHref} className={primaryBtnClass}>
@@ -1422,6 +1456,20 @@ const ProgramsWorkspace = ({
         }}
         onStatusFilter={setStatus}
       />
+
+      {reportOpen && reportFormats?.length ? (
+        <ExportReportDialog
+          open
+          onOpenChange={setReportOpen}
+          projects={filteredProjects}
+          formats={reportFormats}
+          year={yearFilter === "all" ? undefined : yearFilter}
+          defaultProvince={provinceFilter === "all" ? "" : provinceFilter}
+          filterLabel={reportFilterLabel}
+          title="Programs report"
+          includeProjectsByDefault
+        />
+      ) : null}
 
       {canMutate ? (
         <>

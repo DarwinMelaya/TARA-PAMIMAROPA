@@ -27,7 +27,7 @@ import {
     type Row,
     type StackSeries,
 } from '@/components/graphs/SummaryCharts';
-import ExportReportDialog from '@/components/region/graphs/ExportReportDialog';
+import ExportReportDialog from '@/components/reports/ExportReportDialog';
 import RegionGraphsAiPanel from '@/components/region/graphs/RegionGraphsAiPanel';
 import type { ChartInterpretContext } from '@/components/region/graphs/ChartAiInterpretation';
 import {
@@ -909,6 +909,7 @@ const RegionSummaryGraphs = () => {
                             onOpenChange={setExportOpen}
                             projects={yearFiltered}
                             year={year}
+                            title="Summary graphs report"
                             defaultProvince={
                                 tab === 'province' || tab === 'municipality'
                                     ? browseProvince
